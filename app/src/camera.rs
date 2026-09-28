@@ -18,7 +18,8 @@ pub struct Camera {
 }
 
 pub const FOV_WIDEST: f64 = 120.0;
-pub const FOV_NARROWEST: f64 = 0.6;
+/// Close enough to fill the view with a planet's disc.
+pub const FOV_NARROWEST: f64 = 0.01;
 
 fn dot(a: Vec3, b: Vec3) -> f64 {
     a[0] * b[0] + a[1] * b[1] + a[2] * b[2]

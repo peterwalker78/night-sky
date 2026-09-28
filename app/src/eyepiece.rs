@@ -1,6 +1,7 @@
-//! The eyepiece: once something has been found, looking at it close up shows
-//! a real photograph of it in a round, soft-edged view, turned to sit as it
-//! does in tonight's sky. The Moon, Mercury and Venus wear tonight's phase.
+//! Photographs of what's been found. Close in on something already found and
+//! a real photograph of it takes over from the dots, at its true size on the
+//! sky and turned as it sits there tonight. The Moon and Mercury wear
+//! tonight's phase.
 
 use gtk::{gdk, glib, prelude::*};
 use serde::Deserialize;
@@ -55,7 +56,7 @@ fn folder() -> Option<PathBuf> {
 }
 
 /// The share of the picture's width the disc of a Moon or planet fills.
-const DISC: f64 = 0.88;
+pub const DISC: f64 = 0.88;
 
 impl Photos {
     pub fn load() -> Photos {

@@ -148,12 +148,13 @@ shortens the visit itself, `--place=LAT,LON` stands somewhere else, and
 
 ## The photographs
 
-Once something has been found, looking at it close up shows a photograph of
-it in a round eyepiece, turned to sit as it does in your sky; the Moon and
-Mercury wear tonight's real phase. The 44 pictures come from NASA (public
+Once something has been found, zooming in on it lets a real photograph take
+over from the dots, at its true size on the sky and turned as it sits there
+tonight, with the view following it as the sky turns; the Moon and Mercury
+wear tonight's real phase. The 44 pictures come from NASA (public
 domain), ESA/Hubble, ESO and NOIRLab/NSF/AURA (CC BY 4.0), and a few from
 Wikimedia Commons (CC0, public domain, CC BY 2.0/4.0 and CC BY-SA 4.0).
-Each one's credit shows under it, and every title, credit, licence and source
+Each one's credit shows while it's in view, and every title, credit, licence and source
 page is in [`app/data/images/credits.toml`](app/data/images/credits.toml) and
 in Settings. The pictures are cropped and resized; the CC BY-SA ones stay
 under CC BY-SA.

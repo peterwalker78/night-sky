@@ -251,7 +251,6 @@ impl Game {
         };
         self.card = Some(crate::game::Card {
             x: self.beside_centre(),
-            find: None,
             kicker: "Your constellation".into(),
             title: name.to_owned(),
             body,

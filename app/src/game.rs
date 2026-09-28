@@ -82,8 +82,6 @@ pub(crate) struct Catch {
 
 pub(crate) struct Card {
     pub(crate) x: f64,
-    /// The find it's about, if it's about one.
-    pub(crate) find: Option<usize>,
     pub(crate) kicker: String,
     pub(crate) title: String,
     pub(crate) body: String,
@@ -171,6 +169,8 @@ pub struct Game {
     pub(crate) guide: crate::guide::Guide,
     pub(crate) points: Vec<crate::view::Point>,
     pub(crate) photos: crate::eyepiece::Photos,
+    /// A find the view keeps centred as the sky turns, like a telescope's drive.
+    pub(crate) track: Option<usize>,
     /// The find the eyepiece shows, and how far it has faded in.
     eye: Option<usize>,
     eye_alpha: f64,
@@ -339,6 +339,7 @@ impl Game {
             guide: crate::guide::Guide::new(real_now),
             points: Vec::new(),
             photos: crate::eyepiece::Photos::load(),
+            track: None,
             eye: None,
             eye_alpha: 0.0,
         };
@@ -483,12 +484,17 @@ impl Game {
     /// How narrow the view goes to show a find close up.
     fn zoom_for(&self, i: usize) -> f64 {
         match self.finds[i].target {
-            Target::Body(Body::Moon) => 2.4,
-            Target::Body(Body::Jupiter) | Target::Body(Body::Saturn) => 1.2,
-            Target::Body(_) => 0.9,
-            Target::Showpiece(p) => {
-                (self.sky.lists.showpieces[p].size / 60.0 * 3.2).clamp(1.2, 40.0)
+            // Close enough for the disc to fill about a quarter of the view.
+            Target::Body(body) => {
+                let d = see(body, self.observer, self.clock.sky(self.last_real))
+                    .position
+                    .diameter
+                    / 3600.0;
+                // Saturn is framed by its rings, 2.27 times as wide as the planet.
+                let d = if body == Body::Saturn { d * 2.27 } else { d };
+                (d / 0.24).clamp(crate::camera::FOV_NARROWEST, 2.4)
             }
+            Target::Showpiece(p) => (self.photo_degrees(p) * 2.6).clamp(0.4, 40.0),
             Target::Star(_) => 8.0,
             Target::Meteor(_) => self.camera.fov,
             Target::Figure(f) => self.sky.figures[f]
@@ -507,18 +513,49 @@ impl Game {
         self.photos.credit(&id).map(|_| id)
     }
 
-    /// How big the eyepiece is: as big as leaves room for the card beside it.
-    pub(crate) fn eyepiece_radius(&self) -> f64 {
-        let (w, h) = (self.camera.width, self.camera.height);
-        (0.27 * w.min(h))
-            .min(w / 2.0 - 34.0 - 400.0 - 24.0)
-            .max(120.0)
+    /// How wide a showpiece's photograph is on the sky, in degrees.
+    fn photo_degrees(&self, p: usize) -> f64 {
+        let piece = &self.sky.lists.showpieces[p];
+        match piece.kind {
+            // Pairs and single stars are pictured at a small telescope's scale.
+            Kind::Double | Kind::Star => 0.3,
+            _ => (piece.size / 60.0).max(0.1) / 0.8,
+        }
+    }
+
+    /// Half the width of find `i`'s photograph on the screen, at a field of view.
+    pub(crate) fn photo_half(&self, i: usize, fov: f64) -> f64 {
+        let ppd = (self.camera.width / 2.0) / (2.0 * (fov.to_radians() / 4.0).tan())
+            * std::f64::consts::PI
+            / 180.0;
+        let degrees = match self.finds[i].target {
+            Target::Body(body) => {
+                // Saturn's picture is framed by its rings, 2.27 times the
+                // planet's width: the planet fills 38 per cent of it.
+                let share = if body == Body::Saturn {
+                    0.38
+                } else {
+                    crate::eyepiece::DISC
+                };
+                see(body, self.observer, self.clock.sky(self.last_real))
+                    .position
+                    .diameter
+                    / 3600.0
+                    / share
+            }
+            Target::Showpiece(p) => self.photo_degrees(p),
+            _ => 0.0,
+        };
+        degrees / 2.0 * ppd
     }
 
     /// How big find `i` looks, in pixels, at a field of view.
     fn apparent_radius(&self, i: usize, fov: f64) -> f64 {
         if self.caught[i] && self.photo_id(i).is_some() {
-            return self.eyepiece_radius();
+            // Keep the card on the screen beside a picture that fills the view.
+            return self
+                .photo_half(i, fov)
+                .min(self.camera.width.min(self.camera.height) * 0.3);
         }
         let ppd = (self.camera.width / 2.0) / (2.0 * (fov.to_radians() / 4.0).tan())
             * std::f64::consts::PI
@@ -867,6 +904,7 @@ impl Game {
             fov,
             rate: 1.6,
         });
+        self.track = Some(i);
         if !self.caught[i] {
             let line = format!("{}. {}", self.finds[i].name, self.look_for(i));
             self.say_at(crate::guide::Aim::Find(i), line, real, 7_000);
@@ -904,53 +942,50 @@ impl Game {
             && self.eye_alpha < 0.3
     }
 
-    /// What the eyepiece should show now: the find on the card, or a found
-    /// thing in the ring with the view close in on it.
-    fn eye_target(&self, now: UnixMs, hz: &Mat3, prec: &Mat3) -> Option<usize> {
+    /// Which found thing's photograph to show: the one nearest the middle of
+    /// the view, among those close enough to be worth a picture.
+    fn eye_target(&self, now: UnixMs, hz: &Mat3, prec: &Mat3) -> Option<(usize, f64)> {
         if !matches!(self.session.phase(), Phase::Hunt | Phase::Dimming) || self.drawing.is_some() {
             return None;
-        }
-        if let Some(i) = self.card.as_ref().and_then(|c| c.find) {
-            return self.photo_id(i).map(|_| i);
         }
         let (cx, cy) = (self.camera.width / 2.0, self.camera.height / 2.0);
         (0..self.finds.len())
             .filter(|&i| self.caught[i] && self.photo_id(i).is_some())
-            .filter(|&i| self.camera.fov <= self.zoom_for(i) * 2.2)
-            .find(|&i| {
-                self.find_dir(i, now, hz, prec)
-                    .and_then(|v| self.camera.project(v))
-                    .is_some_and(|(x, y)| {
-                        ((x - cx).powi(2) + (y - cy).powi(2)).sqrt() < self.reticle_radius()
-                    })
+            .filter_map(|i| {
+                let (x, y) = self
+                    .find_dir(i, now, hz, prec)
+                    .and_then(|v| self.camera.project(v))?;
+                let half = self.photo_half(i, self.camera.fov);
+                let d = ((x - cx).powi(2) + (y - cy).powi(2)).sqrt();
+                // Worth showing once the picture is big enough to hold detail.
+                let size = smoothstep((half - 40.0) / 160.0);
+                (size > 0.0 && d < half + self.camera.width * 0.5).then_some((i, size, d))
             })
+            .min_by(|a, b| a.2.total_cmp(&b.2))
+            .map(|(i, size, _)| (i, size))
     }
 
-    /// The eyepiece for this frame, easing in and out.
-    fn eyepiece(
-        &mut self,
-        real: UnixMs,
-        now: UnixMs,
-        hz: &Mat3,
-        prec: &Mat3,
-        dt: f64,
-    ) -> Option<crate::view::Eyepiece> {
+    /// Chooses the photograph for this frame and eases it in and out; the
+    /// dots it replaces fade the other way.
+    fn update_eye(&mut self, now: UnixMs, hz: &Mat3, prec: &Mat3, dt: f64) {
         let want = self.eye_target(now, hz, prec);
-        let settled = self.card.as_ref().is_none_or(|c| real - c.shown > 500);
-        if want.is_some() && want != self.eye && self.eye_alpha < 0.05 {
-            self.eye = want;
+        if let Some((i, _)) = want
+            && self.eye != Some(i)
+            && self.eye_alpha < 0.05
+        {
+            self.eye = Some(i);
         }
-        let target = if want.is_some() && want == self.eye && settled {
-            1.0
-        } else {
-            0.0
+        let target = match want {
+            Some((i, size)) if self.eye == Some(i) => size,
+            _ => 0.0,
         };
-        let k = 1.0 - (-dt / 0.35).exp();
+        let k = 1.0 - (-dt / 0.3).exp();
         self.eye_alpha += (target - self.eye_alpha) * k;
+    }
+
+    /// The photograph to draw this frame, if any.
+    fn eyepiece(&mut self, now: UnixMs, hz: &Mat3, prec: &Mat3) -> Option<crate::view::Eyepiece> {
         if self.eye_alpha < 0.01 {
-            if target == 0.0 {
-                self.eye = want;
-            }
             return None;
         }
         let i = self.eye?;
@@ -968,9 +1003,9 @@ impl Game {
         ];
         let n = dot3(t, t).sqrt().max(1e-9);
         let nudge = [
-            v[0] + t[0] / n * 0.002,
-            v[1] + t[1] / n * 0.002,
-            v[2] + t[2] / n * 0.002,
+            v[0] + t[0] / n * 1e-5,
+            v[1] + t[1] / n * 1e-5,
+            v[2] + t[2] / n * 1e-5,
         ];
         let (nx, ny) = cam
             .project(nudge)
@@ -992,9 +1027,9 @@ impl Game {
                 ];
                 let n = dot3(t, t).sqrt().max(1e-9);
                 let nudge = [
-                    v[0] + t[0] / n * 0.002,
-                    v[1] + t[1] / n * 0.002,
-                    v[2] + t[2] / n * 0.002,
+                    v[0] + t[0] / n * 1e-5,
+                    v[1] + t[1] / n * 1e-5,
+                    v[2] + t[2] / n * 1e-5,
                 ];
                 let (sx, sy) = cam
                     .project(nudge)
@@ -1026,8 +1061,10 @@ impl Game {
             texture,
             x,
             y,
-            radius: self.eyepiece_radius(),
+            radius: self.photo_half(i, cam.fov),
             rotation,
+            // Saturn's rings reach past a disc, so it's laid over the sky instead.
+            disc: matches!(self.finds[i].target, Target::Body(b) if b != Body::Saturn),
             credit: credit.credit.clone(),
             alpha: self.eye_alpha,
         })
@@ -1051,6 +1088,9 @@ impl Game {
 
     fn caught_one(&mut self, i: usize, real: UnixMs) {
         self.caught[i] = true;
+        if !matches!(self.finds[i].target, Target::Meteor(_)) {
+            self.track = Some(i);
+        }
         self.session.found_one(real);
         let find = self.finds[i].clone();
         if let Err(e) = self.journal.mark_found(&find.id, &self.night) {
@@ -1064,7 +1104,6 @@ impl Game {
         let kicker = self.kind_word(i).to_owned();
         self.card = Some(Card {
             x,
-            find: Some(i),
             kicker,
             title: find.name,
             body: find.fact,
@@ -1231,6 +1270,32 @@ impl Game {
             let zoom = self.held.zoom_out as i32 - self.held.zoom_in as i32;
             if zoom != 0 {
                 self.camera.fov *= (1.0 + 0.9 * dt).powi(zoom);
+            }
+        }
+        // Following something: keep it where it is in the view as the sky turns.
+        if let Some(i) = self.track {
+            let now = self.sky_now(self.last_real);
+            let hz = horizon(self.observer, now);
+            let prec = precession(now);
+            match self.find_dir(i, now, &hz, &prec) {
+                Some(v)
+                    if self.pan.0.abs() < 1e-3
+                        && self.pan.1.abs() < 1e-3
+                        && self.drag_from.is_none() =>
+                {
+                    let (alt, az) = alt_az(v);
+                    match &mut self.look {
+                        Some(look) => {
+                            look.az = az;
+                            look.alt = alt;
+                        }
+                        None => {
+                            self.camera.az = az;
+                            self.camera.alt = alt;
+                        }
+                    }
+                }
+                _ => self.track = None,
             }
         }
         if let Some(look) = self.look {
@@ -1575,8 +1640,18 @@ impl Game {
             }
         }
 
+        // A photograph taking over from the dots it replaces.
+        self.update_eye(now, hz, prec, dt);
+        let (photo_body, photo_piece) = match self.eye.map(|i| &self.finds[i].target) {
+            Some(Target::Body(b)) => (Some(*b), None),
+            Some(Target::Showpiece(p)) => (None, Some(*p)),
+            _ => (None, None),
+        };
+        let keep = (1.0 - self.eye_alpha) as f32;
+
         // Showpieces' soft light.
-        for piece in &self.sky.lists.showpieces {
+        for (pi, piece) in self.sky.lists.showpieces.iter().enumerate() {
+            let fade = if photo_piece == Some(pi) { keep } else { 1.0 };
             if piece.mag > limit + 0.5
                 || !matches!(piece.kind, Kind::Cluster | Kind::Galaxy | Kind::Nebula)
             {
@@ -1611,7 +1686,7 @@ impl Game {
                         x + rr * a.cos(),
                         y + rr * a.sin(),
                         [0.85, 0.9, 1.0],
-                        0.07 * strength * twinkle as f32,
+                        0.07 * strength * twinkle as f32 * fade,
                     );
                 }
             } else {
@@ -1626,7 +1701,7 @@ impl Game {
                 } else {
                     [0.95, 0.93, 0.88]
                 };
-                self.field.glow(x, y, radius, color, amount);
+                self.field.glow(x, y, radius, color, amount * fade);
             }
         }
 
@@ -1656,6 +1731,7 @@ impl Game {
                 continue;
             }
             let radius = s.position.diameter / 3600.0 / 2.0 * ppd;
+            let fade = if photo_body == Some(body) { keep } else { 1.0 };
             match body {
                 Body::Sun => {
                     self.field
@@ -1672,7 +1748,7 @@ impl Game {
                         sun,
                         180.0 - s.position.elongation,
                         [1.0, 0.97, 0.9],
-                        1.05,
+                        1.05 * fade,
                         true,
                     );
                 }
@@ -1691,11 +1767,14 @@ impl Game {
                             .clamp(-1.0, 1.0)
                             .acos()
                             .to_degrees();
-                        self.lit_disc(x, y, radius, v, sun, phase_angle, color, 1.5, false);
+                        self.lit_disc(x, y, radius, v, sun, phase_angle, color, 1.5 * fade, false);
                     } else {
                         let low = 0.4 + 0.6 * smoothstep(s.alt / 12.0);
                         let amount = light(s.position.magnitude) * 1.08 * low as f32;
-                        self.points.push(point(x, y, color, amount, 1.3));
+                        let mut p = point(x, y, color, amount, 1.3);
+                        p.alpha *= fade;
+                        p.halo *= fade;
+                        self.points.push(p);
                     }
                 }
             }
@@ -1749,8 +1828,25 @@ impl Game {
         texts.extend(self.mark_labels(hz, brightness));
         texts.extend(self.words(real, brightness));
         let (sprites, bubble, embers) = self.guide_frame(real, brightness);
+        if let Some(i) = self.eye
+            && self.eye_alpha > 0.05
+            && let Some(c) = self
+                .photo_id(i)
+                .and_then(|id| self.photos.credit(&id).cloned())
+        {
+            texts.push(
+                Text::new(
+                    cam.width - 420.0,
+                    cam.height - 46.0,
+                    format!("Photograph: {}", c.credit),
+                    11.5,
+                    0.45 * self.eye_alpha,
+                )
+                .wrap(400.0),
+            );
+        }
         self.points.extend(embers);
-        let eyepiece = self.eyepiece(real, now, hz, prec, dt);
+        let eyepiece = self.eyepiece(now, hz, prec);
         let card = self.card.as_ref().map(|c| crate::view::CardView {
             x: c.x,
             y: (self.camera.height / 2.0 - 70.0).max(70.0),

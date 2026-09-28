@@ -83,7 +83,7 @@ pub struct CardView {
     pub alpha: f64,
 }
 
-/// A photograph of what's being looked at, in a round, soft-edged view.
+/// A photograph of what's being looked at, set into the sky at its true size.
 pub struct Eyepiece {
     pub texture: gdk::Texture,
     pub x: f64,
@@ -91,6 +91,8 @@ pub struct Eyepiece {
     pub radius: f64,
     /// Degrees clockwise, to sit the picture as the object sits in the sky.
     pub rotation: f64,
+    /// A Moon or planet: an opaque disc, rather than light over the sky.
+    pub disc: bool,
     pub credit: String,
     pub alpha: f64,
 }
@@ -286,52 +288,64 @@ fn draw_card(widget: &gtk::Widget, snapshot: &gtk::Snapshot, c: &CardView) {
     }
 }
 
-fn draw_eyepiece(widget: &gtk::Widget, snapshot: &gtk::Snapshot, e: &Eyepiece) {
+fn draw_eyepiece(_widget: &gtk::Widget, snapshot: &gtk::Snapshot, e: &Eyepiece) {
     let a = e.alpha as f32;
     let (x, y, r) = (e.x as f32, e.y as f32, e.radius as f32);
     let bounds = graphene::Rect::new(x - r, y - r, 2.0 * r, 2.0 * r);
-    // A dark well first, so the sky's dots don't show through the picture.
-    let well = [
-        gsk::ColorStop::new(0.0, gdk::RGBA::new(0.0, 0.0, 0.0, 0.92 * a)),
-        gsk::ColorStop::new(0.86, gdk::RGBA::new(0.0, 0.0, 0.0, 0.92 * a)),
-        gsk::ColorStop::new(1.0, gdk::RGBA::new(0.0, 0.0, 0.0, 0.0)),
-    ];
-    snapshot.append_radial_gradient(&bounds, &graphene::Point::new(x, y), r, r, 0.0, 1.0, &well);
-    // The picture, faded out towards the rim.
-    let rim = [
-        gsk::ColorStop::new(0.0, gdk::RGBA::new(1.0, 1.0, 1.0, a)),
-        gsk::ColorStop::new(0.8, gdk::RGBA::new(1.0, 1.0, 1.0, a)),
-        gsk::ColorStop::new(0.97, gdk::RGBA::new(1.0, 1.0, 1.0, 0.0)),
-    ];
-    snapshot.push_mask(gsk::MaskMode::Alpha);
-    snapshot.append_radial_gradient(&bounds, &graphene::Point::new(x, y), r, r, 0.0, 1.0, &rim);
-    snapshot.pop();
-    snapshot.save();
-    snapshot.translate(&graphene::Point::new(x, y));
-    snapshot.rotate(e.rotation as f32);
-    snapshot.append_texture(&e.texture, &graphene::Rect::new(-r, -r, 2.0 * r, 2.0 * r));
-    snapshot.restore();
-    snapshot.pop();
-    // A faint ring for the eyepiece's edge.
-    let ring = gsk::RoundedRect::from_rect(bounds, r);
-    let edge = [gdk::RGBA::new(0.9, 0.85, 0.75, 0.18 * a); 4];
-    snapshot.append_border(&ring, &[1.0; 4], &edge);
-    if !e.credit.is_empty() {
-        let l = layout(
-            widget,
-            &format!("Image: {}", e.credit),
-            11.0,
-            false,
-            Some(2.0 * e.radius),
+    let picture = |snapshot: &gtk::Snapshot| {
+        snapshot.save();
+        snapshot.translate(&graphene::Point::new(x, y));
+        snapshot.rotate(e.rotation as f32);
+        snapshot.append_texture(&e.texture, &graphene::Rect::new(-r, -r, 2.0 * r, 2.0 * r));
+        snapshot.restore();
+    };
+    let white = |alpha: f32| gdk::RGBA::new(1.0, 1.0, 1.0, alpha);
+    if e.disc {
+        // The disc itself, solid, with a soft limb.
+        let d = crate::eyepiece::DISC as f32;
+        let edge = [
+            gsk::ColorStop::new(0.0, white(a)),
+            gsk::ColorStop::new(d - 0.015, white(a)),
+            gsk::ColorStop::new(d + 0.01, white(0.0)),
+        ];
+        snapshot.push_mask(gsk::MaskMode::Alpha);
+        snapshot.append_radial_gradient(
+            &bounds,
+            &graphene::Point::new(x, y),
+            r,
+            r,
+            0.0,
+            1.0,
+            &edge,
         );
-        l.set_alignment(pango::Alignment::Center);
-        text_at(
-            snapshot,
-            &l,
-            x - r,
-            y + r + 10.0,
-            gdk::RGBA::new(0.85, 0.87, 0.93, 0.5 * a),
+        snapshot.pop();
+        picture(snapshot);
+        snapshot.pop();
+    } else {
+        // Light laid over the sky: dark parts of the picture let the sky
+        // through, and the edges melt away.
+        let edge = [
+            gsk::ColorStop::new(0.0, white(a)),
+            gsk::ColorStop::new(0.55, white(a)),
+            gsk::ColorStop::new(0.98, white(0.0)),
+        ];
+        snapshot.push_mask(gsk::MaskMode::Alpha);
+        snapshot.append_radial_gradient(
+            &bounds,
+            &graphene::Point::new(x, y),
+            r,
+            r,
+            0.0,
+            1.0,
+            &edge,
         );
+        snapshot.pop();
+        snapshot.push_mask(gsk::MaskMode::Luminance);
+        picture(snapshot);
+        snapshot.pop();
+        picture(snapshot);
+        snapshot.pop();
+        snapshot.pop();
     }
 }
 
