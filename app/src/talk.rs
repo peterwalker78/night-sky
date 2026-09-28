@@ -1,0 +1,749 @@
+//! The quiet conversation: setting weights down, what the sky asks, plans
+//! and the odd check-back. The window shows whatever prompt is current and
+//! hands the answers back here.
+
+use crate::game::{Game, Look, Timed};
+use night_sky_core::care::Care;
+use night_sky_core::coords::{angles, apply, from_alt_az, horizon};
+use night_sky_core::events::{Kind as EventKind, SkyEvent, upcoming};
+use night_sky_core::finds::Target;
+use night_sky_core::journal::{Answer, Asked, Check, Journal, Mention, NightWeight, Plan};
+use night_sky_core::questions::{
+    self, AnswerKind, Chosen, Context, Question, course_to_check, days_between, key_of,
+    plan_nearby, plan_to_ask_about,
+};
+use night_sky_core::time::UnixMs;
+use std::cell::RefCell;
+
+/// What the window shows at the foot of the sky.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct Prompt {
+    pub text: String,
+    pub placeholder: String,
+    pub chips: Vec<String>,
+    pub entry: bool,
+    pub hint: String,
+    /// Offer names already used as the user types.
+    pub names: bool,
+}
+
+/// How a page asks the window to go somewhere: None is back to the sky.
+pub type Go = RefCell<Option<Box<dyn Fn(Option<Request>)>>>;
+
+/// Something for the window to open.
+#[derive(Clone, Debug, PartialEq)]
+pub enum Request {
+    /// The logbook, at a night's page or a contents page.
+    Book(Option<String>),
+    /// Chart a course for a weight.
+    Course(u32),
+    Settings,
+}
+
+pub(crate) enum Flow {
+    Weight {
+        count: usize,
+        offered: Vec<u32>,
+    },
+    Place {
+        weight: u32,
+        count: usize,
+    },
+    Question {
+        chosen: Box<Chosen>,
+        star: Option<u16>,
+    },
+    NameStar {
+        name: String,
+        hr: u16,
+    },
+    PlanWho {
+        plan: u32,
+    },
+    PlanOutcome {
+        plan: u32,
+    },
+    CourseCheck {
+        course: u32,
+    },
+    DrawingName,
+}
+
+/// A question waiting its turn: it shows a moment after the card.
+pub(crate) enum Pending {
+    Question {
+        chosen: Box<Chosen>,
+        star: Option<u16>,
+    },
+    PlanOutcome(u32),
+    CourseCheck(u32),
+}
+
+#[derive(Default)]
+pub struct Talk {
+    pub(crate) flow: Option<Flow>,
+    pub(crate) prompt: Option<Prompt>,
+    pub(crate) serial: u64,
+    pub(crate) pending: Option<(UnixMs, Pending)>,
+    pub(crate) asked_now: Vec<String>,
+    pub(crate) bank: Vec<Question>,
+    pub(crate) events: Vec<SkyEvent>,
+    pub(crate) care: Option<Care>,
+    pub(crate) caring: bool,
+    pub(crate) first_night: bool,
+    pub(crate) checked_back: bool,
+}
+
+const MAX_WEIGHTS: usize = 3;
+
+impl Talk {
+    pub fn new(journal: &Journal, night: &str, events: Vec<SkyEvent>) -> Talk {
+        Talk {
+            bank: questions::bundled(),
+            events,
+            care: Some(Care::bundled()),
+            first_night: journal.nights().iter().all(|n| n == night),
+            ..Talk::default()
+        }
+    }
+}
+
+/// The sky's calendar for the next two months.
+pub fn calendar(showers: &[night_sky_core::catalogues::Shower], now: UnixMs) -> Vec<SkyEvent> {
+    upcoming(showers, now, 60)
+}
+
+impl Game {
+    pub fn prompt(&self) -> (u64, Option<Prompt>) {
+        (self.talk.serial, self.talk.prompt.clone())
+    }
+
+    pub(crate) fn set_prompt(&mut self, prompt: Option<Prompt>) {
+        self.talk.prompt = prompt;
+        self.talk.serial += 1;
+    }
+
+    pub fn take_request(&mut self) -> Option<Request> {
+        self.request.take()
+    }
+
+    pub fn journal(&self) -> &Journal {
+        &self.journal
+    }
+
+    pub fn journal_mut(&mut self) -> &mut Journal {
+        &mut self.journal
+    }
+
+    pub fn night(&self) -> &str {
+        &self.night
+    }
+
+    /// Clears the journal and tonight's page with it.
+    pub fn forget_everything(&mut self) -> std::io::Result<()> {
+        self.journal.forget_everything()?;
+        self.page = night_sky_core::journal::Night {
+            key: self.night.clone(),
+            ..Default::default()
+        };
+        Ok(())
+    }
+
+    /// A star's everyday name, if it has one.
+    pub fn star_name(&self, hr: u16) -> Option<String> {
+        self.sky.lists.star_name(hr).map(|s| s.name.clone())
+    }
+
+    /// Names already used that begin with what's typed.
+    pub fn names_like(&self, prefix: &str) -> Vec<String> {
+        self.journal
+            .names_like(prefix)
+            .into_iter()
+            .filter(|n| !n.eq_ignore_ascii_case(prefix.trim()))
+            .take(4)
+            .map(str::to_owned)
+            .collect()
+    }
+
+    pub(crate) fn typing(&self) -> bool {
+        self.talk.prompt.as_ref().is_some_and(|p| p.entry)
+    }
+
+    pub(crate) fn placing(&self) -> bool {
+        matches!(self.talk.flow, Some(Flow::Place { .. }))
+    }
+
+    fn care_check(&mut self, text: &str) {
+        if !self.talk.caring
+            && let Some(care) = &self.talk.care
+            && care.concerning(text)
+        {
+            self.talk.caring = true;
+        }
+    }
+
+    // The weights.
+
+    pub(crate) fn begin_weights(&mut self, real: UnixMs) {
+        if !self.page.weights.is_empty() {
+            self.finish_weights(real);
+            return;
+        }
+        self.weight_prompt(0);
+    }
+
+    fn weight_prompt(&mut self, count: usize) {
+        let tonight: Vec<u32> = self.page.weights.iter().map(|w| w.weight).collect();
+        let offered: Vec<u32> = self
+            .journal
+            .open_weights(&self.night)
+            .into_iter()
+            .filter(|w| !tonight.contains(&w.id))
+            .take(3)
+            .map(|w| w.id)
+            .collect();
+        let mut chips: Vec<String> = offered
+            .iter()
+            .filter_map(|id| self.journal.weight(*id))
+            .map(|w| format!("Still this: {}", w.text))
+            .collect();
+        chips.push(
+            if count == 0 {
+                "Nothing tonight"
+            } else {
+                "That's all"
+            }
+            .to_owned(),
+        );
+        let text = if count == 0 {
+            "Anything heavy tonight? Two or three things."
+        } else {
+            "Another? Or that's all."
+        };
+        self.talk.flow = Some(Flow::Weight { count, offered });
+        self.set_prompt(Some(Prompt {
+            text: text.into(),
+            placeholder: "One thing, in a few words".into(),
+            chips,
+            entry: true,
+            hint: "Enter to set it down · Esc when that's all".into(),
+            names: false,
+        }));
+    }
+
+    fn start_placing(&mut self, weight: u32, count: usize, real: UnixMs) {
+        self.talk.flow = Some(Flow::Place { weight, count });
+        self.set_prompt(None);
+        self.look = Some(Look {
+            az: 262.0,
+            alt: 9.0,
+            fov: 80.0,
+            rate: 1.1,
+        });
+        self.hint = Some(Timed {
+            text: "Hang it low in the west with the arrows · Enter when it's there".into(),
+            shown: real,
+            hold: 60_000,
+        });
+    }
+
+    /// Fixes the weight being placed where the reticle is.
+    pub(crate) fn place_weight(&mut self, real: UnixMs) {
+        let Some(Flow::Place { weight, count }) = self.talk.flow.take() else {
+            return;
+        };
+        let now = self.clock.sky(real);
+        let hz = horizon(self.observer, now);
+        let eq = apply(
+            &crate::game::transpose(&hz),
+            from_alt_az(self.camera.alt, self.camera.az),
+        );
+        let (ra, dec) = angles(eq);
+        self.page.weights.push(NightWeight { weight, ra, dec });
+        self.save_page_now();
+        self.hint = None;
+        if count + 1 >= MAX_WEIGHTS {
+            self.finish_weights(real);
+        } else {
+            self.weight_prompt(count + 1);
+        }
+    }
+
+    fn finish_weights(&mut self, real: UnixMs) {
+        self.talk.flow = None;
+        self.set_prompt(None);
+        self.hint = None;
+        if let Some(p) = self.session.weights_done(real) {
+            self.entered(p, real);
+        }
+        self.face_first_find(real);
+    }
+
+    fn add_weight(&mut self, text: &str, count: usize, real: UnixMs) {
+        self.care_check(text);
+        let id = self.journal.add_weight(text, &self.night);
+        self.save_weights_now();
+        self.start_placing(id, count, real);
+    }
+
+    // What the sky asks.
+
+    /// After something is caught: a check-back, or a question, a moment later.
+    pub(crate) fn after_catch(&mut self, i: usize, real: UnixMs) {
+        let today = self.night.clone();
+        if !self.talk.checked_back
+            && self.journal.settings.ask != night_sky_core::journal::Ask::Never
+        {
+            self.talk.checked_back = true;
+            let recently = |journal: &Journal, id: &str| {
+                journal
+                    .asked
+                    .iter()
+                    .any(|a| a.question == id && days_between(&a.night, &today) < 30)
+            };
+            if let Some(plan) = plan_to_ask_about(&self.journal.plans, &today)
+                && !recently(&self.journal, &format!("plan:{}", plan.id))
+            {
+                self.talk.pending = Some((real + 2_200, Pending::PlanOutcome(plan.id)));
+                return;
+            }
+            if let Some(course) = course_to_check(&self.journal.courses, &today) {
+                self.talk.pending = Some((real + 2_200, Pending::CourseCheck(course.id)));
+                return;
+            }
+        }
+        let find = self.finds[i].clone();
+        let triggers = questions::triggers(&find, &self.sky);
+        let star = match find.target {
+            Target::Star(hr) => Some(hr),
+            _ => None,
+        };
+        if let Some(chosen) = self.choose(&triggers) {
+            self.talk.pending = Some((
+                real + 2_500,
+                Pending::Question {
+                    chosen: Box::new(chosen),
+                    star,
+                },
+            ));
+        }
+    }
+
+    pub(crate) fn choose(&self, triggers: &[&str]) -> Option<Chosen> {
+        let people: Vec<&night_sky_core::journal::Person> = self
+            .journal
+            .people
+            .iter()
+            .filter(|p| !p.mentions.is_empty())
+            .collect();
+        let ctx = Context {
+            night: &self.night,
+            ask: self.journal.settings.ask,
+            first_night: self.talk.first_night,
+            asked_now: &self.talk.asked_now,
+            asked: &self.journal.asked,
+            has_weights: !self.page.weights.is_empty(),
+            people: &people,
+            plans: &self.journal.plans,
+            events: &self.talk.events,
+            now: self.clock.sky(self.last_real),
+            offset_s: self.offset_s,
+        };
+        questions::choose(&self.talk.bank, triggers, &ctx)
+    }
+
+    /// Shows a waiting question once its moment comes.
+    pub(crate) fn tick_talk(&mut self, real: UnixMs) {
+        let due = self
+            .talk
+            .pending
+            .as_ref()
+            .is_some_and(|(at, _)| real >= *at);
+        if !due || self.talk.prompt.is_some() || self.drawing.is_some() || !self.hunting() {
+            return;
+        }
+        let Some((_, pending)) = self.talk.pending.take() else {
+            return;
+        };
+        match pending {
+            Pending::Question { chosen, star } => self.show_question(*chosen, star),
+            Pending::PlanOutcome(id) => {
+                let Some(plan) = self.journal.plans.iter().find(|p| p.id == id) else {
+                    return;
+                };
+                let who = plan
+                    .who
+                    .as_deref()
+                    .map(|w| format!(", with {w}"))
+                    .unwrap_or_default();
+                let text = format!("Your plan for {}{who}: how did it go?", plan.event);
+                self.remember_asked(&format!("plan:{id}"));
+                self.talk.flow = Some(Flow::PlanOutcome { plan: id });
+                self.set_prompt(Some(Prompt {
+                    text,
+                    placeholder: "A line about it, if you like".into(),
+                    chips: vec!["It happened".into(), "Didn't happen".into()],
+                    entry: true,
+                    hint: "Enter to keep it · Esc to let it pass".into(),
+                    names: false,
+                }));
+            }
+            Pending::CourseCheck(id) => {
+                let Some(course) = self.journal.courses.iter().find(|c| c.id == id) else {
+                    return;
+                };
+                let weight = self
+                    .journal
+                    .weight(course.weight)
+                    .map(|w| w.text.clone())
+                    .unwrap_or_default();
+                self.remember_asked(&format!("course:{id}"));
+                self.talk.flow = Some(Flow::CourseCheck { course: id });
+                self.set_prompt(Some(Prompt {
+                    text: format!(
+                        "A while ago you charted a course for “{weight}”. How's it going?"
+                    ),
+                    placeholder: String::new(),
+                    chips: vec![
+                        "Going well".into(),
+                        "Mixed".into(),
+                        "Not yet".into(),
+                        "Change the plan".into(),
+                    ],
+                    entry: false,
+                    hint: "Esc to let it pass".into(),
+                    names: false,
+                }));
+            }
+        }
+    }
+
+    fn remember_asked(&mut self, id: &str) {
+        self.talk.asked_now.push(id.to_owned());
+        self.journal.asked.push(Asked {
+            question: id.to_owned(),
+            night: self.night.clone(),
+        });
+        if let Err(e) = self.journal.save_asked() {
+            eprintln!("night-sky: couldn't save what was asked: {e}");
+        }
+    }
+
+    pub(crate) fn show_question(&mut self, chosen: Chosen, star: Option<u16>) {
+        self.remember_asked(&chosen.question.id.clone());
+        let (placeholder, names) = match (chosen.question.answer, chosen.question.ask.as_deref()) {
+            (AnswerKind::Name, _) | (AnswerKind::Plan, Some("who")) => ("A name", true),
+            (AnswerKind::Plan, _) => ("What you'd do", false),
+            (AnswerKind::Text, _) => ("A few words", false),
+        };
+        let text = chosen.text.clone();
+        self.talk.flow = Some(Flow::Question {
+            chosen: Box::new(chosen),
+            star,
+        });
+        self.set_prompt(Some(Prompt {
+            text,
+            placeholder: placeholder.into(),
+            chips: Vec::new(),
+            entry: true,
+            hint: "Enter to keep it · Esc to let it pass".into(),
+            names,
+        }));
+    }
+
+    fn keep_answer(
+        &mut self,
+        chosen: &Chosen,
+        text: &str,
+        person: Option<&str>,
+        star: Option<u16>,
+    ) {
+        self.page.answers.push(Answer {
+            question: chosen.question.id.clone(),
+            prompt: chosen.text.clone(),
+            text: text.to_owned(),
+            person: person.map(str::to_owned),
+            star,
+        });
+        if let Some(name) = person {
+            self.journal.person_mut(name).mentions.push(Mention {
+                night: self.night.clone(),
+                question: chosen.question.id.clone(),
+            });
+            self.save_people_now();
+        }
+        self.save_page_now();
+    }
+
+    fn make_plan(&mut self, what: &str, who: Option<&str>, event: &SkyEvent) -> u32 {
+        let id = Journal::next_id(self.journal.plans.iter().map(|p| p.id));
+        self.journal.plans.push(Plan {
+            id,
+            what: what.to_owned(),
+            who: who.map(str::to_owned),
+            date: key_of(event.at, self.offset_s),
+            event: event.title.clone(),
+            made: self.night.clone(),
+            outcome: None,
+            note: None,
+        });
+        self.page.plans.push(id);
+        if let Some(name) = who {
+            self.journal.person_mut(name).mentions.push(Mention {
+                night: self.night.clone(),
+                question: "plan".into(),
+            });
+            self.save_people_now();
+        }
+        if let Err(e) = self.journal.save_plans() {
+            eprintln!("night-sky: couldn't save the plan: {e}");
+        }
+        self.save_page_now();
+        id
+    }
+
+    /// Adds who a plan is with, once they're named.
+    fn plan_with(&mut self, plan: u32, who: &str) {
+        if let Some(p) = self.journal.plans.iter_mut().find(|p| p.id == plan) {
+            p.who = Some(who.to_owned());
+        }
+        self.journal.person_mut(who).mentions.push(Mention {
+            night: self.night.clone(),
+            question: "plan".into(),
+        });
+        self.save_people_now();
+        if let Err(e) = self.journal.save_plans() {
+            eprintln!("night-sky: couldn't save the plan: {e}");
+        }
+        self.save_page_now();
+    }
+
+    fn done_talking(&mut self) {
+        self.talk.flow = None;
+        self.set_prompt(None);
+    }
+
+    pub fn answer_text(&mut self, text: &str, real: UnixMs) {
+        let text = text.trim();
+        let Some(flow) = self.talk.flow.take() else {
+            return;
+        };
+        match flow {
+            Flow::Weight { count, .. } => {
+                if text.is_empty() {
+                    self.finish_weights(real);
+                } else {
+                    self.add_weight(text, count, real);
+                }
+            }
+            Flow::Question { chosen, star } => {
+                if text.is_empty() {
+                    self.done_talking();
+                    return;
+                }
+                self.care_check(text);
+                match (chosen.question.answer, chosen.question.ask.as_deref()) {
+                    (AnswerKind::Plan, Some("who")) => {
+                        let event = chosen.event.clone().expect("plans carry their event");
+                        let what = match event.kind {
+                            EventKind::FullMoon => "Seeing the full Moon".to_owned(),
+                            _ => format!("Watching {}", event.title),
+                        };
+                        self.keep_answer(&chosen, text, Some(text), None);
+                        let plan = self.make_plan(&what, None, &event);
+                        self.plan_with(plan, text);
+                        self.done_talking();
+                    }
+                    (AnswerKind::Plan, _) => {
+                        let event = chosen.event.clone().expect("plans carry their event");
+                        self.keep_answer(&chosen, text, None, None);
+                        let plan = self.make_plan(text, None, &event);
+                        self.talk.flow = Some(Flow::PlanWho { plan });
+                        self.set_prompt(Some(Prompt {
+                            text: "Anyone with you?".into(),
+                            placeholder: "A name, or Esc".into(),
+                            chips: Vec::new(),
+                            entry: true,
+                            hint: "Enter to keep it · Esc if it's just you".into(),
+                            names: true,
+                        }));
+                    }
+                    (AnswerKind::Name, _) => {
+                        let person = chosen.person.clone();
+                        let name = person.as_deref().unwrap_or(text);
+                        self.keep_answer(&chosen, text, Some(name), star);
+                        let pole = matches!(chosen.question.on.as_str(), "pole" | "pole-south");
+                        match star.or(pole.then_some(if self.observer.lat >= 0.0 {
+                            424
+                        } else {
+                            4730
+                        })) {
+                            Some(hr) if self.journal.person_on(hr).is_none() => {
+                                self.talk.flow = Some(Flow::NameStar {
+                                    name: name.to_owned(),
+                                    hr,
+                                });
+                                self.set_prompt(Some(Prompt {
+                                    text: "Their star, then?".into(),
+                                    placeholder: String::new(),
+                                    chips: vec!["Yes".into(), "Leave it".into()],
+                                    entry: false,
+                                    hint: String::new(),
+                                    names: false,
+                                }));
+                            }
+                            _ => self.done_talking(),
+                        }
+                    }
+                    (AnswerKind::Text, _) => {
+                        let person = chosen.person.clone();
+                        self.keep_answer(&chosen, text, person.as_deref(), None);
+                        self.done_talking();
+                    }
+                }
+            }
+            Flow::PlanWho { plan } => {
+                if !text.is_empty() {
+                    self.plan_with(plan, text);
+                }
+                self.done_talking();
+            }
+            Flow::PlanOutcome { plan } => {
+                if let Some(p) = self.journal.plans.iter_mut().find(|p| p.id == plan) {
+                    p.outcome = Some("went".into());
+                    if !text.is_empty() {
+                        p.note = Some(text.to_owned());
+                    }
+                }
+                self.care_check(text);
+                let _ = self.journal.save_plans();
+                self.done_talking();
+            }
+            Flow::DrawingName => {
+                self.name_drawing(text, real);
+            }
+            other => {
+                self.talk.flow = Some(other);
+            }
+        }
+    }
+
+    pub fn answer_chip(&mut self, chip: usize, real: UnixMs) {
+        let Some(flow) = self.talk.flow.take() else {
+            return;
+        };
+        match flow {
+            Flow::Weight { count, offered } => {
+                if let Some(&id) = offered.get(chip) {
+                    self.journal.bring_back(id, &self.night);
+                    self.save_weights_now();
+                    self.start_placing(id, count, real);
+                } else {
+                    self.finish_weights(real);
+                }
+            }
+            Flow::NameStar { name, hr } => {
+                if chip == 0 {
+                    for p in &mut self.journal.people {
+                        p.stars.retain(|s| *s != hr);
+                    }
+                    self.journal.person_mut(&name).stars.push(hr);
+                    self.save_people_now();
+                }
+                self.done_talking();
+            }
+            Flow::PlanOutcome { plan } => {
+                if let Some(p) = self.journal.plans.iter_mut().find(|p| p.id == plan) {
+                    p.outcome = Some(if chip == 0 { "went" } else { "didnt" }.into());
+                }
+                let _ = self.journal.save_plans();
+                self.done_talking();
+            }
+            Flow::CourseCheck { course } => {
+                let answer = ["Going well", "Mixed", "Not yet", "Change the plan"]
+                    .get(chip)
+                    .copied()
+                    .unwrap_or("Mixed");
+                let night = self.night.clone();
+                let mut weight = None;
+                if let Some(c) = self.journal.courses.iter_mut().find(|c| c.id == course) {
+                    c.checks.push(Check {
+                        night,
+                        answer: answer.into(),
+                    });
+                    weight = Some(c.weight);
+                }
+                let _ = self.journal.save_courses();
+                self.done_talking();
+                if chip == 3
+                    && let Some(w) = weight
+                {
+                    self.request = Some(Request::Course(w));
+                }
+            }
+            other => {
+                self.talk.flow = Some(other);
+            }
+        }
+    }
+
+    pub fn skip_prompt(&mut self, real: UnixMs) {
+        match self.talk.flow.take() {
+            Some(Flow::Weight { .. }) => self.finish_weights(real),
+            Some(Flow::DrawingName) => {
+                self.drawing = None;
+                self.done_talking();
+            }
+            _ => self.done_talking(),
+        }
+    }
+
+    /// A second line for the arrival: a plan close at hand, or a named star up.
+    pub(crate) fn arrival_extra(&mut self, now: UnixMs) -> Option<String> {
+        if let Some(line) = plan_nearby(&self.journal.plans, &self.night) {
+            return Some(line);
+        }
+        let hz = horizon(self.observer, now);
+        let night = self.night.clone();
+        let shown_lately = |journal: &Journal, id: &str| {
+            journal
+                .asked
+                .iter()
+                .any(|a| a.question == id && days_between(&a.night, &night) < 7)
+        };
+        let up = self.journal.fixed_stars().into_iter().find_map(|p| {
+            let hr = *p.stars.first()?;
+            let idx = self.sky.stars.index_of(hr)?;
+            let alt = night_sky_core::coords::alt_az(apply(&hz, self.star_dirs[idx])).0;
+            (alt > 10.0).then(|| p.name.clone())
+        })?;
+        let id = format!("star-up:{up}");
+        if shown_lately(&self.journal, &id) {
+            return None;
+        }
+        self.journal.asked.push(Asked {
+            question: id,
+            night: self.night.clone(),
+        });
+        let _ = self.journal.save_asked();
+        Some(format!("{up}'s star is up tonight."))
+    }
+
+    pub(crate) fn save_page_now(&self) {
+        if let Err(e) = self.journal.save_night(&self.page) {
+            eprintln!("night-sky: couldn't save tonight's page: {e}");
+        }
+    }
+
+    fn save_weights_now(&self) {
+        if let Err(e) = self.journal.save_weights() {
+            eprintln!("night-sky: couldn't save the weights: {e}");
+        }
+    }
+
+    fn save_people_now(&self) {
+        if let Err(e) = self.journal.save_people() {
+            eprintln!("night-sky: couldn't save names: {e}");
+        }
+    }
+}

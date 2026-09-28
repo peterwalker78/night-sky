@@ -41,50 +41,50 @@ pub struct Options {
 }
 
 #[derive(Default)]
-struct Held {
-    space: bool,
-    left: bool,
-    right: bool,
-    up: bool,
-    down: bool,
-    zoom_in: bool,
-    zoom_out: bool,
-    fast: bool,
+pub(crate) struct Held {
+    pub(crate) space: bool,
+    pub(crate) left: bool,
+    pub(crate) right: bool,
+    pub(crate) up: bool,
+    pub(crate) down: bool,
+    pub(crate) zoom_in: bool,
+    pub(crate) zoom_out: bool,
+    pub(crate) fast: bool,
 }
 
 /// Easing the view towards somewhere.
 #[derive(Clone, Copy)]
-struct Look {
-    az: f64,
-    alt: f64,
-    fov: f64,
+pub(crate) struct Look {
+    pub(crate) az: f64,
+    pub(crate) alt: f64,
+    pub(crate) fov: f64,
     /// Per second, 0 to 1: how much of the gap closes.
-    rate: f64,
+    pub(crate) rate: f64,
 }
 
 #[derive(Default)]
-struct Catch {
-    target: Option<usize>,
-    holding: bool,
-    progress: f64,
+pub(crate) struct Catch {
+    pub(crate) target: Option<usize>,
+    pub(crate) holding: bool,
+    pub(crate) progress: f64,
     /// The field of view before the zoom, to go back to.
-    fov_before: Option<f64>,
+    pub(crate) fov_before: Option<f64>,
 }
 
-struct Card {
-    x: f64,
-    title: String,
-    body: String,
-    shown: UnixMs,
+pub(crate) struct Card {
+    pub(crate) x: f64,
+    pub(crate) title: String,
+    pub(crate) body: String,
+    pub(crate) shown: UnixMs,
 }
 
-struct Timed {
-    text: String,
-    shown: UnixMs,
-    hold: UnixMs,
+pub(crate) struct Timed {
+    pub(crate) text: String,
+    pub(crate) shown: UnixMs,
+    pub(crate) hold: UnixMs,
 }
 
-struct Meteor {
+pub(crate) struct Meteor {
     start: UnixMs,
     duration: UnixMs,
     from: Vec3,
@@ -95,7 +95,7 @@ struct Meteor {
 
 /// What the slow-changing base layer was last drawn for.
 #[derive(Clone, Copy, PartialEq)]
-struct BaseStamp {
+pub(crate) struct BaseStamp {
     az: f64,
     alt: f64,
     fov: f64,
@@ -106,7 +106,7 @@ struct BaseStamp {
 }
 
 /// A star with everything that doesn't change during a visit worked out.
-struct Prepared {
+pub(crate) struct Prepared {
     dir: Vec3,
     mag: f64,
     light: f32,
@@ -116,53 +116,58 @@ struct Prepared {
 }
 
 pub struct Game {
-    sky: Sky,
-    prepared: Vec<Prepared>,
-    observer: Observer,
-    clock: Clock,
-    offset_s: i32,
-    night: String,
-    session: Session,
-    finds: Vec<Find>,
-    caught: Vec<bool>,
-    journal: Journal,
-    page: Night,
-    camera: Camera,
-    look: Option<Look>,
-    field: Field,
-    base: Option<BaseStamp>,
-    star_dirs: Vec<Vec3>,
-    held: Held,
-    pan: (f64, f64),
-    drag_from: Option<(f64, f64, f64, f64)>,
-    catch: Catch,
-    card: Option<Card>,
-    caption: Option<Timed>,
-    hint: Option<Timed>,
-    meteors: Vec<Meteor>,
-    next_meteor: UnixMs,
-    handoff: Option<Handoff>,
-    finale_turned: bool,
-    last_input: UnixMs,
+    pub(crate) sky: Sky,
+    pub(crate) prepared: Vec<Prepared>,
+    pub(crate) observer: Observer,
+    pub(crate) clock: Clock,
+    pub(crate) offset_s: i32,
+    pub(crate) night: String,
+    pub(crate) session: Session,
+    pub(crate) finds: Vec<Find>,
+    pub(crate) caught: Vec<bool>,
+    pub(crate) journal: Journal,
+    pub(crate) page: Night,
+    pub(crate) camera: Camera,
+    pub(crate) look: Option<Look>,
+    pub(crate) field: Field,
+    pub(crate) base: Option<BaseStamp>,
+    pub(crate) star_dirs: Vec<Vec3>,
+    pub(crate) held: Held,
+    pub(crate) pan: (f64, f64),
+    pub(crate) drag_from: Option<(f64, f64, f64, f64)>,
+    pub(crate) catch: Catch,
+    pub(crate) card: Option<Card>,
+    pub(crate) caption: Option<Timed>,
+    pub(crate) hint: Option<Timed>,
+    pub(crate) meteors: Vec<Meteor>,
+    pub(crate) next_meteor: UnixMs,
+    pub(crate) handoff: Option<Handoff>,
+    pub(crate) finale_turned: bool,
+    pub(crate) last_input: UnixMs,
     /// Key releases wait a moment: X11's auto-repeat sends a release before
     /// every repeated press, and a real release has no press behind it.
-    releases: Vec<(gdk::Key, UnixMs)>,
-    esc_armed: UnixMs,
-    last_real: UnixMs,
-    rng: u64,
+    pub(crate) releases: Vec<(gdk::Key, UnixMs)>,
+    pub(crate) esc_armed: UnixMs,
+    pub(crate) last_real: UnixMs,
+    pub(crate) rng: u64,
     pub quit: bool,
+    pub(crate) talk: crate::talk::Talk,
+    pub(crate) drawing: Option<crate::drawing::Drawing>,
+    pub(crate) reveal: Option<(usize, UnixMs)>,
+    /// Something the window should open: the logbook, a course, settings.
+    pub(crate) request: Option<crate::talk::Request>,
 }
 
-const WARM: Rgb = [1.0, 0.86, 0.66];
+pub(crate) const WARM: Rgb = [1.0, 0.86, 0.66];
 const RETICLE: Rgb = [0.78, 0.84, 1.0];
 
-fn smoothstep(x: f64) -> f64 {
+pub(crate) fn smoothstep(x: f64) -> f64 {
     let x = x.clamp(0.0, 1.0);
     x * x * (3.0 - 2.0 * x)
 }
 
 /// Fades in over `rise`, holds, and fades out over `fall`.
-fn envelope(age: UnixMs, rise: UnixMs, hold: UnixMs, fall: UnixMs) -> f64 {
+pub(crate) fn envelope(age: UnixMs, rise: UnixMs, hold: UnixMs, fall: UnixMs) -> f64 {
     if age < 0 {
         0.0
     } else if age < rise {
@@ -175,7 +180,7 @@ fn envelope(age: UnixMs, rise: UnixMs, hold: UnixMs, fall: UnixMs) -> f64 {
 }
 
 /// The gentle hills along the horizon, in degrees of altitude.
-fn hills(az: f64) -> f64 {
+pub(crate) fn hills(az: f64) -> f64 {
     let a = az.to_radians();
     (0.75
         + 0.45 * (3.0 * a + 0.7).sin()
@@ -189,7 +194,7 @@ fn light(mag: f64) -> f32 {
     (1.6 * 10f64.powf(-0.4 * (mag - 1.0)).powf(0.55)) as f32
 }
 
-fn transpose(m: &Mat3) -> Mat3 {
+pub(crate) fn transpose(m: &Mat3) -> Mat3 {
     [
         [m[0][0], m[1][0], m[2][0]],
         [m[0][1], m[1][1], m[2][1]],
@@ -197,16 +202,16 @@ fn transpose(m: &Mat3) -> Mat3 {
     ]
 }
 
-fn dot3(a: Vec3, b: Vec3) -> f64 {
+pub(crate) fn dot3(a: Vec3, b: Vec3) -> f64 {
     a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 }
 
-fn angle_between(a: Vec3, b: Vec3) -> f64 {
+pub(crate) fn angle_between(a: Vec3, b: Vec3) -> f64 {
     dot3(a, b).clamp(-1.0, 1.0).acos().to_degrees()
 }
 
 /// Shortest signed turn from one azimuth to another.
-fn turn(from: f64, to: f64) -> f64 {
+pub(crate) fn turn(from: f64, to: f64) -> f64 {
     (to - from + 540.0).rem_euclid(360.0) - 180.0
 }
 
@@ -230,7 +235,7 @@ impl Game {
             .map(|f| journal.found_on(&f.id, &night))
             .collect();
         let still = caught.iter().filter(|c| !**c).count();
-        let mut session = Session::new(real_now, timings, still, false);
+        let mut session = Session::new(real_now, timings, still, true);
         if still == 0 {
             session.found_one(real_now);
         }
@@ -238,6 +243,12 @@ impl Game {
             key: night.clone(),
             ..Night::default()
         });
+        let talk = crate::talk::Talk::new(
+            &journal,
+            &night,
+            crate::talk::calendar(&sky.lists.showers, now),
+        );
+        let already = !finds.is_empty() && caught.iter().all(|c| *c);
         let star_dirs = sky.stars.precessed(&precession(now));
         let prepared = sky
             .stars
@@ -288,6 +299,10 @@ impl Game {
             last_real: real_now,
             rng: (real_now as u64) ^ 0x9e37_79b9_7f4a_7c15,
             quit: false,
+            talk,
+            drawing: None,
+            reveal: None,
+            request: already.then_some(crate::talk::Request::Book(None)),
         };
         game.arrive(real_now);
         game
@@ -355,6 +370,10 @@ impl Game {
         }
         if self.caught.iter().all(|c| *c) && !self.finds.is_empty() {
             line.push_str(" · you've found tonight's sky");
+        }
+        if let Some(extra) = self.arrival_extra(now) {
+            line.push('\n');
+            line.push_str(&extra);
         }
         self.caption = Some(Timed {
             text: line,
@@ -424,7 +443,7 @@ impl Game {
             .max(24.0)
     }
 
-    fn reticle_radius(&self) -> f64 {
+    pub(crate) fn reticle_radius(&self) -> f64 {
         (self.camera.width.min(self.camera.height) * 0.055).max(26.0)
     }
 
@@ -436,12 +455,15 @@ impl Game {
         self.last_input = real;
     }
 
-    fn hunting(&self) -> bool {
+    pub(crate) fn hunting(&self) -> bool {
         self.session.phase() == Phase::Hunt
     }
 
     pub fn key_pressed(&mut self, key: gdk::Key, real: UnixMs) -> bool {
         self.input(real);
+        if self.typing() {
+            return false;
+        }
         self.releases.retain(|(k, _)| *k != key);
         if key == gdk::Key::space {
             if self.held.space {
@@ -456,11 +478,46 @@ impl Game {
             self.quit = true;
             return true;
         }
+        if self.drawing.is_some() && self.drawing_key(key, real) {
+            return true;
+        }
+        if self.placing()
+            && matches!(
+                key,
+                gdk::Key::Return | gdk::Key::KP_Enter | gdk::Key::Escape
+            )
+        {
+            self.place_weight(real);
+            return true;
+        }
+        if let Some(prompt) = &self.talk.prompt {
+            let chips = prompt.chips.len();
+            if key == gdk::Key::Escape {
+                self.skip_prompt(real);
+                return true;
+            }
+            if let Some(n) = key.to_unicode().and_then(|c| c.to_digit(10))
+                && (1..=chips as u32).contains(&n)
+            {
+                self.answer_chip(n as usize - 1, real);
+                return true;
+            }
+        }
         match key {
-            gdk::Key::Left | gdk::Key::h => self.held.left = true,
-            gdk::Key::Right | gdk::Key::l => self.held.right = true,
-            gdk::Key::Up | gdk::Key::k => self.held.up = true,
-            gdk::Key::Down | gdk::Key::j => self.held.down = true,
+            gdk::Key::Left => self.held.left = true,
+            gdk::Key::Right => self.held.right = true,
+            gdk::Key::Up => self.held.up = true,
+            gdk::Key::Down => self.held.down = true,
+            gdk::Key::c | gdk::Key::C => {
+                if self.hunting() && self.card.is_none() && self.talk.prompt.is_none() {
+                    self.start_drawing(real);
+                }
+            }
+            gdk::Key::l | gdk::Key::L => {
+                if !matches!(phase, Phase::Finale | Phase::LightsOut | Phase::Over) {
+                    self.request = Some(crate::talk::Request::Book(Some(self.night.clone())));
+                }
+            }
             gdk::Key::plus | gdk::Key::equal | gdk::Key::KP_Add => self.held.zoom_in = true,
             gdk::Key::minus | gdk::Key::KP_Subtract => self.held.zoom_out = true,
             gdk::Key::Shift_L | gdk::Key::Shift_R => self.held.fast = true,
@@ -527,10 +584,10 @@ impl Game {
 
     fn release(&mut self, key: gdk::Key) {
         match key {
-            gdk::Key::Left | gdk::Key::h => self.held.left = false,
-            gdk::Key::Right | gdk::Key::l => self.held.right = false,
-            gdk::Key::Up | gdk::Key::k => self.held.up = false,
-            gdk::Key::Down | gdk::Key::j => self.held.down = false,
+            gdk::Key::Left => self.held.left = false,
+            gdk::Key::Right => self.held.right = false,
+            gdk::Key::Up => self.held.up = false,
+            gdk::Key::Down => self.held.down = false,
             gdk::Key::plus | gdk::Key::equal | gdk::Key::KP_Add => self.held.zoom_in = false,
             gdk::Key::minus | gdk::Key::KP_Subtract => self.held.zoom_out = false,
             gdk::Key::Shift_L | gdk::Key::Shift_R => self.held.fast = false,
@@ -668,6 +725,7 @@ impl Game {
             body: find.fact,
             shown: real,
         });
+        self.after_catch(i, real);
     }
 
     fn save_page(&self) {
@@ -708,6 +766,7 @@ impl Game {
         if self.session.phase() == Phase::Over {
             self.quit = true;
         }
+        self.tick_talk(real);
         let tempo = self.session.tempo(real);
         self.steer(dt, tempo);
         let now = self.sky_now(real);
@@ -718,11 +777,18 @@ impl Game {
         self.draw(real, now, &hz, &prec, tempo)
     }
 
-    fn entered(&mut self, phase: Phase, real: UnixMs) {
+    pub(crate) fn entered(&mut self, phase: Phase, real: UnixMs) {
+        if matches!(phase, Phase::Dimming | Phase::Finale) {
+            self.talk.flow = None;
+            self.talk.pending = None;
+            self.set_prompt(None);
+            self.drawing = None;
+        }
         match phase {
+            Phase::Weights => self.begin_weights(real),
             Phase::Hunt => {
                 self.hint = Some(Timed {
-                    text: "Arrows to look around · hold Space to catch · Tab turns towards the next · Esc when you're done".into(),
+                    text: "Arrows to look around · hold Space to catch · Tab for the next · C to draw · L for the logbook · Esc when you're done".into(),
                     shown: real + 2_500,
                     hold: 16_000,
                 });
@@ -739,7 +805,15 @@ impl Game {
             }
             Phase::Finale => {
                 let now = self.clock.sky(real);
-                self.handoff = Some(handoff(&self.sky, self.observer, now, self.offset_s));
+                let mut last = handoff(&self.sky, self.observer, now, self.offset_s);
+                // When someone has written something heavy, the last line is a person.
+                let pole = if self.observer.lat >= 0.0 { 424 } else { 4730 };
+                if self.talk.caring
+                    && let Some(p) = self.journal.person_on(pole)
+                {
+                    last.line = format!("{} would pick up. {}", p.name, last.line);
+                }
+                self.handoff = Some(last);
                 self.caption = None;
                 // Face the west, where tonight's stars go down.
                 self.look = Some(Look {
@@ -751,6 +825,25 @@ impl Game {
                 self.finale_turned = false;
             }
             _ => {}
+        }
+    }
+
+    /// Turns the view to the first thing still to find.
+    pub(crate) fn face_first_find(&mut self, real: UnixMs) {
+        let now = self.clock.sky(real);
+        let hz = horizon(self.observer, now);
+        let prec = precession(now);
+        let first = (0..self.finds.len())
+            .filter(|&i| !self.caught[i])
+            .find_map(|i| self.find_dir(i, now, &hz, &prec));
+        if let Some(v) = first {
+            let (alt, az) = alt_az(v);
+            self.look = Some(Look {
+                az,
+                alt: alt.clamp(15.0, 62.0),
+                fov: 95.0,
+                rate: 1.0,
+            });
         }
     }
 
@@ -808,6 +901,9 @@ impl Game {
             {
                 self.look = None;
             }
+        }
+        if self.placing() {
+            self.camera.alt = self.camera.alt.min(25.0);
         }
         self.camera.update();
     }
@@ -1260,12 +1356,14 @@ impl Game {
             }
         }
 
+        self.draw_marks(real, hz);
         self.draw_reticle(real, tempo);
 
         let brightness = self.session.brightness(real);
         let veil = self.finale_veil(real);
         let frame_texture = self.field.texture((brightness * (1.0 - veil)) as f32 * 1.0);
         let mut texts = self.labels(real, now, hz, prec, brightness);
+        texts.extend(self.mark_labels(hz, brightness));
         texts.extend(self.words(real, brightness));
         Frame {
             texture: Some(frame_texture),
@@ -1470,6 +1568,13 @@ impl Game {
         let mut out = Vec::new();
         let (w, h) = (self.camera.width, self.camera.height);
         let text_light = brightness.max(0.55);
+        if self.talk.caring {
+            out.push(
+                Text::new(28.0, h - 150.0, night_sky_core::care::NOTE, 13.0, 0.75)
+                    .wrap(360.0)
+                    .color([1.0, 0.9, 0.8]),
+            );
+        }
         if let Some(c) = &self.caption {
             let a = envelope(real - c.shown, 1_500, c.hold, 2_000);
             out.push(

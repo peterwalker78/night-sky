@@ -1,11 +1,19 @@
 //! Night Sky: the real sky over you tonight, a few quiet questions, and then
 //! the real sky outside.
 
+mod book;
 mod camera;
+mod course;
+mod drawing;
 mod field;
 mod game;
+mod settings;
+mod talk;
+mod ui;
 mod view;
 
+use book::Book;
+use course::Course;
 use game::{Clock, Game, Options};
 use gtk::prelude::*;
 use gtk::{gdk, gio, glib};
@@ -14,9 +22,12 @@ use night_sky_core::journal::Journal;
 use night_sky_core::place;
 use night_sky_core::session::Timings;
 use night_sky_core::time::UnixMs;
+use settings::Settings;
 use std::cell::RefCell;
 use std::path::PathBuf;
 use std::rc::Rc;
+use talk::Request;
+use ui::PromptBar;
 use view::SkyView;
 
 const APP_ID: &str = "io.github.peterwalker78.NightSky";
@@ -118,6 +129,7 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
     };
     let game = Rc::new(RefCell::new(Game::new(options, real)));
 
+    ui::install_css();
     let window = gtk::ApplicationWindow::builder()
         .application(app)
         .title("Night Sky")
@@ -132,18 +144,65 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
     view.set_vexpand(true);
     view.set_focusable(true);
     view.set_cursor_from_name(Some("crosshair"));
-    let overlay = gtk::Overlay::new();
-    overlay.set_child(Some(&view));
-    window.set_child(Some(&overlay));
+    let prompt = PromptBar::new(&game);
+    let sky_page = gtk::Overlay::new();
+    sky_page.set_child(Some(&view));
+    sky_page.add_overlay(&prompt.root);
+
+    let book = Book::new(&game);
+    let course = Course::new(&game);
+    let settings = Settings::new(&game);
+    let stack = gtk::Stack::new();
+    stack.set_transition_type(gtk::StackTransitionType::Crossfade);
+    stack.set_transition_duration(350);
+    stack.add_named(&sky_page, Some("sky"));
+    stack.add_named(&book.root, Some("book"));
+    stack.add_named(&course.root, Some("course"));
+    stack.add_named(&settings.root, Some("settings"));
+    window.set_child(Some(&stack));
+
+    // Going from page to page. The pages ask for this with a Request.
+    let go: Rc<dyn Fn(Option<Request>)> = {
+        let (stack, view) = (stack.clone(), view.clone());
+        let (book, course, settings) = (book.clone(), course.clone(), settings.clone());
+        Rc::new(move |r: Option<Request>| match r {
+            None => {
+                stack.set_visible_child_name("sky");
+                view.grab_focus();
+            }
+            Some(Request::Book(at)) => {
+                stack.set_visible_child_name("book");
+                book.open(at.as_deref());
+            }
+            Some(Request::Course(weight)) => {
+                stack.set_visible_child_name("course");
+                course.open(weight);
+            }
+            Some(Request::Settings) => {
+                stack.set_visible_child_name("settings");
+                settings.open();
+            }
+        })
+    };
+    for slot in [&book.on_request, &course.on_request, &settings.on_request] {
+        let go = go.clone();
+        *slot.borrow_mut() = Some(Box::new(move |r| go(r)));
+    }
 
     let keys = gtk::EventControllerKey::new();
     {
         let game = game.clone();
         let window = window.clone();
+        let stack = stack.clone();
+        let go = go.clone();
         keys.connect_key_pressed(move |_, key, _, state| {
             let ctrl = state.contains(gdk::ModifierType::CONTROL_MASK);
             if ctrl && matches!(key, gdk::Key::q | gdk::Key::w) {
                 window.close();
+                return glib::Propagation::Stop;
+            }
+            if ctrl && key == gdk::Key::comma {
+                go(Some(Request::Settings));
                 return glib::Propagation::Stop;
             }
             if key == gdk::Key::F11 {
@@ -154,7 +213,15 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
                 }
                 return glib::Propagation::Stop;
             }
-            if game.borrow_mut().key_pressed(key, wall_clock()) {
+            if stack.visible_child_name().as_deref() != Some("sky") {
+                return glib::Propagation::Proceed;
+            }
+            let handled = game.borrow_mut().key_pressed(key, wall_clock());
+            let request = game.borrow_mut().take_request();
+            if request.is_some() {
+                go(request);
+            }
+            if handled {
                 glib::Propagation::Stop
             } else {
                 glib::Propagation::Proceed
@@ -208,10 +275,13 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
     {
         let game = game.clone();
         let window = window.clone();
+        let stack = stack.clone();
+        let go = go.clone();
         view.add_tick_callback(move |view, _clock| {
             let real = wall_clock();
             let fast = game.borrow().wants_fast_frames(real);
-            let interval = if !window.is_active() {
+            let on_sky = stack.visible_child_name().as_deref() == Some("sky");
+            let interval = if !window.is_active() || !on_sky {
                 200
             } else if fast {
                 16
@@ -224,8 +294,15 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
                 g.resize(view.width() as f64, view.height() as f64);
                 let frame = g.tick(real);
                 let quit = g.quit;
+                let request = g.take_request();
                 drop(g);
                 view.show(frame);
+                if prompt.sync(&game) && on_sky {
+                    view.grab_focus();
+                }
+                if request.is_some() {
+                    go(request);
+                }
                 if quit {
                     window.close();
                 }
