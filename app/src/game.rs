@@ -168,6 +168,8 @@ pub struct Game {
     pub(crate) request: Option<crate::talk::Request>,
     pub(crate) guide: crate::guide::Guide,
     pub(crate) points: Vec<crate::view::Point>,
+    /// Where Jupiter's moons were drawn this frame, to name them.
+    moon_labels: Vec<(f64, f64, &'static str, f32)>,
     pub(crate) photos: crate::eyepiece::Photos,
     /// A find the view keeps centred as the sky turns, like a telescope's drive.
     pub(crate) track: Option<usize>,
@@ -339,6 +341,7 @@ impl Game {
             guide: crate::guide::Guide::new(real_now),
             points: Vec::new(),
             photos: crate::eyepiece::Photos::load(),
+            moon_labels: Vec::new(),
             track: None,
             eye: None,
             eye_alpha: 0.0,
@@ -490,9 +493,14 @@ impl Game {
                     .position
                     .diameter
                     / 3600.0;
-                // Saturn is framed by its rings, 2.27 times as wide as the planet.
-                let d = if body == Body::Saturn { d * 2.27 } else { d };
-                (d / 0.24).clamp(crate::camera::FOV_NARROWEST, 2.4)
+                // Saturn is framed by its rings, 2.27 times as wide as the planet;
+                // Jupiter wide enough to show its inner moons beside it.
+                let share = match body {
+                    Body::Saturn => 0.24 / 2.27,
+                    Body::Jupiter => 0.07,
+                    _ => 0.24,
+                };
+                (d / share).clamp(crate::camera::FOV_NARROWEST, 2.4)
             }
             Target::Showpiece(p) => (self.photo_degrees(p) * 2.6).clamp(0.4, 40.0),
             Target::Star(_) => 8.0,
@@ -957,8 +965,12 @@ impl Game {
                     .and_then(|v| self.camera.project(v))?;
                 let half = self.photo_half(i, self.camera.fov);
                 let d = ((x - cx).powi(2) + (y - cy).powi(2)).sqrt();
-                // Worth showing once the picture is big enough to hold detail.
-                let size = smoothstep((half - 40.0) / 160.0);
+                // Worth showing once the picture is big enough to hold detail:
+                // a planet's disc sooner than a spread-out cluster.
+                let size = match self.finds[i].target {
+                    Target::Body(_) => smoothstep((half - 15.0) / 60.0),
+                    _ => smoothstep((half - 40.0) / 160.0),
+                };
                 (size > 0.0 && d < half + self.camera.width * 0.5).then_some((i, size, d))
             })
             .min_by(|a, b| a.2.total_cmp(&b.2))
@@ -1626,7 +1638,12 @@ impl Game {
             let fade = smoothstep((shown - star.mag) / 1.2) as f32;
             let low = 0.3 + 0.7 * smoothstep(v[2] / low_sin);
             let rate = star.rate * tempo;
-            let depth = 0.12 + 0.22 * (1.0 - v[2]).powi(2);
+            let depth = (0.12 + 0.22 * (1.0 - v[2]).powi(2))
+                * if self.journal.settings.calm {
+                    0.35
+                } else {
+                    1.0
+                };
             let twinkle = 1.0
                 + depth
                     * ((t * rate + star.phase).sin() * 0.6
@@ -1780,6 +1797,62 @@ impl Game {
             }
         }
 
+        // Jupiter's four big moons, close up.
+        self.moon_labels.clear();
+        let jup = see(Body::Jupiter, self.observer, now);
+        if cam.fov < 1.5 && jup.alt > 0.0 {
+            let v = from_alt_az(jup.alt, jup.az);
+            if let Some((jx, jy)) = cam.project(v) {
+                let toward = |w: Vec3| {
+                    let along = dot3(w, v);
+                    let t = [
+                        w[0] - along * v[0],
+                        w[1] - along * v[1],
+                        w[2] - along * v[2],
+                    ];
+                    let n = dot3(t, t).sqrt().max(1e-12);
+                    let nudge = [
+                        v[0] + t[0] / n * 1e-5,
+                        v[1] + t[1] / n * 1e-5,
+                        v[2] + t[2] / n * 1e-5,
+                    ];
+                    cam.project(nudge).map(|(a, b)| {
+                        let (dx, dy) = (a - jx, b - jy);
+                        let l = (dx * dx + dy * dy).sqrt().max(1e-12);
+                        (dx / l, dy / l)
+                    })
+                };
+                let ra = jup.ra.to_radians();
+                let east = apply(hz, [-ra.sin(), ra.cos(), 0.0]);
+                let pole = apply(hz, apply(prec, night_sky_core::jupiter::pole()));
+                if let (Some(e), Some(p)) = (toward(east), toward(pole)) {
+                    // Along Jupiter's equator, the way that points to the sky's west.
+                    let mut q = (-p.1, p.0);
+                    if q.0 * -e.0 + q.1 * -e.1 < 0.0 {
+                        q = (-q.0, -q.1);
+                    }
+                    let r = jup.position.diameter / 7200.0 * ppd;
+                    let a = smoothstep((1.5 - cam.fov) / 1.0) as f32;
+                    for (k, m) in night_sky_core::jupiter::moons(now).iter().enumerate() {
+                        if m.behind && m.x.abs() < 1.0 {
+                            continue;
+                        }
+                        let (mx, my) = (
+                            jx + (m.x * q.0 + m.y * p.0) * r,
+                            jy + (m.x * q.1 + m.y * p.1) * r,
+                        );
+                        let mut dot = point(mx, my, [1.0, 0.97, 0.9], 0.9, 0.6);
+                        dot.alpha *= a;
+                        dot.halo *= a;
+                        dot.radius = dot.radius.min(2.2);
+                        self.points.push(dot);
+                        self.moon_labels
+                            .push((mx, my, night_sky_core::jupiter::NAMES[k], a));
+                    }
+                }
+            }
+        }
+
         // Meteors.
         for m in &self.meteors {
             let age = (real - m.start) as f64 / m.duration as f64;
@@ -1826,6 +1899,15 @@ impl Game {
         let frame_texture = self.field.texture((brightness * (1.0 - veil)) as f32 * 1.0);
         let mut texts = self.labels(real, now, hz, prec, brightness);
         texts.extend(self.mark_labels(hz, brightness));
+        for &(x, y, name, a) in &self.moon_labels {
+            texts.push(Text::new(
+                x + 8.0,
+                y + 6.0,
+                name,
+                12.0,
+                0.55 * a as f64 * brightness,
+            ));
+        }
         texts.extend(self.words(real, brightness));
         let (sprites, bubble, embers) = self.guide_frame(real, brightness);
         if let Some(i) = self.eye
@@ -2141,6 +2223,14 @@ impl Game {
 
     pub fn quiet(&self) -> bool {
         self.journal.settings.quiet
+    }
+
+    pub fn volume(&self) -> f64 {
+        self.journal.settings.volume.unwrap_or(1.0).clamp(0.0, 1.0)
+    }
+
+    pub(crate) fn calm(&self) -> bool {
+        self.journal.settings.calm
     }
 
     /// Keeps the frame clock's pace honest: fast while things move, slow at rest.

@@ -65,6 +65,15 @@ button.quiet {
   font-size: 13px;
 }
 button.quiet:hover { background: rgba(240, 214, 168, 0.14); }
+button.menu-button {
+  background: rgba(7, 9, 19, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 7px;
+  color: rgba(236, 238, 246, 0.85);
+  box-shadow: none;
+}
+button.menu-button:hover { background: rgba(240, 214, 168, 0.16); }
 .tonight {
   background: rgba(7, 9, 19, 0.74);
   border-radius: 14px;

@@ -160,6 +160,15 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
     sky_page.add_overlay(&prompt.root);
     let tonight = hud::Tonight::new();
     sky_page.add_overlay(&tonight.root);
+    let menu = gtk::Button::from_icon_name("open-menu-symbolic");
+    menu.set_tooltip_text(Some("Menu (Ctrl+,)"));
+    menu.add_css_class("menu-button");
+    menu.set_halign(gtk::Align::Start);
+    menu.set_valign(gtk::Align::Start);
+    menu.set_margin_start(14);
+    menu.set_margin_top(12);
+    menu.set_focus_on_click(false);
+    sky_page.add_overlay(&menu);
 
     let book = Book::new(&game);
     let course = Course::new(&game);
@@ -196,6 +205,10 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
             }
         })
     };
+    {
+        let go = go.clone();
+        menu.connect_clicked(move |_| go(Some(Request::Settings)));
+    }
     for slot in [&book.on_request, &course.on_request, &settings.on_request] {
         let go = go.clone();
         *slot.borrow_mut() = Some(Box::new(move |r| go(r)));
@@ -286,8 +299,9 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
     }
     view.add_controller(scroll);
 
+    // A different track to start with every time.
     let music = Rc::new(RefCell::new(music::Music::new(
-        real as u64 / 86_400_000,
+        glib::random_int() as u64,
         game.borrow().quiet(),
     )));
     let last_frame = std::cell::Cell::new(0i64);
@@ -338,7 +352,7 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
                 }
                 let quit = g.quit;
                 let request = g.take_request();
-                let (level, quiet) = (g.music_level(real), g.quiet());
+                let (level, quiet) = (g.music_level(real) * g.volume(), g.quiet());
                 drop(g);
                 {
                     let mut m = music.borrow_mut();

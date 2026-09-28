@@ -28,7 +28,7 @@ pub struct Music {
 }
 
 /// How loud the music sits at its fullest: well under anything else.
-pub const FULL: f64 = 0.55;
+pub const FULL: f64 = 0.7;
 
 impl Music {
     /// The tracks in an order that depends on `seed`, so each night differs.

@@ -217,6 +217,12 @@ impl Game {
                 real + 1_200,
                 7_000,
             );
+            self.say_at(
+                Aim::Near(0.4, 0.4),
+                "Come here for a few quiet minutes at the end of the day. The sky is never quite the same two nights running, so there's always something new to find.",
+                real + 1_200,
+                9_000,
+            );
             return;
         }
         let greetings = [
@@ -321,6 +327,15 @@ impl Game {
 
     pub(crate) fn guide_all_found(&mut self, real: UnixMs) {
         self.guide.cheer_until = real + 5_000;
+        if self.say_once(
+            "tomorrow",
+            Aim::Near(0.5, 0.35),
+            "That's tonight's sky. By tomorrow it will have turned: new things will be up and the Moon will have moved on. Look around as long as you like, then Esc twice to finish.",
+            real,
+            11_000,
+        ) {
+            return;
+        }
         self.say_at(
             Aim::Near(0.5, 0.35),
             "That's tonight's sky, all of it. Look around as long as you like, then Esc twice to finish.",
@@ -401,7 +416,7 @@ impl Game {
     pub(crate) fn guide_help(&mut self, real: UnixMs) {
         self.say_at(
             Aim::Near(0.32, 0.5),
-            "Arrows or a drag look around. Hold Space to catch whatever's in the ring. Tab, or a click on the list, turns you to the next find. C draws, L opens the logbook, M turns the music off or on, and Esc twice ends the night.",
+            "Arrows or a drag look around. Hold Space to catch whatever's in the ring. Tab, or a click on the list, turns you to the next find. C draws, L opens the logbook, M turns the music off or on, and Esc twice ends the night. The button top left opens the menu.",
             real,
             15_000,
         );
@@ -651,8 +666,15 @@ impl Game {
             self.guide.wander = None;
         }
 
-        let (goal, pointing) = match (self.resolve(self.guide.aim), wandering) {
-            (Some(_), Some((wx, wy, _))) if self.guide.aim == Aim::Home => ((wx, wy), None),
+        // With calm motion on, the wisp keeps to its moss and speaks from there.
+        let aim = if self.calm() {
+            Aim::Home
+        } else {
+            self.guide.aim
+        };
+        let wandering = if self.calm() { None } else { wandering };
+        let (goal, pointing) = match (self.resolve(aim), wandering) {
+            (Some(_), Some((wx, wy, _))) if aim == Aim::Home => ((wx, wy), None),
             (Some(g), _) => g,
             (None, _) => ((self.guide.flight.x, self.guide.flight.y), None),
         };
