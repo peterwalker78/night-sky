@@ -190,6 +190,7 @@ impl Game {
             entry: true,
             hint: "Enter to keep it · Esc to let it go".into(),
             names: false,
+            chip_keys: Vec::new(),
         }));
     }
 

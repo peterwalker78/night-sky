@@ -77,6 +77,15 @@ button.chip {
   font-size: 14px;
 }
 button.chip:hover, button.chip:focus { background: rgba(240, 214, 168, 0.16); }
+.chip-key {
+  font-size: 11px;
+  color: rgba(225, 230, 242, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  padding: 0 5px;
+  min-width: 10px;
+}
 button.name { font-size: 13px; padding: 1px 10px; }
 .hint { font-size: 12px; color: rgba(220, 225, 240, 0.48); }
 .book-side { background: rgba(255, 255, 255, 0.025); }
@@ -440,7 +449,18 @@ impl PromptBar {
         self.entry.set_text("");
         self.entry.set_placeholder_text(Some(&p.placeholder));
         for (i, chip) in p.chips.iter().enumerate() {
-            let b = gtk::Button::with_label(&format!("{}  {chip}", i + 1));
+            // The words, then its key drawn as a small key, so the number
+            // doesn't read as part of the words.
+            let inside = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+            inside.append(&gtk::Label::new(Some(chip)));
+            let key_name = p.chip_keys.get(i).cloned().unwrap_or((i + 1).to_string());
+            let key = gtk::Label::new(Some(&key_name));
+            key.add_css_class("chip-key");
+            key.set_valign(gtk::Align::Center);
+            key.set_tooltip_text(Some(&format!("Press {key_name} for this")));
+            inside.append(&key);
+            let b = gtk::Button::new();
+            b.set_child(Some(&inside));
             b.add_css_class("chip");
             let game = game.clone();
             b.connect_clicked(move |_| game.borrow_mut().answer_chip(i, wall_clock()));
@@ -448,8 +468,9 @@ impl PromptBar {
         }
         self.chips.set_visible(!p.chips.is_empty());
         let hint = match (p.entry, p.chips.len()) {
-            (false, n) if n > 0 && p.hint.is_empty() => format!("Press 1 to {n}, or click"),
-            (true, n) if n > 0 => format!("{} · a number picks one below", p.hint),
+            (false, n) if n > 0 && p.hint.is_empty() => {
+                "Click one, or press the key beside it".into()
+            }
             _ => p.hint.clone(),
         };
         self.hint.set_text(&hint);

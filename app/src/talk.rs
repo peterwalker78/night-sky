@@ -25,6 +25,8 @@ pub struct Prompt {
     pub hint: String,
     /// Offer names already used as the user types.
     pub names: bool,
+    /// The key shown on a chip, when it isn't its number.
+    pub chip_keys: Vec<String>,
 }
 
 /// How a page asks the window to go somewhere: None is back to the sky.
@@ -272,6 +274,7 @@ impl Game {
             entry: true,
             hint: "Enter to set it down · Esc when that's all".into(),
             names: false,
+            ..Prompt::default()
         }));
     }
 
@@ -293,6 +296,7 @@ impl Game {
             entry: false,
             hint: "Arrows to move it · Enter to hang it here".into(),
             names: false,
+            chip_keys: vec!["Enter".into()],
         }));
         self.look = Some(Look {
             az: 262.0,
@@ -452,6 +456,7 @@ impl Game {
                     entry: true,
                     hint: "Enter to keep it · Esc to let it pass".into(),
                     names: false,
+                    chip_keys: Vec::new(),
                 }));
             }
             Pending::LookBack(id) => {
@@ -484,6 +489,7 @@ impl Game {
                     entry: false,
                     hint: "Esc to let it pass".into(),
                     names: false,
+                    chip_keys: Vec::new(),
                 }));
                 self.guide_look_back(real);
             }
@@ -512,6 +518,7 @@ impl Game {
                     entry: false,
                     hint: "Esc to let it pass".into(),
                     names: false,
+                    chip_keys: Vec::new(),
                 }));
             }
         }
@@ -547,6 +554,7 @@ impl Game {
             entry: true,
             hint: "Enter to keep it · Esc to let it pass".into(),
             names,
+            chip_keys: Vec::new(),
         }));
     }
 
@@ -665,6 +673,7 @@ impl Game {
                             entry: true,
                             hint: "Enter to keep it · Esc if it's just you".into(),
                             names: true,
+                            chip_keys: Vec::new(),
                         }));
                     }
                     (AnswerKind::Name, _) => {
@@ -689,6 +698,7 @@ impl Game {
                                     entry: false,
                                     hint: String::new(),
                                     names: false,
+                                    chip_keys: Vec::new(),
                                 }));
                             }
                             _ => {
