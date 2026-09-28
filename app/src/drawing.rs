@@ -290,13 +290,28 @@ impl Game {
             }
             if let Some((x, y)) = cam.project(*v) {
                 let pulse = 0.85 + 0.15 * (t * 0.7 + k as f64).sin();
-                self.field.star(x, y, WEIGHT, 1.7 * pulse as f32);
+                self.points.push(crate::view::Point {
+                    x,
+                    y,
+                    radius: 2.8,
+                    color: WEIGHT,
+                    alpha: 0.9,
+                    halo: 0.75 * pulse as f32,
+                });
             }
         }
         if self.placing() {
             let (cx, cy) = (cam.width / 2.0, cam.height / 2.0);
             let pulse = 0.8 + 0.2 * (t * 1.6).sin();
-            self.field.star(cx, cy, WEIGHT, 2.1 * pulse as f32);
+            // The weight being hung: a warm star, big enough to see what it is.
+            self.points.push(crate::view::Point {
+                x: cx,
+                y: cy,
+                radius: 4.2,
+                color: WEIGHT,
+                alpha: 0.95,
+                halo: pulse as f32,
+            });
         }
         // Stars that carry a person's name wear a faint ring.
         let named: Vec<u16> = self

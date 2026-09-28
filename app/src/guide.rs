@@ -265,10 +265,14 @@ impl Game {
     }
 
     pub(crate) fn guide_placing(&mut self, real: UnixMs) {
-        let text = "Find it a spot low in the west with the arrows, then press Enter. We'll watch it set later.";
-        if !self.say_once("placing", Aim::Ring, text, real, 60_000) {
-            self.say_at(Aim::Ring, "Low in the west, then Enter.", real, 60_000);
-        }
+        // The prompt says what to do; the wisp only says why, the first time.
+        self.say_once(
+            "placing",
+            Aim::Ring,
+            "Things written down are easier to put down. When the sky sets tonight, that goes with it.",
+            real,
+            12_000,
+        );
     }
 
     pub(crate) fn guide_placed(&mut self) {

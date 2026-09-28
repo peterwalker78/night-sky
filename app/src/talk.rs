@@ -204,6 +204,14 @@ impl Game {
         self.talk.prompt.as_ref().is_some_and(|p| p.entry)
     }
 
+    /// The words of the weight being hung, while it's being hung.
+    pub(crate) fn placing_words(&self) -> Option<String> {
+        match self.talk.flow {
+            Some(Flow::Place { weight, .. }) => self.journal.weight(weight).map(|w| w.text.clone()),
+            _ => None,
+        }
+    }
+
     pub(crate) fn placing(&self) -> bool {
         matches!(self.talk.flow, Some(Flow::Place { .. }))
     }
@@ -252,9 +260,9 @@ impl Game {
             .to_owned(),
         );
         let text = if count == 0 {
-            "Anything heavy tonight? Two or three things."
+            "Anything heavy on your mind tonight? Write it down and it'll hang low in the west, where the turning sky will take it down."
         } else {
-            "Another? Or that's all."
+            "It's hung in the west. Anything else? Or that's all."
         };
         self.talk.flow = Some(Flow::Weight { count, offered });
         self.set_prompt(Some(Prompt {
@@ -269,7 +277,23 @@ impl Game {
 
     fn start_placing(&mut self, weight: u32, count: usize, real: UnixMs) {
         self.talk.flow = Some(Flow::Place { weight, count });
-        self.set_prompt(None);
+        let words = self
+            .journal
+            .weight(weight)
+            .map(|w| w.text.clone())
+            .unwrap_or_default();
+        // Said in full every time: what the glowing star is, where it goes,
+        // and why.
+        self.set_prompt(Some(Prompt {
+            text: format!(
+                "“{words}” is the warm star in the ring. Hang it low in the west: the sky turns that way, and before the night's out it will set, and you'll watch it go."
+            ),
+            placeholder: String::new(),
+            chips: vec!["Hang it here".into()],
+            entry: false,
+            hint: "Arrows to move it · Enter to hang it here".into(),
+            names: false,
+        }));
         self.look = Some(Look {
             az: 262.0,
             alt: 9.0,
@@ -720,6 +744,10 @@ impl Game {
                 } else {
                     self.finish_weights(real);
                 }
+            }
+            Flow::Place { weight, count } => {
+                self.talk.flow = Some(Flow::Place { weight, count });
+                self.place_weight(real);
             }
             Flow::NameStar { name, hr } => {
                 if chip == 0 {

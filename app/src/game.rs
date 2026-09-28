@@ -2209,12 +2209,13 @@ impl Game {
     }
 
     fn draw_reticle(&mut self, real: UnixMs, tempo: f64) {
-        if !matches!(self.session.phase(), Phase::Hunt | Phase::Arrival) || self.card.is_some() {
+        let ringed = matches!(self.session.phase(), Phase::Hunt | Phase::Arrival) || self.placing();
+        if !ringed || self.card.is_some() {
             return;
         }
         let r = self.reticle_radius();
         let (cx, cy) = (self.camera.width / 2.0, self.camera.height / 2.0);
-        let has = self.catch.target.is_some();
+        let has = self.catch.target.is_some() || self.placing();
         let breathe = 0.5 + 0.5 * ((real as f64 / 1000.0) * 1.1 * tempo).sin();
         let points = 28;
         for k in 0..points {
@@ -2342,6 +2343,14 @@ impl Game {
                 Text::new(w - 400.0, h - 130.0, night_sky_core::care::NOTE, 13.0, 0.75)
                     .wrap(360.0)
                     .color([1.0, 0.9, 0.8]),
+            );
+        }
+        // The weight being hung keeps its words beside it.
+        if let Some(words) = self.placing_words() {
+            out.push(
+                Text::new(w / 2.0 + 18.0, h / 2.0 - 10.0, words, 16.0, 0.85)
+                    .wrap(320.0)
+                    .color([1.0, 0.84, 0.68]),
             );
         }
         if let Some(c) = &self.caption {
