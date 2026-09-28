@@ -116,6 +116,9 @@ pub struct Settings {
     pub lat: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lon: Option<f64>,
+    /// What the wisp has already shown, so it doesn't say it twice.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub seen: Vec<String>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
