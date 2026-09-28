@@ -103,6 +103,42 @@ pub fn parse(text: &str) -> Vec<Figure> {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn figures_use_the_stars_people_see() {
+        let figures = super::bundled();
+        let stars = crate::stars::Catalogue::bundled();
+        let get = |abbrev: &str| figures.iter().find(|f| f.abbrev == abbrev).unwrap();
+        for f in &figures {
+            for hr in f.stars() {
+                let star = stars
+                    .get(hr)
+                    .unwrap_or_else(|| panic!("{}: HR {hr}", f.abbrev));
+                assert!(star.mag < 6.0, "{}: HR {hr} is too faint to see", f.abbrev);
+            }
+        }
+        let has = |abbrev: &str, a: u16, b: u16| {
+            get(abbrev)
+                .edges
+                .iter()
+                .any(|&(x, y)| (x, y) == (a, b) || (y, x) == (a, b))
+        };
+        // The Plough, all seven stars.
+        for (a, b) in [
+            (5191, 5054),
+            (5054, 4905),
+            (4905, 4660),
+            (4660, 4301),
+            (4301, 4295),
+            (4295, 4554),
+            (4554, 4660),
+        ] {
+            assert!(has("UMa", a, b), "Plough {a}-{b}");
+        }
+        // The bright one of each close pair: Cor Caroli, gamma-2 Delphini.
+        assert!(get("CVn").stars().contains(&4915));
+        assert!(get("Del").stars().contains(&7948));
+    }
+
+    #[test]
     fn every_constellation_is_there() {
         let figures = super::bundled();
         assert!(figures.len() >= 88);

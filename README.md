@@ -164,8 +164,11 @@ shortens the visit itself, `--place=LAT,LON` stands somewhere else, and
 - **Stars:** the Yale Bright Star Catalogue, 5th revised edition (Hoffleit and
   Warren), from the [CDS](https://cdsarc.cds.unistra.fr/viz-bin/cat/V/50):
   every star to magnitude 6.5.
-- **Constellation figures:** [d3-celestial](https://github.com/ofrohn/d3-celestial)
-  by Olaf Frohn (BSD-3-Clause), matched to catalogue stars.
+- **Constellation figures:** Stellarium's
+  [modern sky culture](https://github.com/Stellarium/stellarium/tree/master/skycultures/modern)
+  (CC BY-SA 4.0), matched to catalogue stars through SIMBAD, with names and ranks
+  from [d3-celestial](https://github.com/ofrohn/d3-celestial) by Olaf Frohn
+  (BSD-3-Clause).
 - **The Sun, Moon and planets:** mean orbital elements and their largest
   perturbations, after Paul Schlyter's
   [method](https://stjarnhimlen.se/comp/ppcomp.html). The tests check them

@@ -135,6 +135,9 @@ pub struct Bubble {
     pub alpha: f64,
     /// A small tail down towards the wisp on its moss.
     pub tail: bool,
+    /// The wisp has more to say: three dots at the foot, running, keyed
+    /// by the time in seconds.
+    pub more: Option<f64>,
 }
 
 #[derive(Default)]
@@ -578,11 +581,12 @@ mod imp {
                 layout.set_wrap(pango::WrapMode::WordChar);
                 let (lw, lh) = layout.pixel_size();
                 let pad = 14.0f32;
+                let dots = if b.more.is_some() { 14.0 } else { 0.0 };
                 let rect = graphene::Rect::new(
                     b.x as f32,
-                    b.bottom as f32 - lh as f32 - 2.0 * pad,
-                    lw as f32 + 2.0 * pad,
-                    lh as f32 + 2.0 * pad,
+                    b.bottom as f32 - lh as f32 - 2.0 * pad - dots,
+                    (lw as f32).max(60.0) + 2.0 * pad,
+                    lh as f32 + 2.0 * pad + dots,
                 );
                 let a = b.alpha as f32;
                 snapshot.push_rounded_clip(&gsk::RoundedRect::from_rect(rect, 14.0));
@@ -605,6 +609,21 @@ mod imp {
                 snapshot.translate(&graphene::Point::new(rect.x() + pad, rect.y() + pad));
                 snapshot.append_layout(&layout, &gdk::RGBA::new(1.0, 0.96, 0.88, 0.95 * a));
                 snapshot.restore();
+                if let Some(t) = b.more {
+                    // Three dots, each brightening in turn: there's more.
+                    for k in 0..3 {
+                        let phase = ((t * 1.6 - k as f64 * 0.22).rem_euclid(1.0)
+                            * std::f64::consts::TAU)
+                            .sin();
+                        let lit = 0.35 + 0.5 * phase.max(0.0) as f32;
+                        let cx = rect.x() + rect.width() - pad - 20.0 + k as f32 * 8.0;
+                        let cy = rect.y() + rect.height() - 12.0;
+                        let dot = graphene::Rect::new(cx - 2.2, cy - 2.2, 4.4, 4.4);
+                        snapshot.push_rounded_clip(&gsk::RoundedRect::from_rect(dot, 2.2));
+                        snapshot.append_color(&gdk::RGBA::new(1.0, 0.9, 0.72, lit * a), &dot);
+                        snapshot.pop();
+                    }
+                }
             }
             if let Some(c) = &frame.compass {
                 draw_compass(widget.upcast_ref(), snapshot, w, c);

@@ -190,6 +190,9 @@ pub struct Game {
     /// The star pattern being shown, and how far it has faded in.
     pub(crate) pattern: Option<Vec<(u16, u16)>>,
     pub(crate) pattern_alpha: f64,
+    /// Where the pointer is over the sky, and when it last moved.
+    pub(crate) pointer: Option<(f64, f64, UnixMs)>,
+    pub(crate) hovered: Option<crate::hover::Hovered>,
 }
 
 pub(crate) const WARM: Rgb = [1.0, 0.86, 0.66];
@@ -385,6 +388,8 @@ impl Game {
             marks: Vec::new(),
             pattern: None,
             pattern_alpha: 0.0,
+            pointer: None,
+            hovered: None,
         };
         game.arrive(real_now);
         game
@@ -912,7 +917,13 @@ impl Game {
     pub fn click(&mut self, x: f64, y: f64, real: UnixMs) {
         self.input(real);
         if self.on_wisp(x, y) {
-            self.guide_help(real);
+            // With more to say, a click hurries it on; otherwise it helps.
+            if !self.guide_next(real) {
+                self.guide_help(real);
+            }
+            return;
+        }
+        if self.click_hovered(x, y, real) {
             return;
         }
         if !self.hunting() {
@@ -2089,6 +2100,7 @@ impl Game {
             ));
         }
         texts.extend(self.words(real, brightness));
+        texts.extend(self.hover_frame(real, now, hz, prec));
         let (sprites, bubble, embers) = self.guide_frame(real, brightness);
         if let Some(i) = self.eye
             && self.eye_alpha > 0.05

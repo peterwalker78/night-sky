@@ -197,6 +197,20 @@ impl Game {
         self.guide.busy_until = self.guide.busy_until.max(real + linger);
     }
 
+    /// Hurries on to the next line waiting, if there is one.
+    pub(crate) fn guide_next(&mut self, real: UnixMs) -> bool {
+        if self.guide.queue.is_empty() {
+            return false;
+        }
+        let mut next = self.guide.queue.remove(0);
+        next.shown = real;
+        for (k, later) in self.guide.queue.iter_mut().enumerate() {
+            later.shown = later.shown.min(real + (k as UnixMs + 1) * (READ_MS + 900));
+        }
+        self.guide.line = Some(next);
+        true
+    }
+
     pub(crate) fn hush(&mut self) {
         self.guide.line = None;
         self.guide.queue.clear();
@@ -833,6 +847,30 @@ impl Game {
             }
         }
 
+        // More waiting to be said: dots in the bubble, or over the wisp
+        // between lines, so a pause doesn't read as the end.
+        let more = !self.guide.queue.is_empty();
+        let between = more
+            && self
+                .guide
+                .line
+                .as_ref()
+                .is_none_or(|l| real - l.shown > l.hold + 900);
+        if between {
+            let t = real as f64 / 1000.0;
+            for k in 0..3 {
+                let phase =
+                    ((t * 1.6 - k as f64 * 0.22).rem_euclid(1.0) * std::f64::consts::TAU).sin();
+                points.push(Point {
+                    x: fx - 8.0 + k as f64 * 8.0,
+                    y: fy - 38.0,
+                    radius: 2.0,
+                    color: [1.0, 0.9, 0.72],
+                    alpha: (0.35 + 0.5 * phase.max(0.0)) as f32 * alpha as f32,
+                    halo: 0.3,
+                });
+            }
+        }
         let bubble = self.guide.line.as_ref().and_then(|l| {
             let a = envelope(real - l.shown, 500, l.hold, 900);
             if a <= 0.0 {
@@ -858,6 +896,7 @@ impl Game {
                 width,
                 alpha: a * alpha.min(1.0),
                 tail,
+                more: more.then_some(real as f64 / 1000.0),
             })
         });
         (sprites, bubble, points)

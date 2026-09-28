@@ -58,7 +58,7 @@ const OVER_TIME: &str = "Over weeks, the logbook becomes a quiet record of your 
 const CREDITS: [&str; 9] = [
     "Westering is free software under the GNU GPL, version 3 or later.",
     "Stars from the Yale Bright Star Catalogue (Hoffleit and Warren), through the CDS in Strasbourg.",
-    "Constellation figures from d3-celestial by Olaf Frohn (BSD licence).",
+    "Constellation figures from Stellarium's modern sky culture (CC BY-SA 4.0); names from d3-celestial by Olaf Frohn (BSD licence).",
     "Positions of the Sun, Moon and planets after Paul Schlyter's method.",
     "Meteor showers from the International Meteor Organization's working list.",
     "Deep-sky positions from SIMBAD (CDS, Strasbourg), and facts checked against Wikipedia.",

@@ -33,6 +33,11 @@
   <url type="homepage">https://github.com/peterwalker78/westering</url>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.2.1" date="2026-09-28">
+      <description>
+        <p>Constellation figures from Stellarium's modern set, and hints for what's under the pointer.</p>
+      </description>
+    </release>
     <release version="0.2.0" date="2026-09-28">
       <description>
         <p>Night Sky is now Westering. Your logbook comes across the first time it opens.</p>

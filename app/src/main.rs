@@ -10,6 +10,7 @@ mod field;
 mod flight;
 mod game;
 mod guide;
+mod hover;
 mod hud;
 mod music;
 mod settings;
@@ -342,6 +343,18 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
         });
     }
     view.add_controller(drag);
+
+    // The pointer over the sky names what it's near.
+    let motion = gtk::EventControllerMotion::new();
+    {
+        let game = game.clone();
+        motion.connect_motion(move |_, x, y| game.borrow_mut().pointer_moved(x, y, wall_clock()));
+    }
+    {
+        let game = game.clone();
+        motion.connect_leave(move |_| game.borrow_mut().pointer_left());
+    }
+    view.add_controller(motion);
 
     let scroll = gtk::EventControllerScroll::new(gtk::EventControllerScrollFlags::VERTICAL);
     {

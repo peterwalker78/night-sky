@@ -16,4 +16,6 @@ fetch https://raw.githubusercontent.com/ofrohn/d3-celestial/master/data/constell
   constellations.lines.json 294f66bef5d5cf50b1e17f16d2efa1d97a15131612c68dd935adef6e7373e13c
 fetch https://raw.githubusercontent.com/ofrohn/d3-celestial/master/data/constellations.json \
   constellations.json ab4ae692027cbc042c0d6791a84456a65eb7c55656107fd00c58ff6e55d4d8b2
+fetch https://raw.githubusercontent.com/Stellarium/stellarium/daace2add6a1bf886e8ee1934f51e9c69f818d18/skycultures/modern/index.json \
+  stellarium-modern.json 1f2f5ffd6c9e25a7d0dcfdbf1f756e2db03dd3b8ed4ec016a2839b09f6b0fe1e
 python3 tools/pack-data.py

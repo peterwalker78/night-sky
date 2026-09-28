@@ -5,8 +5,14 @@ the app embeds. Run once when the sources change; the outputs are committed.
 Sources (downloaded to tools/raw/ by scripts/pack-data):
   bsc5.dat.gz                Yale Bright Star Catalogue, 5th revised edition
                              (Hoffleit & Warren 1991), CDS catalogue V/50
-  constellations.lines.json  d3-celestial by Olaf Frohn, BSD-3-Clause
+  stellarium-modern.json     Stellarium's "modern" sky culture, CC BY-SA 4.0:
+                             the stick figures, by Hipparcos number
+  constellations.lines.json  d3-celestial by Olaf Frohn, BSD-3-Clause, for
+                             the order of the figures and Serpens' two halves
   constellations.json        d3-celestial, for English names and ranks
+And tools/hip-to-hr.json, each Hipparcos star in the figures matched to its
+HR number through SIMBAD (a double without an HR identifier in SIMBAD takes
+its brightest BSC component within 20 arcseconds).
 
 Outputs:
   core/data/stars.bin            14-byte little-endian records, brightest first:
@@ -20,7 +26,6 @@ Outputs:
 
 import gzip
 import json
-import math
 import struct
 import sys
 from pathlib import Path
@@ -62,17 +67,6 @@ def stars():
     return rows
 
 
-def angle(a, b):
-    ra1, de1, ra2, de2 = map(math.radians, (a[0], a[1], b[0], b[1]))
-    c = math.sin(de1) * math.sin(de2) + math.cos(de1) * math.cos(de2) * math.cos(ra1 - ra2)
-    return math.degrees(math.acos(max(-1.0, min(1.0, c))))
-
-
-def nearest(point, catalogue):
-    best = min(catalogue, key=lambda s: angle(point, (s[1], s[2])))
-    return best, angle(point, (best[1], best[2]))
-
-
 # Where d3-celestial's English name is an asterism or reads oddly after "the".
 NAMES = {
     "UMa": "Ursa Major, the Great Bear",
@@ -83,35 +77,60 @@ NAMES = {
 }
 
 
-def figures(catalogue):
+# Where Stellarium's figure passes through the fainter star of a close pair,
+# or a faint neighbour, rather than the star people see there.
+SWAP = {
+    2583: 2580,  # HD 50896 (V 6.9) for omicron-1 CMa
+    5991: 5987,  # HR 5991 (V 5.7) for theta Lup
+    3043: 3045,  # HR 3043 (V 5.3) for xi Pup
+    7431: 7440,  # 51 Sgr (V 5.6) for 52 Sgr
+    8449: 8454,  # pi-1 Peg (V 5.6) for pi-2
+    6262: 6271,  # zeta-1 Sco (V 4.7) for zeta-2
+}
+
+
+def figures():
     names = {f["id"]: f["properties"] for f in json.load(open(RAW / "constellations.json"))["features"]}
-    lines = json.load(open(RAW / "constellations.lines.json"))["features"]
-    # Figures only use stars a person can see, so matching against the
-    # brighter part of the catalogue is both quicker and safer.
-    bright = [s for s in catalogue if s[3] <= 650]
-    out, misses = [], 0
-    for feature in lines:
-        edges = []
-        for strand in feature["geometry"]["coordinates"]:
-            hrs = []
-            for lon, lat in strand:
-                star, off = nearest((lon % 360, lat), bright)
-                if off > 0.25:
-                    misses += 1
-                    hrs.append(None)
-                else:
-                    hrs.append(star[0])
-            for a, b in zip(hrs, hrs[1:]):
-                if a and b and a != b and (a, b) not in edges and (b, a) not in edges:
-                    edges.append((a, b))
-        props = names[feature["id"]]
-        pairs = " ".join(f"{a}-{b}" for a, b in edges)
+    order = [f["id"] for f in json.load(open(RAW / "constellations.lines.json"))["features"]]
+    hip_to_hr = {int(k): v for k, v in json.load(open(ROOT / "tools" / "hip-to-hr.json")).items()}
+    edges, dropped = {}, []
+    for con in json.load(open(RAW / "stellarium-modern.json"))["constellations"]:
+        abbrev = con["id"].split()[-1]
+        found = []
+        for strand in con["lines"]:
+            for a, b in zip(strand, strand[1:]):
+                ha, hb = hip_to_hr.get(a), hip_to_hr.get(b)
+                if ha is None or hb is None:
+                    dropped.append((abbrev, a, b))
+                    continue
+                ha, hb = SWAP.get(ha, ha), SWAP.get(hb, hb)
+                if ha != hb and (ha, hb) not in found and (hb, ha) not in found:
+                    found.append((ha, hb))
+        edges[abbrev] = found
+    # Serpens is drawn as two figures, the head (with beta Ser) and the tail.
+    serpens = edges.pop("Ser")
+    joined = {}
+    for a, b in serpens:
+        joined.setdefault(a, set()).add(b)
+        joined.setdefault(b, set()).add(a)
+    head, stack = set(), [5867]
+    while stack:
+        x = stack.pop()
+        if x not in head:
+            head.add(x)
+            stack.extend(joined.get(x, ()))
+    halves = [[e for e in serpens if e[0] in head], [e for e in serpens if e[0] not in head]]
+    out = []
+    for abbrev in order:
+        found = halves.pop(0) if abbrev == "Ser" else edges[abbrev]
+        props = names[abbrev]
+        pairs = " ".join(f"{a}-{b}" for a, b in found)
         # The Latin name people know, and the English one where it says more.
         latin, english = props["name"], props["en"]
         name = latin if english in (latin, "") else f"{latin}, the {english}"
-        name = NAMES.get(feature["id"], name)
-        out.append(f"{feature['id']}|{name}|{props['rank']}|{pairs}")
-    return out, misses
+        name = NAMES.get(abbrev, name)
+        out.append(f"{abbrev}|{name}|{props['rank']}|{pairs}")
+    return out, dropped
 
 
 def main():
@@ -119,13 +138,16 @@ def main():
     with open(OUT / "stars.bin", "wb") as f:
         for hr, ra, dec, vmag, bv in catalogue:
             f.write(struct.pack("<Hffhh", hr, ra, dec, vmag, bv))
-    figs, misses = figures(catalogue)
+    figs, dropped = figures()
     (OUT / "constellations.txt").write_text(
-        "# Constellation figures from d3-celestial (c) 2015 Olaf Frohn, BSD-3-Clause,\n"
-        "# with each vertex matched to its Yale Bright Star Catalogue HR number.\n"
+        "# Constellation figures from Stellarium's modern sky culture, CC BY-SA 4.0,\n"
+        "# with each star matched to its Yale Bright Star Catalogue HR number; names\n"
+        "# and ranks from d3-celestial (c) 2015 Olaf Frohn, BSD-3-Clause.\n"
         "# abbrev|name|rank|HR-HR pairs\n" + "\n".join(figs) + "\n"
     )
-    print(f"{len(catalogue)} stars, {len(figs)} figures, {misses} vertices unmatched", file=sys.stderr)
+    for abbrev, a, b in dropped:
+        print(f"{abbrev}: HIP {a}-{b} left out, a star not in the BSC", file=sys.stderr)
+    print(f"{len(catalogue)} stars, {len(figs)} figures", file=sys.stderr)
 
 
 main()
