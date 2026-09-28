@@ -18,6 +18,15 @@ use night_sky_core::session::{Phase, Session, Timings};
 use night_sky_core::sky::{Sky, limiting_magnitude, see};
 use night_sky_core::time::{MONTHS, UnixMs, civil_date, weekday};
 
+/// One line of the Tonight list.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Row {
+    pub name: String,
+    pub kind: &'static str,
+    pub whereabouts: String,
+    pub found: bool,
+}
+
 /// Converts the real clock to the sky's: normally the same, but the feel lab
 /// can start the sky at another moment and run it faster.
 pub struct Clock {
@@ -73,6 +82,7 @@ pub(crate) struct Catch {
 
 pub(crate) struct Card {
     pub(crate) x: f64,
+    pub(crate) kicker: String,
     pub(crate) title: String,
     pub(crate) body: String,
     pub(crate) shown: UnixMs,
@@ -157,6 +167,7 @@ pub struct Game {
     /// Something the window should open: the logbook, a course, settings.
     pub(crate) request: Option<crate::talk::Request>,
     pub(crate) guide: crate::guide::Guide,
+    pub(crate) points: Vec<crate::view::Point>,
 }
 
 pub(crate) const WARM: Rgb = [1.0, 0.86, 0.66];
@@ -188,6 +199,21 @@ pub(crate) fn hills(az: f64) -> f64 {
         + 0.3 * (7.0 * a + 2.1).sin()
         + 0.18 * (13.0 * a + 0.3).sin())
     .max(0.15)
+}
+
+/// Stars brighter than this are drawn as true points; fainter ones on the lattice.
+const BRIGHT: f64 = 3.0;
+
+/// A bright star or planet as a crisp point with a halo, sized by its light.
+fn point(x: f64, y: f64, color: Rgb, amount: f32, halo: f32) -> crate::view::Point {
+    crate::view::Point {
+        x,
+        y,
+        radius: (1.05 + 0.62 * amount).min(4.4),
+        color,
+        alpha: (0.5 + 0.35 * amount).min(1.0),
+        halo: (0.25 + amount / 2.2).min(1.0) * halo,
+    }
 }
 
 /// How much light a star of magnitude `mag` puts on its dot.
@@ -305,6 +331,7 @@ impl Game {
             reveal: None,
             request: already.then_some(crate::talk::Request::Book(None)),
             guide: crate::guide::Guide::new(real_now),
+            points: Vec::new(),
         };
         game.arrive(real_now);
         game
@@ -402,6 +429,45 @@ impl Game {
                 .index_of(hr)
                 .map(|idx| apply(hz, self.star_dirs[idx])),
             Target::Meteor(_) => None,
+            Target::Figure(f) => self.sky.figures[f]
+                .centre(&self.sky.stars)
+                .map(|(c, _)| apply(hz, apply(prec, c))),
+        }
+    }
+
+    /// What kind of thing find `i` is, in a word or two.
+    pub(crate) fn kind_word(&self, i: usize) -> &'static str {
+        match self.finds[i].target {
+            Target::Body(Body::Moon) => "Our Moon",
+            Target::Body(_) => "Planet",
+            Target::Star(_) => "Star",
+            Target::Showpiece(p) => match self.sky.lists.showpieces[p].kind {
+                Kind::Cluster => "Star cluster",
+                Kind::Galaxy => "Galaxy",
+                Kind::Nebula => "Nebula",
+                Kind::Double => "Double star",
+                Kind::Star => "Star",
+                Kind::Dark => "Dark cloud",
+            },
+            Target::Meteor(_) => "Meteor",
+            Target::Figure(_) => "Constellation",
+        }
+    }
+
+    /// What to look out for, to help find it.
+    pub(crate) fn look_for(&self, i: usize) -> &'static str {
+        match self.finds[i].target {
+            Target::Body(Body::Moon) => "You can't miss it.",
+            Target::Body(_) => "Look for a bright, steady light that doesn't twinkle.",
+            Target::Star(_) => "Look for a single bright star.",
+            Target::Showpiece(p) => match self.sky.lists.showpieces[p].kind {
+                Kind::Cluster => "Look for a little knot of faint stars.",
+                Kind::Galaxy | Kind::Nebula => "Look for a faint smudge of light.",
+                Kind::Double => "It looks like one star; close up it's two.",
+                _ => "Look for a single star.",
+            },
+            Target::Meteor(_) => "Watch the sky, and press Space the moment one flies.",
+            Target::Figure(_) => "Look for its shape; put the ring in the middle of it.",
         }
     }
 
@@ -416,6 +482,9 @@ impl Game {
             }
             Target::Star(_) => 8.0,
             Target::Meteor(_) => self.camera.fov,
+            Target::Figure(f) => self.sky.figures[f]
+                .centre(&self.sky.stars)
+                .map_or(60.0, |(_, reach)| (reach * 3.0).clamp(20.0, 100.0)),
         }
     }
 
@@ -432,18 +501,33 @@ impl Game {
                     / 7200.0
             }
             Target::Showpiece(p) => self.sky.lists.showpieces[p].size / 120.0,
+            Target::Figure(f) => self.sky.figures[f]
+                .centre(&self.sky.stars)
+                .map_or(0.0, |(_, reach)| reach),
             _ => 0.0,
         };
         degrees * ppd
     }
 
     /// Where the words about something go: clear of it, to its right.
+    pub(crate) fn beside_centre(&self) -> f64 {
+        self.beside(None, self.camera.fov)
+    }
+
     fn beside(&self, i: Option<usize>, fov: f64) -> f64 {
+        const CARD: f64 = 400.0;
+        // The Tonight list takes the right-hand edge during the hunt.
+        const LIST: f64 = 300.0;
         let r = self.reticle_radius();
         let object = i.map(|i| self.apparent_radius(i, fov)).unwrap_or(0.0);
-        (self.camera.width / 2.0 + r.max(object) + 34.0)
-            .min(self.camera.width - 420.0)
-            .max(24.0)
+        let clear = r.max(object) + 34.0;
+        let (w, cx) = (self.camera.width, self.camera.width / 2.0);
+        let right = cx + clear;
+        if right + CARD <= w - LIST {
+            right
+        } else {
+            (cx - clear - CARD).max(24.0)
+        }
     }
 
     pub(crate) fn reticle_radius(&self) -> f64 {
@@ -691,33 +775,98 @@ impl Game {
             .filter_map(|i| self.find_dir(i, now, &hz, &prec).map(|v| (i, v)))
             .filter(|(_, v)| alt_az(*v).0 > 0.0)
             .min_by(|a, b| {
+                // Skip the one already under the reticle.
                 let da = angle_between(here, a.1);
                 let db = angle_between(here, b.1);
-                // Skip the one already under the reticle.
                 let da = if da < 1.0 { 999.0 } else { da };
                 let db = if db < 1.0 { 999.0 } else { db };
                 da.total_cmp(&db)
-            });
-        if let Some((_, v)) = next {
-            let (alt, az) = alt_az(v);
-            self.look = Some(Look {
-                az,
-                alt,
-                fov: self.camera.fov.max(60.0),
-                rate: 1.6,
-            });
-        } else if self
-            .finds
-            .iter()
-            .any(|f| matches!(f.target, Target::Meteor(_)))
-            && self
-                .caught
-                .iter()
-                .zip(&self.finds)
-                .any(|(c, f)| !c && matches!(f.target, Target::Meteor(_)))
-        {
-            self.guide_meteor_left(real);
+            })
+            .map(|(i, _)| i);
+        match next {
+            Some(i) => self.turn_to(i, real),
+            None => {
+                let meteor_left = (0..self.finds.len())
+                    .any(|i| !self.caught[i] && matches!(self.finds[i].target, Target::Meteor(_)));
+                if meteor_left {
+                    self.guide_meteor_left(real);
+                }
+            }
         }
+    }
+
+    /// Turns the view towards find `i`, and says what to look for.
+    pub fn turn_to(&mut self, i: usize, real: UnixMs) {
+        if i >= self.finds.len() || !self.hunting() {
+            return;
+        }
+        self.input(real);
+        if self.card.is_some() {
+            self.dismiss_card(real);
+        }
+        if let Target::Meteor(_) = self.finds[i].target {
+            self.guide_meteor_left(real);
+            return;
+        }
+        let now = self.sky_now(real);
+        let hz = horizon(self.observer, now);
+        let prec = precession(now);
+        let Some(v) = self.find_dir(i, now, &hz, &prec) else {
+            return;
+        };
+        let (alt, az) = alt_az(v);
+        if alt < 0.0 {
+            let name = self.finds[i].name.clone();
+            self.say(
+                format!("{name} has gone below the horizon for now."),
+                real,
+                5_000,
+            );
+            return;
+        }
+        let fov = match self.finds[i].target {
+            Target::Figure(_) => self.zoom_for(i).max(self.camera.fov.min(90.0)),
+            _ => self.camera.fov.max(60.0),
+        };
+        self.look = Some(Look {
+            az,
+            alt,
+            fov,
+            rate: 1.6,
+        });
+        if !self.caught[i] {
+            let line = format!("{}. {}", self.finds[i].name, self.look_for(i));
+            self.say(line, real, 7_000);
+        }
+    }
+
+    /// Tonight's finds for the list: what, where, and whether found.
+    pub fn tonight_rows(&self, real: UnixMs) -> Vec<Row> {
+        let now = self.sky_now(real);
+        let hz = horizon(self.observer, now);
+        let prec = precession(now);
+        (0..self.finds.len())
+            .map(|i| {
+                let whereabouts = match self.finds[i].target {
+                    Target::Meteor(_) => "anywhere, any moment".to_owned(),
+                    _ => match self.find_dir(i, now, &hz, &prec).map(alt_az) {
+                        Some((alt, _)) if alt < 0.0 => "below the horizon now".to_owned(),
+                        Some((alt, az)) => night_sky_core::finale::whereabouts(alt, az),
+                        None => String::new(),
+                    },
+                };
+                Row {
+                    name: self.finds[i].name.clone(),
+                    kind: self.kind_word(i),
+                    whereabouts,
+                    found: self.caught[i],
+                }
+            })
+            .collect()
+    }
+
+    pub fn show_tonight(&self) -> bool {
+        matches!(self.session.phase(), Phase::Hunt) && !self.finds.is_empty()
     }
 
     fn try_meteor(&mut self, real: UnixMs) {
@@ -748,12 +897,17 @@ impl Game {
         }
         self.save_page();
         let x = self.beside(Some(i), self.zoom_for(i));
+        let kicker = self.kind_word(i).to_owned();
         self.card = Some(Card {
             x,
+            kicker,
             title: find.name,
             body: find.fact,
             shown: real,
         });
+        if let Target::Figure(f) = self.finds[i].target {
+            self.reveal = Some((f, real));
+        }
         self.after_catch(i, real);
         self.guide_caught(real);
     }
@@ -1138,7 +1292,9 @@ impl Game {
                 // The Milky Way as a dust of faint dots rather than a fog: each
                 // dot takes a share by where it points on the sky, so the dust
                 // stays put as the view moves.
-                if milky_here > 0.002 {
+                // Zoomed in, the dust's cells would show as blotches: let it go smooth.
+                let dusty = smoothstep((cam.fov - 8.0) / 30.0) as f32;
+                if milky_here > 0.002 && dusty > 0.0 {
                     for r in br..(br + 2).min(rows) {
                         for c in bc..(bc + 2).min(cols) {
                             let v =
@@ -1151,7 +1307,7 @@ impl Game {
                             let h = ((k as u64).wrapping_mul(0x9e37_79b9_7f4a_7c15) >> 40) as f32
                                 / (1u64 << 24) as f32;
                             let share = (0.15 + 2.2 * h * h * h) / 0.7 - 1.0;
-                            let add = milky_here * share;
+                            let add = milky_here * share * dusty;
                             let cell = &mut base[r * cols + c];
                             cell[0] = (cell[0] + add * 0.82).max(0.0);
                             cell[1] = (cell[1] + add * 0.87).max(0.0);
@@ -1165,7 +1321,8 @@ impl Game {
 
     fn draw(&mut self, real: UnixMs, now: UnixMs, hz: &Mat3, prec: &Mat3, tempo: f64) -> Frame {
         let cam = self.camera;
-        let pitch = if cam.width > 2200.0 { 6.0 } else { 5.0 };
+        // Fine enough that the lattice reads as texture, not as pixels.
+        let pitch = if cam.width > 2200.0 { 3.6 } else { 3.2 };
         let resized = self.field.fit(cam.width, cam.height, pitch);
         let sun_seen = see(Body::Sun, self.observer, now);
         let sun_alt = sun_seen.alt;
@@ -1187,6 +1344,7 @@ impl Game {
             self.base = Some(stamp);
         }
         self.field.begin();
+        self.points.clear();
         let t = real as f64 / 1000.0;
         let arrival = if self.session.phase() == Phase::Arrival {
             1.0 - smoothstep(
@@ -1236,7 +1394,12 @@ impl Game {
                     * ((t * rate + star.phase).sin() * 0.6
                         + (t * rate * 1.7 + star.phase * 0.37).sin() * 0.4);
             let amount = star.light * fade * (low * twinkle) as f32;
-            self.field.star(x, y, star.tint, amount);
+            if star.mag < BRIGHT {
+                self.points.push(point(x, y, star.tint, amount, 1.0));
+            } else {
+                // Single dots on the fine lattice need a little more light to hold the eye.
+                self.field.star(x, y, star.tint, amount * 1.45);
+            }
         }
 
         // Showpieces' soft light.
@@ -1358,12 +1521,8 @@ impl Game {
                         self.lit_disc(x, y, radius, v, sun, phase_angle, color, 1.5, false);
                     } else {
                         let low = 0.4 + 0.6 * smoothstep(s.alt / 12.0);
-                        self.field.star(
-                            x,
-                            y,
-                            color,
-                            light(s.position.magnitude) * 1.08 * low as f32,
-                        );
+                        let amount = light(s.position.magnitude) * 1.08 * low as f32;
+                        self.points.push(point(x, y, color, amount, 1.3));
                     }
                 }
             }
@@ -1417,7 +1576,30 @@ impl Game {
         texts.extend(self.mark_labels(hz, brightness));
         texts.extend(self.words(real, brightness));
         let (sprite, bubble) = self.guide_frame(real, brightness);
+        let card = self.card.as_ref().map(|c| crate::view::CardView {
+            x: c.x,
+            y: (self.camera.height / 2.0 - 70.0).max(70.0),
+            kicker: c.kicker.clone(),
+            title: c.title.clone(),
+            body: c.body.clone(),
+            keys: vec![
+                ("Space".into(), "carry on".into()),
+                ("Tab".into(), "next".into()),
+            ],
+            alpha: envelope(real - c.shown, 600, 600_000, 800),
+        });
+        let compass = matches!(
+            self.session.phase(),
+            Phase::Arrival | Phase::Weights | Phase::Hunt | Phase::Dimming
+        )
+        .then(|| crate::view::Compass {
+            heading: cam.az,
+            alpha: brightness.max(0.5),
+        });
         Frame {
+            card,
+            compass,
+            points: std::mem::take(&mut self.points),
             sprite,
             bubble,
             texture: Some(frame_texture),
@@ -1565,8 +1747,20 @@ impl Game {
                 if let Some((x, y)) = cam.project(from_alt_az(hills(az) + 0.8, az))
                     && cam.on_screen(x, y, -10.0)
                 {
-                    let size = if name.len() == 1 { 13.0 } else { 11.0 };
-                    out.push(Text::new(x, y - 22.0, name, size, 0.32 * brightness).centred());
+                    let (size, alpha) = if name.len() == 1 {
+                        (17.0, 0.6)
+                    } else {
+                        (12.0, 0.4)
+                    };
+                    let mut label =
+                        Text::new(x, y - 26.0, name, size, alpha * brightness).centred();
+                    if name.len() == 1 {
+                        label = label.bold();
+                    }
+                    if name == "N" {
+                        label = label.color([1.0, 0.8, 0.58]);
+                    }
+                    out.push(label);
                 }
             }
         }
@@ -1581,7 +1775,7 @@ impl Game {
                 } else {
                     format!("{} · hold Space", self.finds[i].name)
                 };
-                let lx = self.beside(Some(i), cam.fov) - 20.0;
+                let lx = cx + r.max(self.apparent_radius(i, cam.fov).min(r * 1.6)) + 14.0;
                 out.push(Text::new(
                     lx,
                     cy - 9.0,
@@ -1632,24 +1826,10 @@ impl Game {
         if let Some(c) = &self.caption {
             let a = envelope(real - c.shown, 1_500, c.hold, 2_000);
             out.push(
-                Text::new(w / 2.0, 40.0, c.text.clone(), 17.0, 0.85 * a * text_light)
+                Text::new(w / 2.0, 62.0, c.text.clone(), 16.0, 0.85 * a * text_light)
                     .centred()
                     .wrap(w * 0.8),
             );
-        }
-        if let Some(card) = &self.card {
-            let a = envelope(real - card.shown, 700, 60_000, 1_000);
-            let x = card.x;
-            let y = h / 2.0 - 44.0;
-            out.push(Text::new(x, y, card.title.clone(), 20.0, 0.95 * a).bold());
-            out.push(Text::new(x, y + 32.0, card.body.clone(), 15.0, 0.8 * a).wrap(380.0));
-            out.push(Text::new(
-                x,
-                y + 32.0 + 22.0 * 4.0,
-                "Space to carry on",
-                12.0,
-                0.35 * a,
-            ));
         }
         if let Some(hint) = &self.hint {
             let a = envelope(real - hint.shown, 1_000, hint.hold, 1_800);
@@ -1672,16 +1852,6 @@ impl Game {
                     .centred()
                     .wrap((w * 0.7).min(760.0)),
             );
-        }
-        if matches!(self.session.phase(), Phase::Hunt | Phase::Arrival) && !self.finds.is_empty() {
-            // Tonight's set, as quiet dots: open until found.
-            let dots: String = self
-                .caught
-                .iter()
-                .map(|c| if *c { "●" } else { "○" })
-                .collect::<Vec<_>>()
-                .join(" ");
-            out.push(Text::new(28.0, h - 40.0, dots, 11.0, 0.32 * brightness));
         }
         out
     }

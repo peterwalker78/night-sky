@@ -58,6 +58,38 @@ impl Text {
     }
 }
 
+/// A bright star or planet, drawn as a true point at its exact place rather
+/// than on the lattice: a crisp core and a soft halo.
+pub struct Point {
+    pub x: f64,
+    pub y: f64,
+    pub radius: f32,
+    pub color: [f32; 3],
+    pub alpha: f32,
+    /// How strong the halo is, 0 to 1.
+    pub halo: f32,
+}
+
+/// The card for something just caught.
+pub struct CardView {
+    pub x: f64,
+    pub y: f64,
+    /// A small line above the title: what kind of thing, and where.
+    pub kicker: String,
+    pub title: String,
+    pub body: String,
+    /// Keys and what they do, shown as key caps along the bottom.
+    pub keys: Vec<(String, String)>,
+    pub alpha: f64,
+}
+
+/// The strip along the top that says which way the view faces.
+pub struct Compass {
+    /// Azimuth the view faces, degrees from north through east.
+    pub heading: f64,
+    pub alpha: f64,
+}
+
 /// A small picture drawn over the sky: the wisp.
 pub struct Sprite {
     pub texture: gdk::Texture,
@@ -79,6 +111,9 @@ pub struct Bubble {
 
 #[derive(Default)]
 pub struct Frame {
+    pub points: Vec<Point>,
+    pub card: Option<CardView>,
+    pub compass: Option<Compass>,
     pub sprite: Option<Sprite>,
     pub bubble: Option<Bubble>,
     pub texture: Option<gdk::Texture>,
@@ -89,6 +124,214 @@ pub struct Frame {
     pub texts: Vec<Text>,
     /// Over everything: 0 is none, 1 is black.
     pub veil: f32,
+}
+
+fn font(widget: &gtk::Widget, size: f64, bold: bool) -> pango::FontDescription {
+    let mut f = widget
+        .pango_context()
+        .font_description()
+        .unwrap_or_default();
+    f.set_absolute_size(size * pango::SCALE as f64);
+    f.set_weight(if bold {
+        pango::Weight::Semibold
+    } else {
+        pango::Weight::Normal
+    });
+    f
+}
+
+fn layout(
+    widget: &gtk::Widget,
+    text: &str,
+    size: f64,
+    bold: bool,
+    wrap: Option<f64>,
+) -> pango::Layout {
+    let l = widget.create_pango_layout(Some(text));
+    l.set_font_description(Some(&font(widget, size, bold)));
+    if let Some(w) = wrap {
+        l.set_width((w * pango::SCALE as f64) as i32);
+        l.set_wrap(pango::WrapMode::WordChar);
+    }
+    l
+}
+
+fn text_at(snapshot: &gtk::Snapshot, l: &pango::Layout, x: f32, y: f32, rgba: gdk::RGBA) {
+    snapshot.save();
+    snapshot.translate(&graphene::Point::new(x, y));
+    snapshot.append_layout(l, &rgba);
+    snapshot.restore();
+}
+
+fn panel(snapshot: &gtk::Snapshot, rect: &graphene::Rect, radius: f32, alpha: f32) {
+    snapshot.push_rounded_clip(&gsk::RoundedRect::from_rect(*rect, radius));
+    snapshot.append_color(&gdk::RGBA::new(0.045, 0.055, 0.1, 0.82 * alpha), rect);
+    snapshot.pop();
+    let border = [gdk::RGBA::new(1.0, 1.0, 1.0, 0.07 * alpha); 4];
+    snapshot.append_border(
+        &gsk::RoundedRect::from_rect(*rect, radius),
+        &[1.0; 4],
+        &border,
+    );
+}
+
+/// A key drawn as a small cap; returns its width.
+fn keycap(
+    widget: &gtk::Widget,
+    snapshot: &gtk::Snapshot,
+    key: &str,
+    x: f32,
+    y: f32,
+    alpha: f32,
+) -> f32 {
+    let l = layout(widget, key, 12.0, true, None);
+    let (w, h) = l.pixel_size();
+    let rect = graphene::Rect::new(x, y, w as f32 + 12.0, h as f32 + 4.0);
+    snapshot.push_rounded_clip(&gsk::RoundedRect::from_rect(rect, 5.0));
+    snapshot.append_color(&gdk::RGBA::new(1.0, 1.0, 1.0, 0.1 * alpha), &rect);
+    snapshot.pop();
+    text_at(
+        snapshot,
+        &l,
+        x + 6.0,
+        y + 2.0,
+        gdk::RGBA::new(0.95, 0.95, 0.98, 0.9 * alpha),
+    );
+    rect.width()
+}
+
+fn draw_card(widget: &gtk::Widget, snapshot: &gtk::Snapshot, c: &CardView) {
+    let a = c.alpha as f32;
+    let (pad, width) = (18.0f32, 400.0f32);
+    let kicker = layout(
+        widget,
+        &c.kicker.to_uppercase(),
+        11.0,
+        true,
+        Some((width - 2.0 * pad) as f64),
+    );
+    let title = layout(
+        widget,
+        &c.title,
+        21.0,
+        true,
+        Some((width - 2.0 * pad) as f64),
+    );
+    let body = layout(
+        widget,
+        &c.body,
+        15.0,
+        false,
+        Some((width - 2.0 * pad) as f64),
+    );
+    let (_, kh) = kicker.pixel_size();
+    let (_, th) = title.pixel_size();
+    let (_, bh) = body.pixel_size();
+    let keys_h = if c.keys.is_empty() { 0.0 } else { 34.0 };
+    let height = pad + kh as f32 + 6.0 + th as f32 + 10.0 + bh as f32 + keys_h + pad;
+    let (x, y) = (c.x as f32, c.y as f32);
+    panel(snapshot, &graphene::Rect::new(x, y, width, height), 14.0, a);
+    let mut cy = y + pad;
+    text_at(
+        snapshot,
+        &kicker,
+        x + pad,
+        cy,
+        gdk::RGBA::new(0.95, 0.8, 0.6, 0.75 * a),
+    );
+    cy += kh as f32 + 6.0;
+    text_at(
+        snapshot,
+        &title,
+        x + pad,
+        cy,
+        gdk::RGBA::new(0.98, 0.97, 0.94, a),
+    );
+    cy += th as f32 + 10.0;
+    text_at(
+        snapshot,
+        &body,
+        x + pad,
+        cy,
+        gdk::RGBA::new(0.86, 0.88, 0.93, 0.92 * a),
+    );
+    cy += bh as f32 + 16.0;
+    let mut kx = x + pad;
+    for (key, words) in &c.keys {
+        kx += keycap(widget, snapshot, key, kx, cy, a) + 6.0;
+        let l = layout(widget, words, 12.0, false, None);
+        text_at(
+            snapshot,
+            &l,
+            kx,
+            cy + 2.0,
+            gdk::RGBA::new(0.8, 0.83, 0.9, 0.7 * a),
+        );
+        kx += l.pixel_size().0 as f32 + 18.0;
+    }
+}
+
+fn draw_compass(widget: &gtk::Widget, snapshot: &gtk::Snapshot, width: f32, c: &Compass) {
+    let a = c.alpha as f32;
+    let (strip_w, strip_h, top) = (600.0f32.min(width - 40.0), 34.0f32, 12.0f32);
+    let x0 = (width - strip_w) / 2.0;
+    panel(
+        snapshot,
+        &graphene::Rect::new(x0, top, strip_w, strip_h),
+        10.0,
+        0.55 * a,
+    );
+    // 160 degrees across the strip, the view's heading in the middle.
+    let span = 160.0;
+    let at = |az: f64| {
+        let d = (az - c.heading + 540.0).rem_euclid(360.0) - 180.0;
+        (d.abs() <= span / 2.0).then(|| x0 + strip_w / 2.0 + (d / span) as f32 * strip_w)
+    };
+    for step in (0..360).step_by(5) {
+        let Some(x) = at(step as f64) else { continue };
+        let edge = 1.0 - ((x - (x0 + strip_w / 2.0)).abs() / (strip_w / 2.0)).powi(2);
+        let (len, strong) = if step % 45 == 0 {
+            (0.0, 0.0)
+        } else if step % 15 == 0 {
+            (7.0, 0.35)
+        } else {
+            (4.0, 0.2)
+        };
+        if len > 0.0 {
+            snapshot.append_color(
+                &gdk::RGBA::new(0.85, 0.88, 0.95, strong * a * edge),
+                &graphene::Rect::new(x - 0.5, top + strip_h - len - 5.0, 1.0, len),
+            );
+        }
+        if step % 45 == 0 {
+            let name = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][step as usize / 45];
+            let main = name.len() == 1;
+            let l = layout(widget, name, if main { 15.0 } else { 11.5 }, main, None);
+            let (lw, lh) = l.pixel_size();
+            let colour = if name == "N" {
+                gdk::RGBA::new(1.0, 0.78, 0.55, 0.95 * a * edge)
+            } else {
+                gdk::RGBA::new(0.92, 0.94, 0.98, (if main { 0.9 } else { 0.6 }) * a * edge)
+            };
+            text_at(
+                snapshot,
+                &l,
+                x - lw as f32 / 2.0,
+                top + (strip_h - lh as f32) / 2.0,
+                colour,
+            );
+        }
+    }
+    // Where the view is pointing.
+    let cx = x0 + strip_w / 2.0;
+    snapshot.save();
+    snapshot.translate(&graphene::Point::new(cx, top + strip_h + 1.0));
+    snapshot.rotate(45.0);
+    snapshot.append_color(
+        &gdk::RGBA::new(1.0, 0.8, 0.55, 0.85 * a),
+        &graphene::Rect::new(-4.0, -4.0, 8.0, 8.0),
+    );
+    snapshot.restore();
 }
 
 mod imp {
@@ -148,6 +391,32 @@ mod imp {
                 snapshot.append_scaled_texture(texture, gsk::ScalingFilter::Nearest, &bounds);
                 snapshot.pop();
             }
+            for p in &frame.points {
+                let [r, g, b] = p.color;
+                let (x, y) = (p.x as f32, p.y as f32);
+                if p.halo > 0.01 {
+                    let reach = p.radius * 4.5;
+                    let stops = [
+                        gsk::ColorStop::new(0.0, gdk::RGBA::new(r, g, b, 0.32 * p.halo * p.alpha)),
+                        gsk::ColorStop::new(0.35, gdk::RGBA::new(r, g, b, 0.08 * p.halo * p.alpha)),
+                        gsk::ColorStop::new(1.0, gdk::RGBA::new(r, g, b, 0.0)),
+                    ];
+                    snapshot.append_radial_gradient(
+                        &graphene::Rect::new(x - reach, y - reach, 2.0 * reach, 2.0 * reach),
+                        &graphene::Point::new(x, y),
+                        reach,
+                        reach,
+                        0.0,
+                        1.0,
+                        &stops,
+                    );
+                }
+                let rect =
+                    graphene::Rect::new(x - p.radius, y - p.radius, 2.0 * p.radius, 2.0 * p.radius);
+                snapshot.push_rounded_clip(&gsk::RoundedRect::from_rect(rect, p.radius));
+                snapshot.append_color(&gdk::RGBA::new(r, g, b, p.alpha.min(1.0)), &rect);
+                snapshot.pop();
+            }
             if let Some(sprite) = &frame.sprite {
                 snapshot.push_opacity(sprite.alpha.clamp(0.0, 1.0));
                 snapshot.append_texture(
@@ -200,6 +469,14 @@ mod imp {
                 snapshot.translate(&graphene::Point::new(rect.x() + pad, rect.y() + pad));
                 snapshot.append_layout(&layout, &gdk::RGBA::new(1.0, 0.96, 0.88, 0.95 * a));
                 snapshot.restore();
+            }
+            if let Some(c) = &frame.compass {
+                draw_compass(widget.upcast_ref(), snapshot, w, c);
+            }
+            if let Some(c) = &frame.card
+                && c.alpha > 0.004
+            {
+                draw_card(widget.upcast_ref(), snapshot, c);
             }
             for t in &frame.texts {
                 if t.alpha <= 0.004 || t.text.is_empty() {

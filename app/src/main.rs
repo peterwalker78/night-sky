@@ -8,6 +8,7 @@ mod drawing;
 mod field;
 mod game;
 mod guide;
+mod hud;
 mod music;
 mod settings;
 mod sprite;
@@ -38,7 +39,8 @@ const APP_ID: &str = "io.github.peterwalker78.NightSky";
 /// Options for trying the app out: `--at=2026-12-14T21:00` starts the sky at
 /// another moment, `--speed=N` runs it N times faster, `--quick=N` shortens
 /// the visit's own timings N times, `--data=DIR` keeps everything in DIR and
-/// `--place=LAT,LON` stands somewhere else.
+/// `--place=LAT,LON` stands somewhere else, and `--profile` prints what
+/// frames cost.
 #[derive(Default)]
 struct Args {
     at: Option<String>,
@@ -46,6 +48,8 @@ struct Args {
     quick: Option<i64>,
     data: Option<PathBuf>,
     place: Option<(f64, f64)>,
+    /// Print how long frames take to make, every few seconds.
+    profile: bool,
 }
 
 fn parse_args() -> Args {
@@ -57,6 +61,7 @@ fn parse_args() -> Args {
             "--speed" => args.speed = value.parse().ok(),
             "--quick" => args.quick = value.parse().ok(),
             "--data" => args.data = Some(PathBuf::from(value)),
+            "--profile" => args.profile = true,
             "--place" => {
                 args.place = value
                     .split_once(',')
@@ -151,6 +156,8 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
     let sky_page = gtk::Overlay::new();
     sky_page.set_child(Some(&view));
     sky_page.add_overlay(&prompt.root);
+    let tonight = hud::Tonight::new();
+    sky_page.add_overlay(&tonight.root);
 
     let book = Book::new(&game);
     let course = Course::new(&game);
@@ -283,6 +290,9 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
     )));
     let last_frame = std::cell::Cell::new(0i64);
     let last_music = std::cell::Cell::new(real);
+    let last_list = std::cell::Cell::new(0i64);
+    let spent = std::cell::Cell::new((0.0f64, 0u32, real));
+    let profile = args.profile;
     {
         let game = game.clone();
         let window = window.clone();
@@ -297,7 +307,8 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
             } else if fast {
                 16
             } else {
-                50
+                // At rest the sky only twinkles, slowly.
+                66
             };
             if real - last_frame.get() >= interval {
                 last_frame.set(real);
@@ -307,7 +318,22 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
                     view.height() as f64,
                     view.scale_factor() as f64,
                 );
+                let began = std::time::Instant::now();
                 let frame = g.tick(real);
+                if profile {
+                    let (sum, n, since) = spent.get();
+                    let sum = sum + began.elapsed().as_secs_f64() * 1000.0;
+                    if real - since > 5_000 {
+                        eprintln!(
+                            "night-sky: {:.2} ms a frame, {:.1} frames a second",
+                            sum / (n + 1) as f64,
+                            (n + 1) as f64 / ((real - since) as f64 / 1000.0)
+                        );
+                        spent.set((0.0, 0, real));
+                    } else {
+                        spent.set((sum, n + 1, since));
+                    }
+                }
                 let quit = g.quit;
                 let request = g.take_request();
                 let (level, quiet) = (g.music_level(real), g.quiet());
@@ -320,6 +346,10 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
                     m.tick(level, dt);
                 }
                 view.show(frame);
+                if on_sky && real - last_list.get() > 700 {
+                    last_list.set(real);
+                    tonight.sync(&game);
+                }
                 if prompt.sync(&game) && on_sky {
                     view.grab_focus();
                 }
