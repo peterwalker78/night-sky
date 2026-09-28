@@ -14,7 +14,7 @@ Outputs:
                                  i16 V magnitude x100, i16 B-V x100
                                  (B-V of 99.99 means unknown)
   core/data/constellations.txt   one figure per line:
-                                 abbrev|English name|rank|a-b a-b ...
+                                 abbrev|name|rank|a-b a-b ...
                                  where a and b are HR numbers
 """
 
@@ -73,6 +73,16 @@ def nearest(point, catalogue):
     return best, angle(point, (best[1], best[2]))
 
 
+# Where d3-celestial's English name is an asterism or reads oddly after "the".
+NAMES = {
+    "UMa": "Ursa Major, the Great Bear",
+    "UMi": "Ursa Minor, the Little Bear",
+    "Com": "Coma Berenices, Berenice's Hair",
+    "Cap": "Capricornus, the Sea Goat",
+    "Ser": "Serpens, the Serpent",
+}
+
+
 def figures(catalogue):
     names = {f["id"]: f["properties"] for f in json.load(open(RAW / "constellations.json"))["features"]}
     lines = json.load(open(RAW / "constellations.lines.json"))["features"]
@@ -96,7 +106,11 @@ def figures(catalogue):
                     edges.append((a, b))
         props = names[feature["id"]]
         pairs = " ".join(f"{a}-{b}" for a, b in edges)
-        out.append(f"{feature['id']}|{props['en']}|{props['rank']}|{pairs}")
+        # The Latin name people know, and the English one where it says more.
+        latin, english = props["name"], props["en"]
+        name = latin if english in (latin, "") else f"{latin}, the {english}"
+        name = NAMES.get(feature["id"], name)
+        out.append(f"{feature['id']}|{name}|{props['rank']}|{pairs}")
     return out, misses
 
 
@@ -109,7 +123,7 @@ def main():
     (OUT / "constellations.txt").write_text(
         "# Constellation figures from d3-celestial (c) 2015 Olaf Frohn, BSD-3-Clause,\n"
         "# with each vertex matched to its Yale Bright Star Catalogue HR number.\n"
-        "# abbrev|English name|rank|HR-HR pairs\n" + "\n".join(figs) + "\n"
+        "# abbrev|name|rank|HR-HR pairs\n" + "\n".join(figs) + "\n"
     )
     print(f"{len(catalogue)} stars, {len(figs)} figures, {misses} vertices unmatched", file=sys.stderr)
 

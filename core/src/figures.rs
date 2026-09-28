@@ -53,7 +53,7 @@ mod tests {
     fn every_constellation_is_there() {
         let figures = super::bundled();
         assert!(figures.len() >= 88);
-        let orion = figures.iter().find(|f| f.abbrev == "Ori").expect("Orion");
+        let orion = figures.iter().find(|f| f.name == "Orion").expect("Orion");
         assert!(orion.stars().contains(&2061), "Betelgeuse");
         assert!(orion.stars().contains(&1713), "Rigel");
         let cas = figures
