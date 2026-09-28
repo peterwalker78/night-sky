@@ -1,0 +1,6 @@
+/target
+/build
+/.flatpak-builder
+/.tools
+/dist
+/tools/raw

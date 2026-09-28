@@ -1,0 +1,413 @@
+# Naked-eye and binocular showpieces. Positions (J2000) from SIMBAD; magnitudes and
+# apparent sizes from the Wikipedia infoboxes (SIMBAD where Wikipedia gives none).
+# For doubles, size is the separation of the pair in arcminutes. Mira's magnitude is
+# its typical peak; Eta Carinae's is its 2018 brightness. The Coalsack has no magnitude.
+
+[[showpiece]]
+id = "pleiades"
+name = "The Pleiades"
+kind = "cluster"
+ra = 56.601
+dec = 24.114
+mag = 1.6
+size = 120.0
+fact = "About 444 light years away; its stars are only around 125 million years old."
+
+[[showpiece]]
+id = "hyades"
+name = "The Hyades"
+kind = "cluster"
+ra = 67.447
+dec = 16.948
+mag = 0.5
+size = 330.0
+fact = "The nearest open cluster to the Sun, about 153 light years away and some 625 million years old."
+
+[[showpiece]]
+id = "andromeda"
+name = "Andromeda Galaxy (M31)"
+kind = "galaxy"
+ra = 10.685
+dec = 41.269
+mag = 3.44
+size = 190.0
+fact = "A galaxy of around a trillion stars; the light you see left it about 2.5 million years ago."
+
+[[showpiece]]
+id = "triangulum"
+name = "Triangulum Galaxy (M33)"
+kind = "galaxy"
+ra = 23.462
+dec = 30.660
+mag = 5.72
+size = 70.8
+fact = "A spiral of about 40 billion stars, roughly 2.9 million light years away; binoculars and a dark sky needed."
+
+[[showpiece]]
+id = "bodes-galaxy"
+name = "Bode's Galaxy (M81)"
+kind = "galaxy"
+ra = 148.888
+dec = 69.065
+mag = 6.94
+size = 26.9
+fact = "A spiral galaxy about 12 million light years away, within reach of binoculars."
+
+[[showpiece]]
+id = "orion-nebula"
+name = "Orion Nebula (M42)"
+kind = "nebula"
+ra = 83.820
+dec = -5.388
+mag = 4.0
+size = 65.0
+fact = "About 1,270 light years away and 25 light years across: the closest region of massive star formation to Earth."
+
+[[showpiece]]
+id = "beehive"
+name = "Beehive Cluster (M44)"
+kind = "cluster"
+ra = 130.054
+dec = 19.621
+mag = 3.7
+size = 95.0
+fact = "Around 1,000 stars roughly 600 light years away, known since ancient times as Praesepe."
+
+[[showpiece]]
+id = "double-cluster"
+name = "The Double Cluster"
+kind = "cluster"
+ra = 35.162
+dec = 57.142
+mag = 3.7
+size = 60.0
+fact = "Two clusters side by side, about 7,500 light years away and both only around 14 million years old."
+
+[[showpiece]]
+id = "alpha-persei-cluster"
+name = "Alpha Persei Cluster"
+kind = "cluster"
+ra = 51.617
+dec = 48.975
+mag = 1.2
+size = 366.0
+fact = "A loose family of blue stars around the supergiant Mirfak, about 570 light years away and roughly 50 million years old."
+
+[[showpiece]]
+id = "m13"
+name = "Hercules Cluster (M13)"
+kind = "cluster"
+ra = 250.423
+dec = 36.461
+mag = 5.8
+size = 20.0
+fact = "Several hundred thousand stars about 24,000 light years away; the 1974 Arecibo message was beamed towards it."
+
+[[showpiece]]
+id = "m92"
+name = "M92"
+kind = "cluster"
+ra = 259.281
+dec = 43.136
+mag = 6.4
+size = 14.0
+fact = "One of the Milky Way's oldest clusters, about 26,700 light years away."
+
+[[showpiece]]
+id = "m3"
+name = "M3"
+kind = "cluster"
+ra = 205.548
+dec = 28.377
+mag = 6.39
+size = 18.0
+fact = "Around 500,000 stars, roughly 34,000 light years away."
+
+[[showpiece]]
+id = "m5"
+name = "M5"
+kind = "cluster"
+ra = 229.638
+dec = 2.081
+mag = 5.6
+size = 23.0
+fact = "About 24,500 light years away and around 10.6 billion years old."
+
+[[showpiece]]
+id = "coma-cluster"
+name = "Coma Star Cluster"
+kind = "cluster"
+ra = 186.014
+dec = 25.652
+mag = 1.8
+size = 450.0
+fact = "About 280 light years away; some 40 of its brighter stars travel through space together."
+
+[[showpiece]]
+id = "m35"
+name = "M35"
+kind = "cluster"
+ra = 92.272
+dec = 24.336
+mag = 5.3
+size = 28.0
+fact = "About 3,000 light years away; its stars are around 100 million years old."
+
+[[showpiece]]
+id = "m37"
+name = "M37"
+kind = "cluster"
+ra = 88.074
+dec = 32.545
+mag = 6.2
+size = 24.0
+fact = "The brightest and richest open cluster in Auriga, about 4,500 light years away."
+
+[[showpiece]]
+id = "coathanger"
+name = "The Coathanger"
+kind = "cluster"
+ra = 291.350
+dec = 20.183
+mag = 3.6
+size = 60.0
+fact = "Not a true cluster: a chance line-up of stars at different distances that happens to form a coat hanger."
+
+[[showpiece]]
+id = "wild-duck"
+name = "Wild Duck Cluster (M11)"
+kind = "cluster"
+ra = 282.766
+dec = -6.272
+mag = 5.8
+size = 22.8
+fact = "About 6,100 light years away; its stars are around 300 million years old."
+
+[[showpiece]]
+id = "albireo"
+name = "Albireo"
+kind = "double"
+ra = 292.680
+dec = 27.960
+mag = 3.08
+size = 0.58
+fact = "A gold and blue pair about 330 to 390 light years away, one of the finest colour contrasts in the sky."
+
+[[showpiece]]
+id = "mizar-alcor"
+name = "Mizar and Alcor"
+kind = "double"
+ra = 200.981
+dec = 54.925
+mag = 2.22
+size = 12.0
+fact = "A naked-eye pair that is really six stars bound together, about 80 light years away."
+
+[[showpiece]]
+id = "double-double"
+name = "Epsilon Lyrae, the Double Double"
+kind = "double"
+ra = 281.090
+dec = 39.642
+mag = 4.59
+size = 3.47
+fact = "At least five stars about 160 light years away; binoculars split the wide pair."
+
+[[showpiece]]
+id = "almach"
+name = "Almach (gamma Andromedae)"
+kind = "double"
+ra = 30.975
+dec = 42.330
+mag = 2.1
+size = 0.17
+fact = "An orange and blue pair about 390 light years away."
+
+[[showpiece]]
+id = "garnet-star"
+name = "The Garnet Star (mu Cephei)"
+kind = "star"
+ra = 325.877
+dec = 58.780
+mag = 4.08
+size = 0.0
+fact = "One of the largest known stars: placed where the Sun is, it would engulf the orbit of Mars."
+
+[[showpiece]]
+id = "mira"
+name = "Mira"
+kind = "star"
+ra = 34.837
+dec = -2.978
+mag = 3.5
+size = 0.0
+fact = "Swells and fades over about 332 days, from around magnitude 3.5 at peak to far below naked-eye visibility."
+
+[[showpiece]]
+id = "lagoon"
+name = "Lagoon Nebula (M8)"
+kind = "nebula"
+ra = 270.904
+dec = -24.387
+mag = 4.6
+size = 90.0
+fact = "A star-forming cloud about 4,000 to 6,000 light years away, spanning some 110 light years."
+
+[[showpiece]]
+id = "m22"
+name = "M22"
+kind = "cluster"
+ra = 279.100
+dec = -23.905
+mag = 5.1
+size = 32.0
+fact = "About 10,600 light years away and around 12 billion years old."
+
+[[showpiece]]
+id = "m4"
+name = "M4"
+kind = "cluster"
+ra = 245.897
+dec = -26.526
+mag = 5.6
+size = 26.0
+fact = "The closest globular cluster to the Solar System, about 6,000 light years away and 12 billion years old."
+
+[[showpiece]]
+id = "butterfly"
+name = "Butterfly Cluster (M6)"
+kind = "cluster"
+ra = 265.069
+dec = -32.242
+mag = 4.2
+size = 25.0
+fact = "About 1,600 light years away; its stars are around 94 million years old."
+
+[[showpiece]]
+id = "ptolemy"
+name = "Ptolemy's Cluster (M7)"
+kind = "cluster"
+ra = 268.447
+dec = -34.841
+mag = 3.3
+size = 80.0
+fact = "About 980 light years away; its stars are around 200 million years old."
+
+[[showpiece]]
+id = "ngc6231"
+name = "NGC 6231"
+kind = "cluster"
+ra = 253.545
+dec = -41.812
+mag = 2.6
+size = 15.0
+fact = "About 5,600 light years away; its hot blue stars are only a few million years old."
+
+[[showpiece]]
+id = "m41"
+name = "M41"
+kind = "cluster"
+ra = 101.499
+dec = -20.716
+mag = 4.5
+size = 38.0
+fact = "About 2,360 light years away; Aristotle may have seen it as early as 325 BC."
+
+[[showpiece]]
+id = "omega-centauri"
+name = "Omega Centauri"
+kind = "cluster"
+ra = 201.697
+dec = -47.479
+mag = 3.9
+size = 36.3
+fact = "The largest globular cluster in the Milky Way, with roughly 10 million stars."
+
+[[showpiece]]
+id = "47-tucanae"
+name = "47 Tucanae"
+kind = "cluster"
+ra = 6.022
+dec = -72.081
+mag = 4.09
+size = 43.8
+fact = "About 14,500 light years away and around 13 billion years old; second only to Omega Centauri in brightness."
+
+[[showpiece]]
+id = "jewel-box"
+name = "The Jewel Box"
+kind = "cluster"
+ra = 193.415
+dec = -60.371
+mag = 4.2
+size = 10.3
+fact = "Just over 100 stars about 6,500 light years away, and one of the youngest clusters known."
+
+[[showpiece]]
+id = "southern-pleiades"
+name = "Southern Pleiades (IC 2602)"
+kind = "cluster"
+ra = 160.613
+dec = -64.426
+mag = 1.9
+size = 50.0
+fact = "About 486 light years away and only around 14 million years old."
+
+[[showpiece]]
+id = "lmc"
+name = "Large Magellanic Cloud"
+kind = "galaxy"
+ra = 80.894
+dec = -69.756
+mag = 0.13
+size = 645.0
+fact = "A satellite galaxy of the Milky Way, about 160,000 light years away."
+
+[[showpiece]]
+id = "smc"
+name = "Small Magellanic Cloud"
+kind = "galaxy"
+ra = 13.158
+dec = -72.800
+mag = 2.7
+size = 320.0
+fact = "A dwarf galaxy of around 3 billion stars, about 200,000 light years away."
+
+[[showpiece]]
+id = "carina-nebula"
+name = "Carina Nebula"
+kind = "nebula"
+ra = 161.259
+dec = -59.700
+mag = 1.0
+size = 120.0
+fact = "Four times as large as the Orion Nebula, and about 8,500 light years away."
+
+[[showpiece]]
+id = "eta-carinae"
+name = "Eta Carinae"
+kind = "star"
+ra = 161.265
+dec = -59.684
+mag = 4.2
+size = 0.0
+fact = "In March 1843 it briefly became the second-brightest star in the night sky; it lies about 7,500 light years away."
+
+[[showpiece]]
+id = "coalsack"
+name = "The Coalsack"
+kind = "dark"
+ra = 187.829
+dec = -63.743
+size = 420.0
+fact = "A cloud of dust about 590 light years away, a dark hole in the Milky Way beside the Southern Cross."
+
+[[showpiece]]
+id = "alpha-centauri"
+name = "Alpha Centauri"
+kind = "double"
+ra = 219.902
+dec = -60.834
+mag = -0.1
+size = 0.0
+fact = "The nearest stars visible to the naked eye; their light left a little over four years ago."

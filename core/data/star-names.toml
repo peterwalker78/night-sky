@@ -1,0 +1,558 @@
+# Proper names of bright stars, keyed by Yale Bright Star Catalogue (HR) number.
+# HR numbers from SIMBAD identifiers, cross-checked against the IAU Catalog of Star
+# Names. Light-travel facts use SIMBAD parallaxes (distance = 3261.56 / parallax in mas,
+# year = 2026 - distance); facts for Betelgeuse, Rigel, Deneb, Acrux and Navi come
+# from their Wikipedia pages. Stars with poorly known distances get no year.
+
+[[star]]
+hr = 424
+name = "Polaris"
+bayer = "alpha Ursae Minoris"
+fact = "The North Star; its light left around 1590."
+
+[[star]]
+hr = 5563
+name = "Kochab"
+bayer = "beta Ursae Minoris"
+
+[[star]]
+hr = 5735
+name = "Pherkad"
+bayer = "gamma Ursae Minoris"
+
+[[star]]
+hr = 4301
+name = "Dubhe"
+bayer = "alpha Ursae Majoris"
+fact = "Its light left around 1903."
+
+[[star]]
+hr = 4295
+name = "Merak"
+bayer = "beta Ursae Majoris"
+
+[[star]]
+hr = 4554
+name = "Phecda"
+bayer = "gamma Ursae Majoris"
+
+[[star]]
+hr = 4660
+name = "Megrez"
+bayer = "delta Ursae Majoris"
+
+[[star]]
+hr = 4905
+name = "Alioth"
+bayer = "epsilon Ursae Majoris"
+fact = "Its light left around 1943."
+
+[[star]]
+hr = 5054
+name = "Mizar"
+bayer = "zeta Ursae Majoris"
+fact = "Mizar and its companion Alcor both lie about 80 light years away."
+
+[[star]]
+hr = 5062
+name = "Alcor"
+bayer = "g Ursae Majoris"
+
+[[star]]
+hr = 5191
+name = "Alkaid"
+bayer = "eta Ursae Majoris"
+fact = "Its light left around 1922."
+
+[[star]]
+hr = 168
+name = "Schedar"
+bayer = "alpha Cassiopeiae"
+
+[[star]]
+hr = 21
+name = "Caph"
+bayer = "beta Cassiopeiae"
+
+[[star]]
+hr = 264
+name = "Navi"
+bayer = "gamma Cassiopeiae"
+fact = "Nicknamed Navi by astronaut Gus Grissom: his middle name, Ivan, spelled backwards."
+
+[[star]]
+hr = 403
+name = "Ruchbah"
+bayer = "delta Cassiopeiae"
+
+[[star]]
+hr = 542
+name = "Segin"
+bayer = "epsilon Cassiopeiae"
+
+[[star]]
+hr = 2061
+name = "Betelgeuse"
+bayer = "alpha Orionis"
+fact = "Somewhere around 400 to 550 light years away, so its light left between roughly 1480 and 1620."
+
+[[star]]
+hr = 1713
+name = "Rigel"
+bayer = "beta Orionis"
+fact = "About 850 light years away; its light left around 1180."
+
+[[star]]
+hr = 1790
+name = "Bellatrix"
+bayer = "gamma Orionis"
+fact = "Its light left around 1770."
+
+[[star]]
+hr = 1852
+name = "Mintaka"
+bayer = "delta Orionis"
+
+[[star]]
+hr = 1903
+name = "Alnilam"
+bayer = "epsilon Orionis"
+
+[[star]]
+hr = 1948
+name = "Alnitak"
+bayer = "zeta Orionis"
+
+[[star]]
+hr = 2004
+name = "Saiph"
+bayer = "kappa Orionis"
+
+[[star]]
+hr = 1879
+name = "Meissa"
+bayer = "lambda Orionis"
+
+[[star]]
+hr = 7001
+name = "Vega"
+bayer = "alpha Lyrae"
+fact = "Its light left around 2001."
+
+[[star]]
+hr = 7924
+name = "Deneb"
+bayer = "alpha Cygni"
+fact = "So remote that its distance is still disputed: somewhere between about 1,400 and 2,600 light years."
+
+[[star]]
+hr = 7557
+name = "Altair"
+bayer = "alpha Aquilae"
+fact = "Its light left around 2009."
+
+[[star]]
+hr = 7417
+name = "Albireo"
+bayer = "beta Cygni"
+
+[[star]]
+hr = 7796
+name = "Sadr"
+bayer = "gamma Cygni"
+
+[[star]]
+hr = 7949
+name = "Aljanah"
+bayer = "epsilon Cygni"
+
+[[star]]
+hr = 3982
+name = "Regulus"
+bayer = "alpha Leonis"
+fact = "Its light left around 1947."
+
+[[star]]
+hr = 4534
+name = "Denebola"
+bayer = "beta Leonis"
+fact = "Its light left around 1990."
+
+[[star]]
+hr = 4057
+name = "Algieba"
+bayer = "gamma Leonis"
+
+[[star]]
+hr = 4357
+name = "Zosma"
+bayer = "delta Leonis"
+
+[[star]]
+hr = 4359
+name = "Chertan"
+bayer = "theta Leonis"
+
+[[star]]
+hr = 4031
+name = "Adhafera"
+bayer = "zeta Leonis"
+
+[[star]]
+hr = 3905
+name = "Rasalas"
+bayer = "mu Leonis"
+
+[[star]]
+hr = 6134
+name = "Antares"
+bayer = "alpha Scorpii"
+fact = "Roughly 550 light years away; its light left around 1470, give or take a century."
+
+[[star]]
+hr = 5984
+name = "Acrab"
+bayer = "beta Scorpii"
+
+[[star]]
+hr = 5953
+name = "Dschubba"
+bayer = "delta Scorpii"
+
+[[star]]
+hr = 6553
+name = "Sargas"
+bayer = "theta Scorpii"
+
+[[star]]
+hr = 6527
+name = "Shaula"
+bayer = "lambda Scorpii"
+
+[[star]]
+hr = 6508
+name = "Lesath"
+bayer = "upsilon Scorpii"
+
+[[star]]
+hr = 2491
+name = "Sirius"
+bayer = "alpha Canis Majoris"
+fact = "The brightest star in the night sky; its light left 8.6 years ago."
+
+[[star]]
+hr = 2294
+name = "Mirzam"
+bayer = "beta Canis Majoris"
+
+[[star]]
+hr = 2618
+name = "Adhara"
+bayer = "epsilon Canis Majoris"
+fact = "Its light left around 1620."
+
+[[star]]
+hr = 2693
+name = "Wezen"
+bayer = "delta Canis Majoris"
+
+[[star]]
+hr = 2827
+name = "Aludra"
+bayer = "eta Canis Majoris"
+
+[[star]]
+hr = 2943
+name = "Procyon"
+bayer = "alpha Canis Minoris"
+fact = "Its light left about 11 and a half years ago."
+
+[[star]]
+hr = 2891
+name = "Castor"
+bayer = "alpha Geminorum"
+fact = "Its light left around 1975."
+
+[[star]]
+hr = 2990
+name = "Pollux"
+bayer = "beta Geminorum"
+fact = "Its light left around 1992."
+
+[[star]]
+hr = 2421
+name = "Alhena"
+bayer = "gamma Geminorum"
+
+[[star]]
+hr = 1708
+name = "Capella"
+bayer = "alpha Aurigae"
+fact = "Its light left around 1983."
+
+[[star]]
+hr = 2088
+name = "Menkalinan"
+bayer = "beta Aurigae"
+
+[[star]]
+hr = 1457
+name = "Aldebaran"
+bayer = "alpha Tauri"
+fact = "Its light left around 1959."
+
+[[star]]
+hr = 1791
+name = "Elnath"
+bayer = "beta Tauri"
+fact = "Its light left around 1890."
+
+[[star]]
+hr = 1165
+name = "Alcyone"
+bayer = "eta Tauri"
+
+[[star]]
+hr = 5340
+name = "Arcturus"
+bayer = "alpha Bootis"
+fact = "Its light left around 1989."
+
+[[star]]
+hr = 5056
+name = "Spica"
+bayer = "alpha Virginis"
+fact = "Its light left around 1780."
+
+[[star]]
+hr = 4825
+name = "Porrima"
+bayer = "gamma Virginis"
+
+[[star]]
+hr = 1017
+name = "Mirfak"
+bayer = "alpha Persei"
+fact = "Its light left around 1520."
+
+[[star]]
+hr = 936
+name = "Algol"
+bayer = "beta Persei"
+
+[[star]]
+hr = 15
+name = "Alpheratz"
+bayer = "alpha Andromedae"
+
+[[star]]
+hr = 337
+name = "Mirach"
+bayer = "beta Andromedae"
+
+[[star]]
+hr = 603
+name = "Almach"
+bayer = "gamma Andromedae"
+
+[[star]]
+hr = 617
+name = "Hamal"
+bayer = "alpha Arietis"
+
+[[star]]
+hr = 8781
+name = "Markab"
+bayer = "alpha Pegasi"
+
+[[star]]
+hr = 8775
+name = "Scheat"
+bayer = "beta Pegasi"
+
+[[star]]
+hr = 39
+name = "Algenib"
+bayer = "gamma Pegasi"
+
+[[star]]
+hr = 8308
+name = "Enif"
+bayer = "epsilon Pegasi"
+
+[[star]]
+hr = 6556
+name = "Rasalhague"
+bayer = "alpha Ophiuchi"
+
+[[star]]
+hr = 6705
+name = "Eltanin"
+bayer = "gamma Draconis"
+
+[[star]]
+hr = 5291
+name = "Thuban"
+bayer = "alpha Draconis"
+
+[[star]]
+hr = 8162
+name = "Alderamin"
+bayer = "alpha Cephei"
+
+[[star]]
+hr = 5793
+name = "Alphecca"
+bayer = "alpha Coronae Borealis"
+
+[[star]]
+hr = 6406
+name = "Rasalgethi"
+bayer = "alpha Herculis"
+
+[[star]]
+hr = 4915
+name = "Cor Caroli"
+bayer = "alpha Canum Venaticorum"
+
+[[star]]
+hr = 681
+name = "Mira"
+bayer = "omicron Ceti"
+
+[[star]]
+hr = 188
+name = "Diphda"
+bayer = "beta Ceti"
+
+[[star]]
+hr = 8728
+name = "Fomalhaut"
+bayer = "alpha Piscis Austrini"
+fact = "Its light left around 2001."
+
+[[star]]
+hr = 3748
+name = "Alphard"
+bayer = "alpha Hydrae"
+
+[[star]]
+hr = 5531
+name = "Zubenelgenubi"
+bayer = "alpha Librae"
+
+[[star]]
+hr = 5685
+name = "Zubeneschamali"
+bayer = "beta Librae"
+
+[[star]]
+hr = 6879
+name = "Kaus Australis"
+bayer = "epsilon Sagittarii"
+fact = "Its light left around 1880."
+
+[[star]]
+hr = 7121
+name = "Nunki"
+bayer = "sigma Sagittarii"
+
+[[star]]
+hr = 7194
+name = "Ascella"
+bayer = "zeta Sagittarii"
+
+[[star]]
+hr = 2326
+name = "Canopus"
+bayer = "alpha Carinae"
+fact = "The second-brightest star in the night sky; its light left around 1720."
+
+[[star]]
+hr = 3685
+name = "Miaplacidus"
+bayer = "beta Carinae"
+fact = "Its light left around 1913."
+
+[[star]]
+hr = 3307
+name = "Avior"
+bayer = "epsilon Carinae"
+
+[[star]]
+hr = 472
+name = "Achernar"
+bayer = "alpha Eridani"
+fact = "Its light left around 1890."
+
+[[star]]
+hr = 4730
+name = "Acrux"
+bayer = "alpha Crucis"
+fact = "Its light left around 1680."
+
+[[star]]
+hr = 4853
+name = "Mimosa"
+bayer = "beta Crucis"
+fact = "Its light left around 1750."
+
+[[star]]
+hr = 4763
+name = "Gacrux"
+bayer = "gamma Crucis"
+fact = "Its light left around 1937."
+
+[[star]]
+hr = 4656
+name = "Imai"
+bayer = "delta Crucis"
+
+[[star]]
+hr = 5459
+name = "Rigil Kentaurus"
+bayer = "alpha Centauri A"
+fact = "Part of the nearest star system to the Sun; its light left a little over four years ago."
+
+[[star]]
+hr = 5267
+name = "Hadar"
+bayer = "beta Centauri"
+fact = "Its light left around 1630."
+
+[[star]]
+hr = 5288
+name = "Menkent"
+bayer = "theta Centauri"
+
+[[star]]
+hr = 7790
+name = "Peacock"
+bayer = "alpha Pavonis"
+
+[[star]]
+hr = 8425
+name = "Alnair"
+bayer = "alpha Gruis"
+fact = "Its light left around 1925."
+
+[[star]]
+hr = 6217
+name = "Atria"
+bayer = "alpha Trianguli Australis"
+fact = "Its light left around 1635."
+
+[[star]]
+hr = 99
+name = "Ankaa"
+bayer = "alpha Phoenicis"
+
+[[star]]
+hr = 3634
+name = "Suhail"
+bayer = "lambda Velorum"
+
+[[star]]
+hr = 3165
+name = "Naos"
+bayer = "zeta Puppis"

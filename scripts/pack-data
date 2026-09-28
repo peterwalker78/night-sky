@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Download the star catalogue and constellation figures, check them, and pack
+# them into core/data/. The packed files are committed; run this only to
+# rebuild them from their sources.
+source "$(dirname "$0")/lib.sh"
+cd "$ROOT"
+raw=tools/raw
+mkdir -p "$raw"
+fetch() { # url file sha256
+  [[ -f "$raw/$2" ]] || curl -fsSL -o "$raw/$2" "$1"
+  echo "$3  $raw/$2" | sha256sum --check --quiet
+}
+fetch https://cdsarc.cds.unistra.fr/ftp/V/50/catalog.gz bsc5.dat.gz \
+  3dc44b1e90be8fbe5bcc7656032560f51275f985c7e3f783c9028e1838ec7bed
+fetch https://raw.githubusercontent.com/ofrohn/d3-celestial/master/data/constellations.lines.json \
+  constellations.lines.json 294f66bef5d5cf50b1e17f16d2efa1d97a15131612c68dd935adef6e7373e13c
+fetch https://raw.githubusercontent.com/ofrohn/d3-celestial/master/data/constellations.json \
+  constellations.json ab4ae692027cbc042c0d6791a84456a65eb7c55656107fd00c58ff6e55d4d8b2
+python3 tools/pack-data.py

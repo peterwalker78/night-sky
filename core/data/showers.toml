@@ -1,0 +1,169 @@
+# Annual meteor showers. Peak solar longitude (J2000, degrees), activity window,
+# radiant at peak (J2000), ZHR and entry speed from the IMO working list of
+# visual meteor showers (2027 calendar, Table 5).
+# Where the list gives a ZHR as "80+" the lower bound is used.
+
+[[shower]]
+id = "quadrantids"
+name = "Quadrantids"
+peak_sol = 283.15
+start = "12-28"
+end = "01-12"
+ra = 230.0
+dec = 49.0
+zhr = 80
+speed = 41
+
+[[shower]]
+id = "alpha-centaurids"
+name = "Alpha Centaurids"
+peak_sol = 319.4
+start = "01-31"
+end = "02-20"
+ra = 211.0
+dec = -58.0
+zhr = 6
+speed = 58
+
+[[shower]]
+id = "lyrids"
+name = "Lyrids"
+peak_sol = 32.32
+start = "04-14"
+end = "04-30"
+ra = 271.0
+dec = 34.0
+zhr = 18
+speed = 49
+
+[[shower]]
+id = "eta-aquariids"
+name = "Eta Aquariids"
+peak_sol = 45.5
+start = "04-19"
+end = "05-28"
+ra = 338.0
+dec = -1.0
+zhr = 50
+speed = 66
+
+[[shower]]
+id = "alpha-capricornids"
+name = "Alpha Capricornids"
+peak_sol = 128.0
+start = "07-03"
+end = "08-15"
+ra = 307.0
+dec = -10.0
+zhr = 5
+speed = 23
+
+[[shower]]
+id = "southern-delta-aquariids"
+name = "Southern Delta Aquariids"
+peak_sol = 128.0
+start = "07-12"
+end = "08-23"
+ra = 340.0
+dec = -16.0
+zhr = 25
+speed = 41
+
+[[shower]]
+id = "perseids"
+name = "Perseids"
+peak_sol = 140.0
+start = "07-17"
+end = "08-24"
+ra = 48.0
+dec = 58.0
+zhr = 110
+speed = 59
+
+[[shower]]
+id = "september-epsilon-perseids"
+name = "September Epsilon Perseids"
+peak_sol = 166.7
+start = "09-05"
+end = "09-21"
+ra = 48.0
+dec = 40.0
+zhr = 8
+speed = 64
+
+[[shower]]
+id = "draconids"
+name = "Draconids"
+peak_sol = 195.4
+start = "10-06"
+end = "10-10"
+ra = 263.0
+dec = 56.0
+zhr = 5
+speed = 20
+
+[[shower]]
+id = "orionids"
+name = "Orionids"
+peak_sol = 208.0
+start = "10-02"
+end = "11-07"
+ra = 95.0
+dec = 16.0
+zhr = 20
+speed = 66
+
+[[shower]]
+id = "southern-taurids"
+name = "Southern Taurids"
+peak_sol = 223.0
+start = "09-20"
+end = "11-20"
+ra = 52.0
+dec = 15.0
+zhr = 7
+speed = 27
+
+[[shower]]
+id = "northern-taurids"
+name = "Northern Taurids"
+peak_sol = 230.0
+start = "10-20"
+end = "12-10"
+ra = 58.0
+dec = 22.0
+zhr = 5
+speed = 29
+
+[[shower]]
+id = "leonids"
+name = "Leonids"
+peak_sol = 235.27
+start = "11-06"
+end = "11-30"
+ra = 152.0
+dec = 22.0
+zhr = 15
+speed = 71
+
+[[shower]]
+id = "geminids"
+name = "Geminids"
+peak_sol = 262.2
+start = "12-04"
+end = "12-20"
+ra = 112.0
+dec = 33.0
+zhr = 150
+speed = 35
+
+[[shower]]
+id = "ursids"
+name = "Ursids"
+peak_sol = 270.7
+start = "12-17"
+end = "12-26"
+ra = 217.0
+dec = 76.0
+zhr = 10
+speed = 33
