@@ -10,6 +10,15 @@ use std::rc::Rc;
 
 pub const CSS: &str = r#"
 window, .page { background: #070913; color: #dfe3ee; }
+.veil { background: rgba(3, 4, 10, 0.7); }
+.sheet {
+  background: rgba(10, 12, 24, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+}
+.sheet .page { background: transparent; }
+.sheet .book-side { border-top-left-radius: 18px; border-bottom-left-radius: 18px; }
 .prompt {
   background: rgba(7, 9, 19, 0.78);
   border-radius: 16px;
@@ -105,6 +114,7 @@ button.find-row.found { opacity: 0.5; }
 .find-where { font-size: 12px; color: rgba(210, 218, 240, 0.6); }
 .course-step { font-size: 12px; color: rgba(210, 218, 240, 0.55); letter-spacing: 1px; }
 .course-ask { font-size: 22px; color: #f3ecd9; }
+.course-when { font-size: 16px; color: rgba(240, 222, 190, 0.9); font-style: italic; }
 .course entry, .settings entry {
   background: rgba(255, 255, 255, 0.05);
   color: #f2f4f9;

@@ -174,38 +174,70 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
     let book = Book::new(&game);
     let course = Course::new(&game);
     let settings = Settings::new(&game);
+    // The logbook, a course and the menu open as a panel over the sky,
+    // which carries on turning, dimmed, behind it.
     let stack = gtk::Stack::new();
     stack.set_transition_type(gtk::StackTransitionType::Crossfade);
-    stack.set_transition_duration(350);
-    stack.add_named(&sky_page, Some("sky"));
+    stack.set_transition_duration(250);
     stack.add_named(&book.root, Some("book"));
     stack.add_named(&course.root, Some("course"));
     stack.add_named(&settings.root, Some("settings"));
-    window.set_child(Some(&stack));
+    let panel = gtk::Box::new(gtk::Orientation::Vertical, 0);
+    panel.add_css_class("sheet");
+    panel.set_overflow(gtk::Overflow::Hidden);
+    panel.set_halign(gtk::Align::Center);
+    panel.set_width_request(1060);
+    panel.set_margin_top(36);
+    panel.set_margin_bottom(36);
+    stack.set_vexpand(true);
+    panel.append(&stack);
+    let veil = gtk::Box::new(gtk::Orientation::Vertical, 0);
+    veil.add_css_class("veil");
+    let over = gtk::Overlay::new();
+    over.set_child(Some(&veil));
+    over.add_overlay(&panel);
+    let sheet = gtk::Revealer::new();
+    sheet.set_transition_type(gtk::RevealerTransitionType::Crossfade);
+    sheet.set_transition_duration(450);
+    sheet.set_child(Some(&over));
+    sheet.set_can_target(false);
+    sky_page.add_overlay(&sheet);
+    window.set_child(Some(&sky_page));
 
     // Going from page to page. The pages ask for this with a Request.
     let go: Rc<dyn Fn(Option<Request>)> = {
-        let (stack, view) = (stack.clone(), view.clone());
+        let (stack, sheet, view) = (stack.clone(), sheet.clone(), view.clone());
         let (book, course, settings) = (book.clone(), course.clone(), settings.clone());
-        Rc::new(move |r: Option<Request>| match r {
-            None => {
-                stack.set_visible_child_name("sky");
-                view.grab_focus();
+        Rc::new(move |r: Option<Request>| {
+            let open = r.is_some();
+            match r {
+                None => {
+                    view.grab_focus();
+                }
+                Some(Request::Book(at)) => {
+                    stack.set_visible_child_name("book");
+                    book.open(at.as_deref());
+                }
+                Some(Request::Course(weight)) => {
+                    stack.set_visible_child_name("course");
+                    course.open(weight);
+                }
+                Some(Request::Settings) => {
+                    stack.set_visible_child_name("settings");
+                    settings.open();
+                }
             }
-            Some(Request::Book(at)) => {
-                stack.set_visible_child_name("book");
-                book.open(at.as_deref());
-            }
-            Some(Request::Course(weight)) => {
-                stack.set_visible_child_name("course");
-                course.open(weight);
-            }
-            Some(Request::Settings) => {
-                stack.set_visible_child_name("settings");
-                settings.open();
-            }
+            sheet.set_reveal_child(open);
+            sheet.set_can_target(open);
         })
     };
+    {
+        // A click on the sky around the panel puts it away.
+        let go = go.clone();
+        let click = gtk::GestureClick::new();
+        click.connect_released(move |_, _, _, _| go(None));
+        veil.add_controller(click);
+    }
     {
         let go = go.clone();
         menu.connect_clicked(move |_| go(Some(Request::Settings)));
@@ -222,7 +254,7 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
     {
         let game = game.clone();
         let window = window.clone();
-        let stack = stack.clone();
+        let sheet = sheet.clone();
         let go = go.clone();
         keys.connect_key_pressed(move |_, key, _, state| {
             let ctrl = state.contains(gdk::ModifierType::CONTROL_MASK);
@@ -242,7 +274,7 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
                 }
                 return glib::Propagation::Stop;
             }
-            if stack.visible_child_name().as_deref() != Some("sky") {
+            if sheet.reveals_child() {
                 return glib::Propagation::Proceed;
             }
             let handled = game.borrow_mut().key_pressed(key, wall_clock());
@@ -313,14 +345,17 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
     {
         let game = game.clone();
         let window = window.clone();
-        let stack = stack.clone();
+        let sheet = sheet.clone();
         let go = go.clone();
         view.add_tick_callback(move |view, _clock| {
             let real = wall_clock();
             let fast = game.borrow().wants_fast_frames(real);
-            let on_sky = stack.visible_child_name().as_deref() == Some("sky");
-            let interval = if !window.is_active() || !on_sky {
+            let on_sky = !sheet.reveals_child();
+            let interval = if !window.is_active() {
                 200
+            } else if !on_sky {
+                // Still turning behind the panel, gently.
+                100
             } else if fast {
                 16
             } else {

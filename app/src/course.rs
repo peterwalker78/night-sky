@@ -1,6 +1,7 @@
 //! Charting a course for a weight, only ever when the user asks: four short
-//! steps (a wish, the best of it, what gets in the way, and an if-then
-//! plan), with the user's own earlier words beside each one.
+//! steps (a wish, how it looks at its best, what gets in the way, and what
+//! to do when it does), with the user's own earlier words to hand. Each step
+//! lights a star; the course ends as a little constellation of its own.
 
 use crate::game::Game;
 use crate::talk::{Go, Request};
@@ -8,18 +9,18 @@ use crate::ui::{clear, detach, label};
 use gtk::prelude::*;
 use gtk::{gdk, glib};
 use night_sky_core::journal::{Course as Record, Journal};
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::rc::{Rc, Weak};
 
 const STEPS: [(&str, &str, &str); 4] = [
     (
         "WISH",
         "If this weight got lighter, what would that look like?",
-        "One line.",
+        "One line is plenty.",
     ),
     (
-        "THE BEST OF IT",
-        "Picture the best of it. What would be different on an ordinary Tuesday?",
+        "AT ITS BEST",
+        "Picture it going well. What would be different on an ordinary Tuesday?",
         "Take a moment with it before you write.",
     ),
     (
@@ -30,9 +31,12 @@ const STEPS: [(&str, &str, &str); 4] = [
     (
         "THE PLAN",
         "When that happens, what will you do instead?",
-        "Say it as: if this, then I'll do that.",
+        "Something small and specific enough to do on the spot.",
     ),
 ];
+
+/// Where the course's four stars sit in the little chart at the top.
+const CHART: [(f64, f64); 4] = [(10.0, 30.0), (62.0, 14.0), (116.0, 26.0), (170.0, 8.0)];
 
 #[derive(Default)]
 struct State {
@@ -47,54 +51,111 @@ pub struct Course {
     game: Rc<RefCell<Game>>,
     me: RefCell<Weak<Course>>,
     state: RefCell<State>,
+    subtitle: gtk::Label,
+    chart: gtk::DrawingArea,
+    reached: Rc<Cell<usize>>,
     main: gtk::Box,
     side: gtk::Box,
     words: gtk::Box,
     entry: gtk::Entry,
-    then: gtk::Entry,
     check: gtk::CheckButton,
     pub on_request: Go,
 }
 
+/// One labelled part of a course: a small heading and the user's words.
+fn part(card: &gtk::Box, heading: &str, text: &str, class: &str) {
+    if text.trim().is_empty() {
+        return;
+    }
+    let row = gtk::Box::new(gtk::Orientation::Vertical, 2);
+    row.set_margin_top(8);
+    row.append(&label(heading, "course-step"));
+    row.append(&label(text.trim(), class));
+    card.append(&row);
+}
+
+/// A course as the logbook and the last step show it: the four parts in
+/// the user's own words, the plan largest.
+pub fn course_card(c: &Record, weight: Option<&str>) -> gtk::Box {
+    let card = gtk::Box::new(gtk::Orientation::Vertical, 2);
+    card.add_css_class("book-card");
+    if let Some(w) = weight {
+        card.append(&label(&format!("For “{w}”"), "book-quiet"));
+    }
+    part(&card, "WISH", &c.wish, "book-body");
+    part(&card, "AT ITS BEST", &c.outcome, "book-body");
+    part(&card, "WHEN", &c.obstacle, "course-when");
+    part(&card, "I'LL", &c.plan, "book-big");
+    card
+}
+
 impl Course {
     pub fn new(game: &Rc<RefCell<Game>>) -> Rc<Course> {
-        let root = gtk::Box::new(gtk::Orientation::Horizontal, 48);
+        let root = gtk::Box::new(gtk::Orientation::Vertical, 0);
         root.add_css_class("page");
         root.add_css_class("course");
-        root.set_margin_top(56);
-        root.set_margin_start(72);
-        root.set_margin_end(56);
+        root.set_margin_top(40);
+        root.set_margin_start(56);
+        root.set_margin_end(48);
+        root.set_margin_bottom(32);
+
+        // The heading, with the course's stars joining up as it's charted.
+        let head = gtk::Box::new(gtk::Orientation::Horizontal, 24);
+        let titles = gtk::Box::new(gtk::Orientation::Vertical, 4);
+        titles.set_hexpand(true);
+        titles.append(&label("Chart a course", "book-title"));
+        let subtitle = label("", "book-quiet");
+        titles.append(&subtitle);
+        let reached = Rc::new(Cell::new(0usize));
+        let chart = gtk::DrawingArea::new();
+        chart.set_content_width(184);
+        chart.set_content_height(40);
+        chart.set_valign(gtk::Align::Center);
+        {
+            let reached = reached.clone();
+            chart.set_draw_func(move |_, cr, _, _| draw_chart(cr, reached.get()));
+        }
+        head.append(&titles);
+        head.append(&chart);
+        root.append(&head);
+
+        let body = gtk::Box::new(gtk::Orientation::Horizontal, 48);
+        body.set_vexpand(true);
         let main = gtk::Box::new(gtk::Orientation::Vertical, 12);
-        main.set_width_request(560);
+        main.set_width_request(540);
         main.set_hexpand(true);
         let side = gtk::Box::new(gtk::Orientation::Vertical, 6);
         side.set_width_request(280);
+        side.set_margin_top(28);
         let words = gtk::Box::new(gtk::Orientation::Vertical, 6);
-        side.append(&label("YOUR WORDS", "course-step"));
-        side.append(&label(
-            "Click one, or press Ctrl and its number, to bring it into the box.",
-            "book-quiet",
-        ));
+        side.append(&label("FROM YOUR LOGBOOK", "course-step"));
+        let hint = label("Click one to use it.", "book-quiet");
+        hint.set_tooltip_text(Some("Or press Ctrl and its number"));
+        side.append(&hint);
         side.append(&words);
-        root.append(&main);
-        root.append(&side);
+        body.append(&main);
+        body.append(&side);
+        root.append(&body);
+
         let course = Rc::new(Course {
             root,
             game: game.clone(),
             me: RefCell::new(Weak::new()),
             state: RefCell::new(State::default()),
+            subtitle,
+            chart,
+            reached,
             main,
             side,
             words,
             entry: gtk::Entry::new(),
-            then: gtk::Entry::new(),
             check: gtk::CheckButton::with_label("Ask me how it's going in a week"),
             on_request: RefCell::new(None),
         });
         *course.me.borrow_mut() = Rc::downgrade(&course);
-        for entry in [&course.entry, &course.then] {
+        {
             let me = Rc::downgrade(&course);
-            entry.connect_activate(move |_| {
+            course.entry.connect_activate(move |_| {
                 if let Some(c) = me.upgrade() {
                     c.next();
                 }
@@ -133,7 +194,8 @@ impl Course {
         }
     }
 
-    /// Starts or picks up a course for a weight.
+    /// Starts a course for a weight, picks up one left half-charted, or
+    /// reopens a finished one at its plan to change it.
     pub fn open(&self, weight: u32) {
         let mut game = self.game.borrow_mut();
         let night = game.night().to_owned();
@@ -141,7 +203,8 @@ impl Course {
         let existing = journal
             .courses
             .iter()
-            .find(|c| c.weight == weight && c.draft)
+            .filter(|c| c.weight == weight)
+            .max_by_key(|c| (c.draft, c.id))
             .cloned();
         let record = existing.unwrap_or_else(|| {
             let id = Journal::next_id(journal.courses.iter().map(|c| c.id));
@@ -155,11 +218,17 @@ impl Course {
             journal.courses.push(fresh.clone());
             fresh
         });
+        // Courses kept before the plan was asked on its own had the whole
+        // if-then in one field.
+        let plan = match record.plan.split_once(" → ") {
+            Some((_, then)) => then.to_owned(),
+            None => record.plan.clone(),
+        };
         let fields = [
             record.wish.clone(),
             record.outcome.clone(),
             record.obstacle.clone(),
-            record.plan.clone(),
+            plan,
         ];
         let step = fields.iter().position(|f| f.is_empty()).unwrap_or(3);
         *self.state.borrow_mut() = State {
@@ -206,7 +275,6 @@ impl Course {
         clear(&self.main);
         clear(&self.words);
         detach(&self.entry);
-        detach(&self.then);
         detach(&self.check);
         let state = self.state.borrow();
         let weight = self
@@ -216,12 +284,14 @@ impl Course {
             .weight(state.weight)
             .map(|w| w.text.clone())
             .unwrap_or_default();
-        let top = label(&format!("A course for “{weight}”"), "book-quiet");
-        self.main.append(&top);
+        self.subtitle
+            .set_text(&format!("For “{weight}”, only as far as you'd like to go."));
+        self.reached.set(state.step);
+        self.chart.queue_draw();
         self.side.set_visible(state.step < 4);
         if state.step == 4 {
             drop(state);
-            self.card();
+            self.summary(&weight);
             return;
         }
         let (step, ask, sub) = STEPS[state.step];
@@ -234,43 +304,47 @@ impl Course {
         self.main.append(&label(ask, "course-ask"));
         self.main.append(&label(sub, "book-quiet"));
         if state.step == 3 {
-            let row1 = gtk::Box::new(gtk::Orientation::Horizontal, 10);
-            row1.append(&label("If", "course-ask"));
+            // The plan answers what gets in the way, in the user's own words.
+            let when = gtk::Box::new(gtk::Orientation::Horizontal, 12);
+            when.set_margin_top(14);
+            let w = label("WHEN", "course-step");
+            w.set_width_chars(6);
+            w.set_valign(gtk::Align::Center);
+            when.append(&w);
+            when.append(&label(state.fields[2].trim(), "course-when"));
+            self.main.append(&when);
+            let then = gtk::Box::new(gtk::Orientation::Horizontal, 12);
+            let i = label("I'LL", "course-step");
+            i.set_width_chars(6);
+            i.set_valign(gtk::Align::Center);
+            then.append(&i);
             self.entry.set_hexpand(true);
-            let obstacle = state.fields[2].trim_end_matches('.').to_owned();
-            let (lhs, rhs) = state
-                .fields
-                .get(3)
-                .and_then(|p| p.split_once(" → "))
-                .map(|(a, b)| (a.to_owned(), b.to_owned()))
-                .unwrap_or((obstacle, String::new()));
-            self.entry.set_text(&lhs);
-            row1.append(&self.entry);
-            let row2 = gtk::Box::new(gtk::Orientation::Horizontal, 10);
-            row2.append(&label("then I'll", "course-ask"));
-            self.then.set_hexpand(true);
-            self.then.set_text(&rhs);
-            self.then
-                .set_placeholder_text(Some("go for a walk, ring someone, write it down…"));
-            row2.append(&self.then);
-            row1.set_margin_top(12);
-            self.main.append(&row1);
-            self.main.append(&row2);
+            self.entry.set_placeholder_text(Some(
+                "put the phone in another room, ring someone, go for a walk…",
+            ));
+            then.append(&self.entry);
+            self.main.append(&then);
         } else {
-            self.entry.set_text(&state.fields[state.step]);
             self.entry.set_placeholder_text(None);
             self.entry.set_margin_top(12);
             self.main.append(&self.entry);
         }
+        self.entry.set_text(&state.fields[state.step]);
         let buttons = gtk::Box::new(gtk::Orientation::Horizontal, 8);
-        buttons.set_margin_top(16);
-        let next = gtk::Button::with_label("Next  (Enter)");
+        buttons.set_margin_top(18);
+        let next = gtk::Button::with_label(if state.step == 3 {
+            "See it whole"
+        } else {
+            "Next"
+        });
         next.add_css_class("quiet");
+        next.set_tooltip_text(Some("Enter"));
         let back = gtk::Button::with_label("A step back");
         back.add_css_class("quiet");
         back.set_sensitive(state.step > 0);
-        let leave = gtk::Button::with_label("Leave it for now  (Esc)");
+        let leave = gtk::Button::with_label("Leave it for now");
         leave.add_css_class("quiet");
+        leave.set_tooltip_text(Some("Esc. It will keep, half-charted."));
         buttons.append(&next);
         buttons.append(&back);
         buttons.append(&leave);
@@ -295,8 +369,9 @@ impl Course {
         });
         drop(state);
         for (i, w) in self.words_for().into_iter().enumerate() {
-            let b = gtk::Button::with_label(&format!("{}  {}", i + 1, w));
+            let b = gtk::Button::with_label(&w);
             b.add_css_class("quiet");
+            b.set_tooltip_text(Some(&format!("Ctrl+{}", i + 1)));
             if let Some(l) = b.child().and_downcast::<gtk::Label>() {
                 l.set_wrap(true);
                 l.set_xalign(0.0);
@@ -310,26 +385,18 @@ impl Course {
             });
             self.words.append(&b);
         }
-        let entry = if self.state.borrow().step == 3 && !self.entry.text().is_empty() {
-            self.then.clone()
-        } else {
-            self.entry.clone()
-        };
+        let entry = self.entry.clone();
         glib::idle_add_local_once(move || {
             entry.grab_focus();
+            entry.set_position(-1);
         });
     }
 
     /// Brings one of the user's own lines into the box.
     fn pull(&self, n: usize) {
         if let Some(w) = self.words_for().get(n.wrapping_sub(1)) {
-            let target = if self.state.borrow().step == 3 && self.then.has_focus() {
-                &self.then
-            } else {
-                &self.entry
-            };
-            target.set_text(w);
-            target.set_position(-1);
+            self.entry.set_text(w);
+            self.entry.set_position(-1);
         }
     }
 
@@ -337,33 +404,23 @@ impl Course {
         let mut state = self.state.borrow_mut();
         let step = state.step;
         if step < 4 {
-            state.fields[step] = if step == 3 {
-                format!("{} → {}", self.entry.text().trim(), self.then.text().trim())
-            } else {
-                self.entry.text().trim().to_owned()
-            };
+            state.fields[step] = self.entry.text().trim().to_owned();
         }
     }
 
     fn save(&self, draft: bool, check: bool) {
         let state = self.state.borrow();
         let mut game = self.game.borrow_mut();
+        let today = game.night().to_owned();
         let journal = game.journal_mut();
         if let Some(c) = journal.courses.iter_mut().find(|c| c.id == state.id) {
             c.wish = state.fields[0].clone();
             c.outcome = state.fields[1].clone();
             c.obstacle = state.fields[2].clone();
-            let (lhs, rhs) = state.fields[3].split_once(" → ").unwrap_or(("", ""));
-            if !lhs.is_empty() {
-                c.obstacle = lhs.to_owned();
-            }
-            c.plan = rhs.to_owned();
+            c.plan = state.fields[3].clone();
             c.draft = draft;
-            if !draft {
-                c.check_after = check.then(|| {
-                    let today = c.made.clone();
-                    add_days(&today, 7)
-                });
+            if !draft && check {
+                c.check_after = Some(add_days(&today, 7));
             }
         }
         if let Err(e) = journal.save_courses() {
@@ -373,18 +430,21 @@ impl Course {
 
     fn next(&self) {
         self.take_field();
-        let empty = {
-            let s = self.state.borrow();
-            match s.step {
-                3 => self.then.text().trim().is_empty(),
-                n => s.fields[n].is_empty(),
-            }
-        };
-        if empty {
+        if self.state.borrow().fields[self.state.borrow().step].is_empty() {
             return;
         }
         self.state.borrow_mut().step += 1;
-        self.save(true, false);
+        // Half-charted until it's kept; changing a kept one keeps it kept.
+        let kept = {
+            let s = self.state.borrow();
+            self.game
+                .borrow()
+                .journal()
+                .courses
+                .iter()
+                .any(|c| c.id == s.id && !c.draft)
+        };
+        self.save(!kept, false);
         self.show();
     }
 
@@ -394,45 +454,71 @@ impl Course {
             let mut s = self.state.borrow_mut();
             s.step = s.step.saturating_sub(1);
         }
-        self.save(true, false);
         self.show();
     }
 
     fn leave(&self) {
         if self.state.borrow().step < 4 {
             self.take_field();
-            self.save(true, false);
+            let kept = {
+                let s = self.state.borrow();
+                self.game
+                    .borrow()
+                    .journal()
+                    .courses
+                    .iter()
+                    .any(|c| c.id == s.id && !c.draft)
+            };
+            self.save(!kept, false);
         }
         self.request(Some(Request::Book(Some("courses".into()))));
     }
 
-    fn card(&self) {
+    /// The whole course, to look at once before keeping it.
+    fn summary(&self, weight: &str) {
         let state = self.state.borrow();
-        let (lhs, rhs) = state.fields[3].split_once(" → ").unwrap_or(("", ""));
-        let card = gtk::Box::new(gtk::Orientation::Vertical, 8);
-        card.add_css_class("book-card");
-        card.set_margin_top(28);
-        card.append(&label(&state.fields[0], "book-body"));
-        card.append(&label(
-            &format!(
-                "If {}, then I'll {}.",
-                lhs.trim_end_matches('.'),
-                rhs.trim_end_matches('.')
-            ),
-            "book-big",
-        ));
+        let record = Record {
+            wish: state.fields[0].clone(),
+            outcome: state.fields[1].clone(),
+            obstacle: state.fields[2].clone(),
+            plan: state.fields[3].clone(),
+            ..Record::default()
+        };
+        drop(state);
+        let s = label("YOUR COURSE", "course-step");
+        s.set_margin_top(28);
+        self.main.append(&s);
+        let card = course_card(&record, None);
+        card.set_margin_top(6);
         self.main.append(&card);
-        self.check.set_margin_top(16);
+        self.main.append(&label(
+            &format!(
+                "Next time it comes up, you already know what you'll do. It's kept in the logbook beside “{weight}”."
+            ),
+            "book-quiet",
+        ));
+        self.check.set_margin_top(10);
         self.main.append(&self.check);
-        let done = gtk::Button::with_label("Keep it  (Enter)");
+        let buttons = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+        buttons.set_margin_top(12);
+        let done = gtk::Button::with_label("Keep it");
         done.add_css_class("quiet");
-        done.set_halign(gtk::Align::Start);
-        done.set_margin_top(12);
-        self.main.append(&done);
+        done.set_tooltip_text(Some("Enter"));
+        let change = gtk::Button::with_label("Change something");
+        change.add_css_class("quiet");
+        buttons.append(&done);
+        buttons.append(&change);
+        self.main.append(&buttons);
         let me = self.me.borrow().clone();
         done.connect_clicked(move |_| {
             if let Some(c) = me.upgrade() {
                 c.finish();
+            }
+        });
+        let me = self.me.borrow().clone();
+        change.connect_clicked(move |_| {
+            if let Some(c) = me.upgrade() {
+                c.back();
             }
         });
         let d = done.clone();
@@ -444,6 +530,41 @@ impl Course {
     fn finish(&self) {
         self.save(false, self.check.is_active());
         self.request(Some(Request::Book(Some("courses".into()))));
+    }
+}
+
+/// The course's stars: joined as far as it has got, the next one waiting.
+fn draw_chart(cr: &gtk::cairo::Context, reached: usize) {
+    let warm = (1.0, 0.86, 0.62);
+    cr.set_line_width(1.2);
+    cr.set_line_cap(gtk::cairo::LineCap::Round);
+    for (k, pair) in CHART.windows(2).enumerate() {
+        let lit = k + 1 < reached;
+        cr.set_source_rgba(warm.0, warm.1, warm.2, if lit { 0.55 } else { 0.1 });
+        cr.move_to(pair[0].0 + 4.0, pair[0].1 + 6.0);
+        cr.line_to(pair[1].0 + 4.0, pair[1].1 + 6.0);
+        let _ = cr.stroke();
+    }
+    for (k, &(x, y)) in CHART.iter().enumerate() {
+        let (x, y) = (x + 4.0, y + 6.0);
+        let (radius, alpha) = if k < reached {
+            (3.2, 0.95)
+        } else if k == reached {
+            (2.6, 0.6)
+        } else {
+            (1.8, 0.22)
+        };
+        if k <= reached {
+            let glow = gtk::cairo::RadialGradient::new(x, y, 0.0, x, y, radius * 4.0);
+            glow.add_color_stop_rgba(0.0, warm.0, warm.1, warm.2, 0.35 * alpha);
+            glow.add_color_stop_rgba(1.0, warm.0, warm.1, warm.2, 0.0);
+            let _ = cr.set_source(&glow);
+            cr.arc(x, y, radius * 4.0, 0.0, std::f64::consts::TAU);
+            let _ = cr.fill();
+        }
+        cr.set_source_rgba(warm.0, warm.1, warm.2, alpha);
+        cr.arc(x, y, radius, 0.0, std::f64::consts::TAU);
+        let _ = cr.fill();
     }
 }
 

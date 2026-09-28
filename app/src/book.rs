@@ -460,36 +460,55 @@ impl Book {
 
     fn courses(&self, journal: &Journal) {
         self.title("Courses");
-        let done: Vec<_> = journal.courses.iter().filter(|c| !c.draft).collect();
-        if done.is_empty() {
+        let started = |c: &&night_sky_core::journal::Course| {
+            !c.wish.is_empty() || !c.outcome.is_empty() || !c.obstacle.is_empty()
+        };
+        let courses: Vec<_> = journal.courses.iter().filter(started).collect();
+        if courses.is_empty() {
             self.content.append(&label(
                 "Any weight in the logbook has a Chart a course button. Courses you chart will be kept here.",
                 "book-quiet",
             ));
             return;
         }
-        for c in done {
-            let card = gtk::Box::new(gtk::Orientation::Vertical, 6);
-            card.add_css_class("book-card");
+        // Newest first; ones still being charted at the top.
+        let mut courses = courses;
+        courses.sort_by_key(|c| (!c.draft, std::cmp::Reverse(c.id)));
+        for c in courses {
+            let weight = journal.weight(c.weight).map(|w| w.text.as_str());
+            let card = crate::course::course_card(c, weight);
             card.set_margin_top(12);
-            if let Some(w) = journal.weight(c.weight) {
-                card.append(&label(&w.text, "book-quiet"));
+            if c.draft {
+                card.prepend(&label("STILL BEING CHARTED", "course-step"));
             }
-            card.append(&label(&c.wish, "book-body"));
-            card.append(&label(
-                &format!(
-                    "If {}, then I'll {}.",
-                    c.obstacle.trim_end_matches('.'),
-                    c.plan.trim_end_matches('.')
-                ),
-                "book-big",
-            ));
-            for k in &c.checks {
-                card.append(&label(
-                    &format!("{} · {}", short_date(&k.night), k.answer),
-                    "book-asked",
-                ));
+            if !c.checks.is_empty() {
+                let row = gtk::Box::new(gtk::Orientation::Vertical, 2);
+                row.set_margin_top(10);
+                row.append(&label("HOW IT'S GONE", "course-step"));
+                for k in &c.checks {
+                    row.append(&label(
+                        &format!("{} · {}", short_date(&k.night), k.answer),
+                        "book-asked",
+                    ));
+                }
+                card.append(&row);
             }
+            let button = gtk::Button::with_label(if c.draft {
+                "Carry on charting"
+            } else {
+                "Change the plan"
+            });
+            button.add_css_class("quiet");
+            button.set_halign(gtk::Align::Start);
+            button.set_margin_top(10);
+            let me = self.me.borrow().clone();
+            let weight_id = c.weight;
+            button.connect_clicked(move |_| {
+                if let Some(book) = me.upgrade() {
+                    book.request(Some(Request::Course(weight_id)));
+                }
+            });
+            card.append(&button);
             self.content.append(&card);
         }
     }
