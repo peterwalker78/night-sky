@@ -265,7 +265,7 @@ impl Game {
 
     pub(crate) fn guide_help(&mut self, real: UnixMs) {
         self.say(
-            "Arrows or a drag look around. Hold Space to catch whatever's in the ring. Tab turns you to the next find, C draws, L opens the logbook, and Esc twice ends the night.",
+            "Arrows or a drag look around. Hold Space to catch whatever's in the ring. Tab turns you to the next find, C draws, L opens the logbook, M turns the music off or on, and Esc twice ends the night.",
             real,
             14_000,
         );
@@ -382,6 +382,8 @@ impl Game {
             .line
             .as_ref()
             .is_none_or(|l| real - l.shown > l.hold + 1_400);
+        // A line that waited too long has probably stopped being true.
+        self.guide.queue.retain(|l| real - l.shown < 4_000);
         if finished && !self.guide.queue.is_empty() {
             let next = self.guide.queue.remove(0);
             if next.shown <= real {
