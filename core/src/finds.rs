@@ -64,34 +64,80 @@ pub fn thousands(n: u64) -> String {
     out
 }
 
-fn body_fact(body: Body, distance: f64, phase_name: &str) -> String {
+/// A bright named star within a few degrees of the Moon tonight, if any.
+fn moon_beside(sky: &Sky, at: UnixMs, ra: f64, dec: f64) -> Option<(String, f64)> {
+    let prec = precession(at);
+    sky.lists
+        .stars
+        .iter()
+        .filter_map(|n| {
+            let star = sky.stars.get(n.hr)?;
+            if star.mag > 2.0 {
+                return None;
+            }
+            let (sra, sdec) = crate::coords::angles(apply(&prec, star.dir));
+            let gap = crate::coords::separation(ra, dec, sra, sdec);
+            (gap < 6.0).then(|| (n.name.clone(), gap))
+        })
+        .min_by(|a, b| a.1.total_cmp(&b.1))
+}
+
+fn body_fact(
+    sky: &Sky,
+    body: Body,
+    at: UnixMs,
+    seen: &crate::sky::Seen,
+    phase_name: &str,
+) -> String {
+    let p = &seen.position;
     if body == Body::Moon {
-        let km = (distance * 6378.14 / 100.0).round() as u64 * 100;
-        return format!(
-            "{phase_name}, {} km away tonight. It always turns the same face towards us.",
-            thousands(km)
-        );
+        let km = (p.distance * 6378.14 / 100.0).round() as u64 * 100;
+        let beside = match moon_beside(sky, at, seen.ra, seen.dec) {
+            Some((name, gap)) if gap < 1.5 => format!(" Tonight it's passing close by {name}."),
+            Some((name, gap)) => format!(" Tonight it's {:.0} degrees from {name}.", gap),
+            None => " It always turns the same face towards us.".to_owned(),
+        };
+        return format!("{phase_name}, {} km away tonight.{beside}", thousands(km));
     }
-    let minutes = (distance * 8.3168).round() as u64;
-    let light = if minutes < 2 {
-        "Its light left it about a minute ago.".to_owned()
-    } else if minutes < 120 {
-        format!("Its light left it {minutes} minutes ago.")
-    } else {
+    let minutes = (p.distance * 8.3168).round() as u64;
+    let light = if minutes < 120 {
         format!(
-            "Its light left it about {} hours ago.",
-            (minutes as f64 / 60.0).round()
+            "It's so far away that sunlight bouncing off it takes {minutes} minutes to get here: you're seeing it as it was {minutes} minutes ago."
+        )
+    } else {
+        let hours = (minutes as f64 / 60.0).round();
+        format!(
+            "It's so far away that sunlight bouncing off it takes about {hours} hours to get here: you're seeing it as it was {hours} hours ago."
         )
     };
-    let more = match body {
-        Body::Mercury => "It never strays far from the Sun, so it only shows near dawn or dusk.",
-        Body::Venus => "It spins so slowly that its day is longer than its year.",
-        Body::Mars => "A day on Mars lasts about forty minutes longer than ours.",
-        Body::Jupiter => "More than a thousand Earths would fit inside it.",
-        Body::Saturn => "It is less dense than water.",
-        _ => "",
+    let tonight = match body {
+        Body::Mercury | Body::Venus => {
+            let lit = (p.phase * 100.0).round();
+            let shape = if lit < 35.0 {
+                "a crescent"
+            } else if lit < 65.0 {
+                "half lit"
+            } else if lit < 95.0 {
+                "gibbous, like a Moon a few days from full"
+            } else {
+                "almost full"
+            };
+            format!(" Tonight it's {shape}: {lit}% of the side facing us is in sunlight.")
+        }
+        Body::Jupiter => format!(" {}", crate::jupiter::arrangement(at)),
+        Body::Saturn => {
+            let tilt = p.ring_tilt.abs();
+            if tilt < 3.0 {
+                format!(
+                    " Its rings are almost edge-on to us tonight, tipped just {tilt:.1} degrees."
+                )
+            } else {
+                format!(" Its rings are tipped {tilt:.0} degrees towards us tonight.")
+            }
+        }
+        _ => String::new(),
     };
-    format!("{light} {more}").trim().to_owned()
+    format!("{light}{tonight}")
 }
 
 /// Tonight's set. `found_before` says whether an id has been found on an
@@ -116,8 +162,10 @@ pub fn tonight(
             target: Target::Body(Body::Moon),
             name: "The Moon".into(),
             fact: body_fact(
+                sky,
                 Body::Moon,
-                moon.position.distance,
+                at,
+                &moon,
                 crate::ephem::moon_phase_name(age),
             ),
         });
@@ -135,7 +183,7 @@ pub fn tonight(
                 id: body.id().into(),
                 target: Target::Body(body),
                 name: body.name().into(),
-                fact: body_fact(body, seen.position.distance, ""),
+                fact: body_fact(sky, body, at, &seen, ""),
             });
         }
     }

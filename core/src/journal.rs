@@ -119,6 +119,12 @@ pub struct Settings {
     /// No music.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub quiet: bool,
+    /// How loud the music is, 0 to 1.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub volume: Option<f64>,
+    /// Less movement: the wisp stays on its moss and the stars twinkle less.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub calm: bool,
     /// What the wisp has already shown, so it doesn't say it twice.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub seen: Vec<String>,

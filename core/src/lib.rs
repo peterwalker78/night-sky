@@ -12,6 +12,7 @@ pub mod figures;
 pub mod finale;
 pub mod finds;
 pub mod journal;
+pub mod jupiter;
 pub mod look;
 pub mod oklab;
 pub mod place;
