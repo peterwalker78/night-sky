@@ -438,6 +438,48 @@ impl Game {
         out
     }
 
+    /// Tonight's plans: a warm mark on the horizon below where each
+    /// event happens, with its words.
+    pub(crate) fn plan_mark_frame(
+        &mut self,
+        now: UnixMs,
+        hz: &Mat3,
+        prec: &Mat3,
+        real: UnixMs,
+    ) -> Vec<Text> {
+        let mut out = Vec::new();
+        let t = real as f64 / 1000.0;
+        for (words, place) in self.plan_marks.clone() {
+            let v = match place {
+                crate::game::PlanWhere::Body(b) => {
+                    let s = westering_core::sky::see(b, self.observer, now);
+                    westering_core::coords::from_alt_az(s.alt, s.az)
+                }
+                crate::game::PlanWhere::Radiant(ra, dec) => apply(hz, apply(prec, unit(ra, dec))),
+            };
+            let az = alt_az(v).1;
+            let on_horizon = westering_core::coords::from_alt_az(hills(az) + 1.2, az);
+            let Some((x, y)) = self.camera.project(on_horizon) else {
+                continue;
+            };
+            if !self.camera.on_screen(x, y, 20.0) {
+                continue;
+            }
+            let pulse = 0.8 + 0.2 * (t * 0.9).sin();
+            self.points.push(crate::view::Point {
+                x,
+                y,
+                radius: 3.2,
+                color: [1.0, 0.78, 0.45],
+                alpha: 0.9,
+                halo: pulse as f32,
+            });
+            // Above the mark and to the side, clear of the compass letters.
+            out.push(Text::new(x + 12.0, y - 44.0, words, 13.0, 0.85).color([1.0, 0.86, 0.66]));
+        }
+        out
+    }
+
     /// Words for marks near the middle of the view.
     pub(crate) fn mark_labels(&self, hz: &Mat3, brightness: f64) -> Vec<Text> {
         let mut out = Vec::new();
@@ -448,21 +490,26 @@ impl Game {
             let d = ((x - cx).powi(2) + (y - cy).powi(2)).sqrt();
             (d < reach).then(|| 1.0 - d / reach)
         };
+        // In the finale every weight keeps its words, so you see what's setting.
+        let setting = self.session.phase() == westering_core::session::Phase::Finale;
         for w in &self.page.weights {
             let v = apply(hz, unit(w.ra, w.dec));
+            if alt_az(v).0 < -1.0 {
+                continue;
+            }
             if let Some((x, y)) = cam.project(v)
-                && let Some(a) = near(x, y)
+                && let Some(a) = near(x, y).or(setting.then_some(0.85))
                 && let Some(weight) = self.journal.weight(w.weight)
             {
+                // Setting, it keeps its own light while the sky dims round it.
+                let (size, alpha) = if setting {
+                    (15.0, 0.8)
+                } else {
+                    (13.0, 0.55 * a * brightness)
+                };
                 out.push(
-                    Text::new(
-                        x + 12.0,
-                        y + 6.0,
-                        weight.text.clone(),
-                        13.0,
-                        0.55 * a * brightness,
-                    )
-                    .color([1.0, 0.85, 0.7]),
+                    Text::new(x + 12.0, y + 6.0, weight.text.clone(), size, alpha)
+                        .color([1.0, 0.85, 0.7]),
                 );
             }
         }

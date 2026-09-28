@@ -93,3 +93,86 @@ impl Tonight {
         *self.shown.borrow_mut() = rows;
     }
 }
+
+/// The evening's three parts at the top left, the one it's at lit, and a
+/// line saying what to do now. Wind down can be chosen from here.
+pub struct EveningGuide {
+    pub root: gtk::Box,
+    steps: [gtk::Widget; 3],
+    now: gtk::Label,
+    shown: RefCell<Option<crate::game::Evening>>,
+}
+
+impl EveningGuide {
+    pub fn new(game: &Rc<RefCell<Game>>) -> Rc<EveningGuide> {
+        let root = gtk::Box::new(gtk::Orientation::Vertical, 4);
+        root.add_css_class("evening");
+        root.set_halign(gtk::Align::Start);
+        root.set_valign(gtk::Align::Start);
+        root.set_margin_start(66);
+        root.set_margin_top(12);
+        let row = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+        let set_down = label("Set it down", "evening-step");
+        let look_up = label("Look up", "evening-step");
+        for l in [&set_down, &look_up] {
+            l.set_wrap(false);
+        }
+        let wind = gtk::Button::with_label("Wind down");
+        wind.add_css_class("evening-step");
+        wind.add_css_class("evening-button");
+        wind.set_focus_on_click(false);
+        wind.set_tooltip_text(Some("W"));
+        {
+            let game = game.clone();
+            wind.connect_clicked(move |_| game.borrow_mut().wind_down(wall_clock()));
+        }
+        let dot = || {
+            let d = label("·", "evening-dot");
+            d.set_wrap(false);
+            d
+        };
+        row.append(&set_down);
+        row.append(&dot());
+        row.append(&look_up);
+        row.append(&dot());
+        row.append(&wind);
+        let now = label("", "evening-now");
+        now.set_max_width_chars(40);
+        now.set_width_chars(34);
+        root.append(&row);
+        root.append(&now);
+        root.set_visible(false);
+        Rc::new(EveningGuide {
+            root,
+            steps: [set_down.upcast(), look_up.upcast(), wind.upcast()],
+            now,
+            shown: RefCell::new(None),
+        })
+    }
+
+    /// Follows the game; cheap when nothing changed.
+    pub fn sync(&self, game: &Rc<RefCell<Game>>) {
+        let evening = game.borrow().evening(wall_clock());
+        if *self.shown.borrow() == evening {
+            return;
+        }
+        match &evening {
+            None => self.root.set_visible(false),
+            Some(e) => {
+                self.root.set_visible(true);
+                for (k, w) in self.steps.iter().enumerate() {
+                    w.remove_css_class("current");
+                    w.remove_css_class("done");
+                    if k == e.step {
+                        w.add_css_class("current");
+                    } else if k < e.step {
+                        w.add_css_class("done");
+                    }
+                }
+                self.steps[2].set_sensitive(e.step == 1);
+                self.now.set_text(&e.now);
+            }
+        }
+        *self.shown.borrow_mut() = evening;
+    }
+}

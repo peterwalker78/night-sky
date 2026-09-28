@@ -72,6 +72,8 @@ pub(crate) enum Flow {
         weight: u32,
     },
     DrawingName,
+    /// Outside to look, or off to bed.
+    Ending,
 }
 
 /// A question waiting its turn: it shows a moment after the card.
@@ -426,7 +428,14 @@ impl Game {
             .pending
             .as_ref()
             .is_some_and(|(at, _)| real >= *at);
-        if !due || self.talk.prompt.is_some() || self.drawing.is_some() || !self.hunting() {
+        // Waits for the card to be put away, so Space isn't typed into the answer.
+        if !due
+            || self.talk.prompt.is_some()
+            || self.drawing.is_some()
+            || self.card.is_some()
+            || self.tour.is_some()
+            || !self.hunting()
+        {
             return;
         }
         let Some((_, pending)) = self.talk.pending.take() else {
@@ -759,6 +768,16 @@ impl Game {
                 self.talk.flow = Some(Flow::Place { weight, count });
                 self.place_weight(real);
             }
+            Flow::Ending => {
+                let ending = if chip == 0 {
+                    crate::game::Ending::Outside
+                } else {
+                    crate::game::Ending::Bed
+                };
+                self.ending = Some(ending);
+                self.done_talking();
+                self.guide_ending(ending, real);
+            }
             Flow::NameStar { name, hr } => {
                 if chip == 0 {
                     for p in &mut self.journal.people {
@@ -817,6 +836,44 @@ impl Game {
             other => {
                 self.talk.flow = Some(other);
             }
+        }
+    }
+
+    /// Asks how tonight ends, as the winding down begins.
+    pub(crate) fn ask_ending(&mut self) {
+        self.talk.flow = Some(Flow::Ending);
+        self.set_prompt(Some(Prompt {
+            text: "How does tonight end?".into(),
+            chips: vec!["Going outside to look".into(), "Off to bed".into()],
+            entry: false,
+            hint: "The screen dims either way".into(),
+            ..Prompt::default()
+        }));
+    }
+
+    /// The last line when the night ends in bed: something from tonight
+    /// worth taking with you, and goodnight.
+    pub(crate) fn goodnight(&self) -> westering_core::finale::Handoff {
+        let named = self.page.answers.iter().find_map(|a| a.person.clone());
+        let planned = self
+            .page
+            .plans
+            .last()
+            .and_then(|id| self.journal.plans.iter().find(|p| p.id == *id));
+        let line = if let Some(name) = named {
+            format!("{name} was part of tonight. Sleep well.")
+        } else if let Some(plan) = planned {
+            format!("Something to look forward to: {}. Sleep well.", plan.what)
+        } else if !self.page.weights.is_empty() {
+            "Tonight's weights have gone down with the sky. Sleep well.".to_owned()
+        } else {
+            "The sky will keep turning while you sleep. Goodnight.".to_owned()
+        };
+        westering_core::finale::Handoff {
+            line,
+            alt: 14.0,
+            az: 268.0,
+            id: None,
         }
     }
 

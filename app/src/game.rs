@@ -19,6 +19,22 @@ use westering_core::session::{Phase, Session, Timings};
 use westering_core::sky::{Sky, limiting_magnitude, see};
 use westering_core::time::{MONTHS, UnixMs, civil_date, weekday};
 
+/// How tonight ends: outside to look at the real sky, or off to bed.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Ending {
+    Outside,
+    Bed,
+}
+
+/// The evening's shape, as the guide at the top left shows it: which step
+/// it's at, and what to do now.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Evening {
+    /// 0 setting things down, 1 looking up, 2 winding down.
+    pub step: usize,
+    pub now: String,
+}
+
 /// One line of the Tonight list.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Row {
@@ -193,6 +209,20 @@ pub struct Game {
     /// Where the pointer is over the sky, and when it last moved.
     pub(crate) pointer: Option<(f64, f64, UnixMs)>,
     pub(crate) hovered: Option<crate::hover::Hovered>,
+    /// How tonight ends, once chosen.
+    pub(crate) ending: Option<Ending>,
+    /// The guide has offered to wind down.
+    offered_wind_down: bool,
+    /// Plans whose night is tonight: what, and where in the sky it happens.
+    pub(crate) plan_marks: Vec<(String, PlanWhere)>,
+}
+
+/// Where a planned sky event happens.
+#[derive(Clone, Debug)]
+pub(crate) enum PlanWhere {
+    Body(Body),
+    /// A meteor shower's radiant, J2000.
+    Radiant(f64, f64),
 }
 
 pub(crate) const WARM: Rgb = [1.0, 0.86, 0.66];
@@ -307,6 +337,36 @@ impl Game {
             crate::talk::calendar(&sky.lists.showers, now),
         );
         let already = !finds.is_empty() && caught.iter().all(|c| *c);
+        // Tonight's plans, placed where their event happens.
+        let around = westering_core::events::upcoming(
+            &sky.lists.showers,
+            now - westering_core::time::DAY * 2,
+            4,
+        );
+        let plan_marks = journal
+            .plans
+            .iter()
+            .filter(|p| p.date == night)
+            .filter_map(|p| {
+                let event = around.iter().find(|e| e.title == p.event)?;
+                let place = match &event.kind {
+                    westering_core::events::Kind::FullMoon => PlanWhere::Body(Body::Moon),
+                    westering_core::events::Kind::Pairing(_) => PlanWhere::Body(Body::Moon),
+                    westering_core::events::Kind::Opposition(b) => PlanWhere::Body(*b),
+                    westering_core::events::Kind::Shower { id, .. } => {
+                        let s = sky.lists.showers.iter().find(|s| &s.id == id)?;
+                        PlanWhere::Radiant(s.ra, s.dec)
+                    }
+                    westering_core::events::Kind::NewMoon => return None,
+                };
+                let who = p
+                    .who
+                    .as_deref()
+                    .map(|w| format!(", with {w}"))
+                    .unwrap_or_default();
+                Some((format!("Tonight: {}{who}", p.what), place))
+            })
+            .collect();
         let star_dirs = sky.stars.precessed(&precession(now));
         let prepared: Vec<Prepared> = sky
             .stars
@@ -390,6 +450,9 @@ impl Game {
             pattern_alpha: 0.0,
             pointer: None,
             hovered: None,
+            ending: None,
+            offered_wind_down: false,
+            plan_marks,
         };
         game.arrive(real_now);
         game
@@ -772,6 +835,7 @@ impl Game {
             gdk::Key::Up => self.held.up = true,
             gdk::Key::Down => self.held.down = true,
             gdk::Key::question | gdk::Key::F1 => self.guide_help(real),
+            gdk::Key::w | gdk::Key::W => self.wind_down(real),
             gdk::Key::m | gdk::Key::M => {
                 let quiet = !self.journal.settings.quiet;
                 self.journal.settings.quiet = quiet;
@@ -827,13 +891,11 @@ impl Game {
                     self.dismiss_card(real);
                 } else if matches!(phase, Phase::Arrival | Phase::Hunt) {
                     if real < self.esc_armed {
-                        if let Some(p) = self.session.finish(real) {
-                            self.entered(p, real);
-                        }
+                        self.wind_down(real);
                     } else {
                         self.esc_armed = real + 4_000;
                         self.hint = Some(Timed {
-                            text: "Press Esc again to end tonight's sky".into(),
+                            text: "Press Esc again to wind down".into(),
                             shown: real,
                             hold: 3_000,
                         });
@@ -1339,16 +1401,25 @@ impl Game {
             Phase::Dimming => {
                 self.card = None;
                 self.catch = Catch::default();
-                self.caption = Some(Timed {
-                    text: "Eyes take about twenty minutes to open fully to the dark. Let's help yours begin.".into(),
-                    shown: real + 1_500,
-                    hold: 9_000,
-                });
                 self.hint = None;
+                // Back out to the open sky, held on nothing.
+                self.track = None;
+                self.look = Some(Look {
+                    az: self.camera.az,
+                    alt: self.camera.alt.clamp(15.0, 45.0),
+                    fov: 90.0,
+                    rate: 0.8,
+                });
+                self.ask_ending();
             }
             Phase::Finale => {
+                self.set_prompt(None);
+                self.talk.flow = None;
                 let now = self.clock.sky(real);
-                let mut last = handoff(&self.sky, self.observer, now, self.offset_s);
+                let mut last = match self.ending {
+                    Some(Ending::Bed) => self.goodnight(),
+                    _ => handoff(&self.sky, self.observer, now, self.offset_s),
+                };
                 // When someone has written something heavy, the last line is a person.
                 let pole = if self.observer.lat >= 0.0 { 424 } else { 4730 };
                 if self.talk.caring
@@ -1358,6 +1429,10 @@ impl Game {
                 }
                 self.handoff = Some(last);
                 self.caption = None;
+                self.track = None;
+                if self.talk.first_night {
+                    self.guide_logbook_at_end(real);
+                }
                 // Face the west, where tonight's stars go down.
                 self.look = Some(Look {
                     az: 268.0,
@@ -1369,6 +1444,73 @@ impl Game {
             }
             _ => {}
         }
+    }
+
+    pub(crate) fn offered_wind_down(&self) -> bool {
+        self.offered_wind_down
+    }
+
+    pub(crate) fn set_offered_wind_down(&mut self) {
+        self.offered_wind_down = true;
+    }
+
+    /// Starts the evening's last part, when the user chooses to.
+    pub fn wind_down(&mut self, real: UnixMs) {
+        if !matches!(
+            self.session.phase(),
+            Phase::Arrival | Phase::Weights | Phase::Hunt
+        ) {
+            return;
+        }
+        self.end_tour(real);
+        self.card = None;
+        self.catch = Catch::default();
+        if let Some(p) = self.session.finish(real) {
+            self.entered(p, real);
+        }
+    }
+
+    /// Where the evening is, and what to do now.
+    pub fn evening(&self, real: UnixMs) -> Option<Evening> {
+        let (step, now) = match self.session.phase() {
+            Phase::Arrival => return None,
+            Phase::Weights if self.placing() => (0, "Arrows move it, Enter hangs it in the west"),
+            Phase::Weights => (
+                0,
+                "Write down what's on your mind, or choose Nothing tonight",
+            ),
+            Phase::Hunt if self.tour.is_some() => (1, "Space goes on, Esc stops here"),
+            Phase::Hunt if self.card.is_some() => (1, "Space to carry on"),
+            Phase::Hunt if self.talk.prompt.is_some() => {
+                (1, "Answer if you like, or Esc to let it pass")
+            }
+            Phase::Hunt if self.drawing.is_some() => {
+                (1, "Arrows pick stars, Enter joins them, C when done")
+            }
+            Phase::Hunt if self.session.all_found() => (
+                1,
+                "That's tonight's sky. Look around, or wind down when you're ready",
+            ),
+            Phase::Hunt if self.caught.iter().any(|c| *c) => (
+                1,
+                "Tab turns to the next find. Point at anything to see what it is",
+            ),
+            Phase::Hunt => (
+                1,
+                "Pick something from Tonight's list, then hold Space when it's in the ring",
+            ),
+            Phase::Dimming if self.talk.prompt.is_some() => (2, "Choose how tonight ends"),
+            Phase::Dimming => (2, "The screen is dimming: let your eyes and mind settle"),
+            Phase::Finale if !self.session.last_line(real) => {
+                (2, "Watch the west: the sky is taking the day down")
+            }
+            Phase::Finale => (2, "That's all for tonight"),
+            Phase::LightsOut | Phase::Over => return None,
+        };
+        Some(Evening {
+            step,
+            now: now.to_owned(),
+        })
     }
 
     /// Turns the view to the first thing still to find.
@@ -2090,6 +2232,7 @@ impl Game {
         let frame_texture = self.field.texture((brightness * (1.0 - veil)) as f32 * 1.0);
         let mut texts = self.labels(real, now, hz, prec, brightness);
         texts.extend(self.mark_labels(hz, brightness));
+        texts.extend(self.plan_mark_frame(now, hz, prec, real));
         for &(x, y, name, a) in &self.moon_labels {
             texts.push(Text::new(
                 x + 8.0,
@@ -2353,9 +2496,10 @@ impl Game {
                     (0.35 + 0.5 * near) * brightness,
                 ));
             }
-            // Caught things keep a quiet name when the view passes them.
+            // Caught things keep a quiet name when the view passes them,
+            // unless the ring is already labelling something there.
             for (i, f) in self.finds.iter().enumerate() {
-                if !self.caught[i] {
+                if !self.caught[i] || self.catch.target.is_some() {
                     continue;
                 }
                 if let Some(v) = self.find_dir(i, now, hz, prec)
@@ -2425,9 +2569,10 @@ impl Game {
                 smoothstep(into as f64 / 2_000.0)
             };
             out.push(
-                Text::new(w / 2.0, h * 0.72, handoff.line.clone(), 21.0, 0.92 * a)
+                Text::new(w / 2.0, h * 0.7, handoff.line.clone(), 23.0, a)
                     .centred()
-                    .wrap((w * 0.7).min(760.0)),
+                    .wrap((w * 0.7).min(760.0))
+                    .color([1.0, 0.94, 0.84]),
             );
         }
         out

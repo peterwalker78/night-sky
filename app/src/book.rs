@@ -248,7 +248,18 @@ impl Book {
             return;
         };
         if !night.moon.is_empty() {
-            self.content.append(&label(&night.moon, "book-quiet"));
+            // That night's Moon, drawn at its phase, beside its name.
+            let row = gtk::Box::new(gtk::Orientation::Horizontal, 10);
+            let moon = gtk::DrawingArea::new();
+            moon.set_content_width(26);
+            moon.set_content_height(26);
+            let age = moon_age_on(key);
+            moon.set_draw_func(move |_, cr, w, h| draw_moon(cr, w as f64, h as f64, age));
+            row.append(&moon);
+            let name = label(&night.moon, "book-quiet");
+            name.set_valign(gtk::Align::Center);
+            row.append(&name);
+            self.content.append(&row);
         }
         if !night.finds.is_empty() {
             self.heading("FOUND");
@@ -673,4 +684,47 @@ impl Book {
             self.content.append(&card);
         }
     }
+}
+
+/// The Moon's age, as a share of its cycle, in the evening of a night key.
+fn moon_age_on(key: &str) -> f64 {
+    let mut p = key.split('-').map(|x| x.parse::<i64>().unwrap_or(1));
+    let (y, m, d) = (
+        p.next().unwrap_or(2000),
+        p.next().unwrap_or(1),
+        p.next().unwrap_or(1),
+    );
+    let evening = westering_core::time::midnight_utc(y as i32, m as u32, d as u32)
+        + 21 * westering_core::time::HOUR;
+    westering_core::ephem::moon_age(evening)
+}
+
+/// A small Moon at its phase: lit on the right while it waxes, the left as
+/// it wanes, as it looks from the north.
+fn draw_moon(cr: &gtk::cairo::Context, w: f64, h: f64, age: f64) {
+    let (cx, cy, r) = (w / 2.0, h / 2.0, w.min(h) / 2.0 - 1.0);
+    cr.set_source_rgba(0.85, 0.87, 0.95, 0.12);
+    cr.arc(cx, cy, r, 0.0, std::f64::consts::TAU);
+    let _ = cr.fill();
+    let waxing = age < 0.5;
+    let side = if waxing { 1.0 } else { -1.0 };
+    let into = if waxing { age } else { 1.0 - age };
+    let e = r * (into * std::f64::consts::TAU).cos();
+    let steps = 32;
+    for k in 0..=steps {
+        let t = -std::f64::consts::FRAC_PI_2 + std::f64::consts::PI * k as f64 / steps as f64;
+        let (x, y) = (cx + side * r * t.cos(), cy + r * t.sin());
+        if k == 0 {
+            cr.move_to(x, y);
+        } else {
+            cr.line_to(x, y);
+        }
+    }
+    for k in 0..=steps {
+        let t = std::f64::consts::FRAC_PI_2 - std::f64::consts::PI * k as f64 / steps as f64;
+        cr.line_to(cx + side * e * t.cos(), cy + r * t.sin());
+    }
+    cr.close_path();
+    cr.set_source_rgba(0.98, 0.94, 0.84, 0.92);
+    let _ = cr.fill();
 }

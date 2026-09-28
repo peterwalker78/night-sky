@@ -236,7 +236,13 @@ fn fill(q: &Question, person: Option<&str>, event: Option<&SkyEvent>, ctx: &Cont
 
 /// The question to ask on catching something with these triggers, if any.
 pub fn choose(bank: &[Question], triggers: &[&str], ctx: &Context) -> Option<Chosen> {
-    if ctx.first_night || ctx.asked_now.len() >= budget(ctx.ask, ctx.night) {
+    // The first night asks one, so the sky's other half is met straight away.
+    let most = if ctx.first_night {
+        budget(ctx.ask, ctx.night).min(1)
+    } else {
+        budget(ctx.ask, ctx.night)
+    };
+    if ctx.asked_now.len() >= most {
         return None;
     }
     let fresh = |q: &&Question| {
@@ -467,9 +473,13 @@ mod tests {
     }
 
     #[test]
-    fn the_first_night_asks_nothing_and_two_is_the_most() {
+    fn the_first_night_asks_one_and_two_is_the_most() {
         let bank = bundled();
         let mut c = ctx("2026-10-01", &[], &[]);
+        c.first_night = true;
+        assert!(choose(&bank, &["pole", "any"], &c).is_some());
+        let one = ["a".to_owned()];
+        let mut c = ctx("2026-10-01", &[], &one);
         c.first_night = true;
         assert!(choose(&bank, &["pole", "any"], &c).is_none());
         let two = ["a".to_owned(), "b".to_owned()];

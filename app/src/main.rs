@@ -182,6 +182,8 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
     sky_page.add_overlay(&prompt.root);
     let tonight = hud::Tonight::new();
     sky_page.add_overlay(&tonight.root);
+    let evening = hud::EveningGuide::new(&game);
+    sky_page.add_overlay(&evening.root);
     let menu = gtk::Button::from_icon_name("open-menu-symbolic");
     menu.set_tooltip_text(Some("Menu (Ctrl+,)"));
     menu.add_css_class("menu-button");
@@ -348,7 +350,14 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
     let motion = gtk::EventControllerMotion::new();
     {
         let game = game.clone();
-        motion.connect_motion(move |_, x, y| game.borrow_mut().pointer_moved(x, y, wall_clock()));
+        let view = view.clone();
+        motion.connect_motion(move |_, x, y| {
+            let real = wall_clock();
+            game.borrow_mut().pointer_moved(x, y, real);
+            // A hand over something a click would tell more about.
+            let hand = game.borrow().clickable_at(x, y, real);
+            view.set_cursor_from_name(Some(if hand { "pointer" } else { "crosshair" }));
+        });
     }
     {
         let game = game.clone();
@@ -435,6 +444,7 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
                 if on_sky && real - last_list.get() > 700 {
                     last_list.set(real);
                     tonight.sync(&game);
+                    evening.sync(&game);
                 }
                 if prompt.sync(&game) && on_sky {
                     view.grab_focus();

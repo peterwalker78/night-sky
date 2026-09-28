@@ -28,7 +28,11 @@ pub(crate) struct Hovered {
 }
 
 /// How close the pointer has to be, in pixels, beyond the thing's own size.
-const REACH: f64 = 16.0;
+const REACH: f64 = 20.0;
+/// Stars brighter than this answer to the pointer even without a name.
+const NAMELESS: f32 = 4.5;
+/// A hint fades once the pointer has been still this long.
+const STILL_MS: UnixMs = 4_000;
 
 fn kind_of(kind: Kind) -> &'static str {
     match kind {
@@ -58,11 +62,28 @@ impl Game {
     /// Whether hints make sense now: during the hunt, with nothing else
     /// asking for attention.
     fn hinting(&self) -> bool {
-        self.hunting()
-            && self.card.is_none()
-            && self.talk.prompt.is_none()
+        matches!(
+            self.session.phase(),
+            westering_core::session::Phase::Weights
+                | westering_core::session::Phase::Hunt
+                | westering_core::session::Phase::Dimming
+        ) && self.card.is_none()
             && self.drawing.is_none()
             && self.tour.is_none()
+            && !self.placing()
+    }
+
+    /// Whether a click where the pointer is would do something, for the
+    /// pointer's shape.
+    pub fn clickable_at(&self, x: f64, y: f64, real: UnixMs) -> bool {
+        if !self.hinting() {
+            return false;
+        }
+        let now = self.sky_now(real);
+        let hz = westering_core::coords::horizon(self.observer, now);
+        let prec = westering_core::coords::precession(now);
+        self.pick(x, y, now, &hz, &prec)
+            .is_some_and(|h| h.find.is_some() || h.more.is_some())
     }
 
     /// The nearest thing to a point on the screen, if anything's near.
@@ -177,6 +198,55 @@ impl Game {
                     },
                 );
             }
+        }
+
+        // Any star bright enough to pick out: which figure it belongs to.
+        let named: Vec<u16> = self.sky.lists.stars.iter().map(|s| s.hr).collect();
+        for (k, star) in self.sky.stars.stars.iter().enumerate() {
+            if star.mag > NAMELESS {
+                break;
+            }
+            if named.contains(&star.hr) {
+                continue;
+            }
+            let v = apply(hz, self.star_dirs[k]);
+            if !up(v) {
+                continue;
+            }
+            let Some((sx, sy)) = cam.project(v) else {
+                continue;
+            };
+            if (sx - x).abs() > 40.0 || (sy - y).abs() > 40.0 {
+                continue;
+            }
+            let figure = self
+                .sky
+                .figures
+                .iter()
+                .find(|f| f.edges.iter().any(|&(a, b)| a == star.hr || b == star.hr))
+                .map(|f| f.name.split(',').next().unwrap_or(&f.name).to_owned());
+            let brightness = match star.mag {
+                m if m < 1.5 => "One of the brightest stars",
+                m if m < 3.0 => "A bright star",
+                _ => "A star you can see from a town",
+            };
+            consider(
+                sx,
+                sy,
+                1.5,
+                Hovered {
+                    x: 0.0,
+                    y: 0.0,
+                    radius: 0.0,
+                    name: match &figure {
+                        Some(f) => format!("A star in {f}"),
+                        None => "A star".to_owned(),
+                    },
+                    kind: brightness.to_owned(),
+                    more: None,
+                    find: None,
+                },
+            );
         }
 
         // Named stars.
@@ -316,7 +386,8 @@ impl Game {
         if h.find.is_some() && h.find == self.catch.target {
             return out;
         }
-        let a = envelope(real - since - 250, 250, 3_600_000, 0);
+        // Up a moment after the pointer settles, gone a while after it stops.
+        let a = envelope(real - since - 150, 200, STILL_MS, 1_200);
         if a <= 0.0 {
             return out;
         }
@@ -334,7 +405,9 @@ impl Game {
         }
         // Beside the pointer, kept on the screen.
         let (w, hgt) = (self.camera.width, self.camera.height);
-        let x = if px + 280.0 > w {
+        // Clear of the Tonight list on the right when it's showing.
+        let right = if self.show_tonight() { w - 310.0 } else { w };
+        let x = if px + 280.0 > right {
             px - 270.0
         } else {
             px + 18.0

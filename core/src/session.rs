@@ -18,7 +18,8 @@ pub enum Phase {
 #[derive(Clone, Copy, Debug)]
 pub struct Timings {
     pub arrival: UnixMs,
-    /// How long the sky lingers once everything is found.
+    /// How long the sky lingers once everything is found, if nobody chooses
+    /// to wind down first; the guide offers well before then.
     pub after_last_find: UnixMs,
     /// The hunt winds down by itself after this long.
     pub hunt_most: UnixMs,
@@ -37,7 +38,7 @@ pub struct Timings {
 impl Timings {
     pub const STANDARD: Timings = Timings {
         arrival: 4_500,
-        after_last_find: 20_000,
+        after_last_find: 6 * MINUTE,
         hunt_most: 25 * MINUTE,
         dimming: 75_000,
         lapse: 22_000,

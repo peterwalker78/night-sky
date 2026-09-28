@@ -46,6 +46,8 @@ pub enum Aim {
     Sky(f64, f64),
     /// A place on the Moon, by index into the features.
     Moon(usize),
+    /// The evening's guide, top left.
+    Evening,
 }
 
 struct Line {
@@ -241,6 +243,12 @@ impl Game {
                 real + 1_200,
                 9_000,
             );
+            self.say_at(
+                Aim::Evening,
+                "Every evening has the same three parts, shown up here: set down what's on your mind, look up for a while, then wind down.",
+                real + 1_200,
+                9_000,
+            );
             return;
         }
         let greetings = [
@@ -272,7 +280,7 @@ impl Game {
         self.say_once(
             "weights",
             Aim::Prompt,
-            "Before we look up: anything heavy on your mind? Write it here and I'll hang it in the west for you. A worry written down is easier to put down. Esc if not tonight.",
+            "Each evening starts here. A worry written down is easier to put down, and I'll hang yours low in the west. Only you will ever see it.",
             real,
             30_000,
         );
@@ -321,9 +329,20 @@ impl Game {
             real + 500,
             8_000,
         );
+        self.say_at(
+            Aim::Near(0.5, 0.35),
+            "Point at anything in the sky to see what it is, and click it to hear more.",
+            real + 500,
+            8_000,
+        );
     }
 
     pub(crate) fn guide_caught(&mut self, real: UnixMs) {
+        // Tips about the ring are done with once something's caught.
+        self.guide.queue.retain(|l| l.aim != Aim::Ring);
+        if self.guide.line.as_ref().is_some_and(|l| l.aim == Aim::Ring) {
+            self.guide.line = None;
+        }
         self.guide.cheer_until = real + 4_000;
         self.guide.last_progress = real;
         // Over to the card, pleased.
@@ -362,7 +381,7 @@ impl Game {
         if self.say_once(
             "tomorrow",
             Aim::Near(0.5, 0.35),
-            "That's tonight's sky. By tomorrow it will have turned: new things will be up and the Moon will have moved on. Look around as long as you like, then Esc twice to finish.",
+            "That's tonight's sky. By tomorrow it will have turned: new things will be up and the Moon will have moved on. Look around as long as you like, then W, or Wind down at the top left, when you're ready.",
             real,
             11_000,
         ) {
@@ -370,7 +389,7 @@ impl Game {
         }
         self.say_at(
             Aim::Near(0.5, 0.35),
-            "That's tonight's sky, all of it. Look around as long as you like, then Esc twice to finish.",
+            "That's tonight's sky, all of it. Look around as long as you like, then wind down when you're ready.",
             real,
             9_000,
         );
@@ -446,6 +465,30 @@ impl Game {
         );
     }
 
+    /// Tonight's end chosen: what happens now.
+    pub(crate) fn guide_ending(&mut self, ending: crate::game::Ending, real: UnixMs) {
+        let line = match ending {
+            crate::game::Ending::Outside => {
+                "Then I'll show you what's up out there. Give your eyes twenty minutes in the dark: they keep opening all that time."
+            }
+            crate::game::Ending::Bed => {
+                "Then this is the last of the screen tonight. Watch the day go down with the sky."
+            }
+        };
+        self.say_at(Aim::Near(0.4, 0.4), line, real + 300, 9_000);
+    }
+
+    /// The first night's end: where tonight is kept.
+    pub(crate) fn guide_logbook_at_end(&mut self, real: UnixMs) {
+        self.say_once(
+            "logbook-end",
+            Aim::Home,
+            "Everything from tonight is in your logbook: what you found, what you set down, what you wrote. L opens it, any night.",
+            real + 12_000,
+            9_000,
+        );
+    }
+
     /// A word after an old weight has been looked at again.
     pub(crate) fn guide_looked_back(&mut self, chip: usize, real: UnixMs) {
         let line = match chip {
@@ -470,7 +513,7 @@ impl Game {
     pub(crate) fn guide_help(&mut self, real: UnixMs) {
         self.say_at(
             Aim::Near(0.32, 0.5),
-            "Arrows or a drag look around. Hold Space to catch whatever's in the ring. Tab, or a click on the list, turns you to the next find. C draws, L opens the logbook, M turns the music off or on, and Esc twice ends the night. The button top left opens the menu.",
+            "Arrows or a drag look around. Hold Space to catch whatever's in the ring. Tab, or a click on the list, turns you to the next find. Point at anything to see what it is. C draws, L opens the logbook, M turns the music off or on, and W winds down. The button top left opens the menu.",
             real,
             15_000,
         );
@@ -479,13 +522,26 @@ impl Game {
     pub(crate) fn guide_phase(&mut self, phase: Phase, real: UnixMs) {
         match phase {
             Phase::Dimming => self.say_at(
-                Aim::Near(0.5, 0.3),
-                "Eyes need about twenty minutes to get used to the dark. Let's start yours off.",
+                Aim::Prompt,
+                "Let's wind down. I'll dim the screen a little at a time: bright light keeps a mind awake, and eyes need the dark to see the faint stars.",
                 real + 600,
-                7_000,
+                10_000,
             ),
             Phase::Finale => {
-                if self.page.weights.is_empty() {
+                let first = self
+                    .page
+                    .weights
+                    .first()
+                    .and_then(|w| self.journal.weight(w.weight))
+                    .map(|w| w.text.clone());
+                if let Some(first) = first {
+                    self.say_at(
+                        Aim::Weights,
+                        format!("Watch the west. The turning sky takes \u{201c}{first}\u{201d} down with it."),
+                        real + 800,
+                        9_000,
+                    );
+                } else if self.page.weights.is_empty() {
                     self.say_at(
                         Aim::Near(0.4, 0.45),
                         "Watch the sky turn.",
@@ -549,6 +605,19 @@ impl Game {
                 );
             }
         }
+        // A long look: offer to wind down, once.
+        if hunting
+            && self.session.in_phase(real) > self.session.timings.hunt_most * 4 / 5
+            && !self.offered_wind_down()
+        {
+            self.set_offered_wind_down();
+            self.say_at(
+                Aim::Evening,
+                "It's getting late. When you're ready, W winds down, or Wind down up here.",
+                real,
+                10_000,
+            );
+        }
         let mode = match self.session.phase() {
             Phase::LightsOut | Phase::Over => Mode::Away,
             Phase::Arrival if self.session.in_phase(real) < 1_200 => Mode::Away,
@@ -604,6 +673,7 @@ impl Game {
             Aim::Near(fx, fy) => ((w * fx, h * fy), None),
             Aim::List => ((w - 330.0, 110.0), Some((w - 270.0, 70.0))),
             Aim::Compass => ((cx - 350.0, 44.0), Some((cx - 250.0, 28.0))),
+            Aim::Evening => ((150.0, 130.0), Some((120.0, 40.0))),
             // Above the prompt's left end, so the words sit clear of it.
             Aim::Prompt => ((cx - 330.0, h - 360.0), Some((cx - 250.0, h - 250.0))),
             Aim::Card => {
@@ -765,9 +835,8 @@ impl Game {
             self.guide.flight.place(home.0, home.1);
         }
         let at_home_goal = (goal.0 - home.0).abs() < 1.0 && (goal.1 - home.1).abs() < 1.0;
-        // Only things in the sky get a loop; the list, the card and the ring
-        // are pointed at from beside them.
-        let circle = matches!(aim, Aim::Find(_) | Aim::Sky(..) | Aim::Weights);
+        // Pointed at from beside, with a soft ring, never by flying round it.
+        let circle = false;
         self.guide
             .flight
             .step(real, dt, goal, pointing, circle, !at_home_goal);
@@ -849,7 +918,7 @@ impl Game {
 
         // More waiting to be said: dots in the bubble, or over the wisp
         // between lines, so a pause doesn't read as the end.
-        let more = !self.guide.queue.is_empty();
+        let more = !self.guide.queue.is_empty() || self.talk.pending.is_some();
         let between = more
             && self
                 .guide

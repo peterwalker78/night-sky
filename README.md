@@ -46,8 +46,13 @@ Some finds take a few minutes:
   and Mercury at their real phase, Algol dimming on its real schedule, and on
   dark nights one fainter thing to zoom in on, from a list of over a hundred.
 
-Each visit slows down as you play, dims for a real reason, and ends by naming
-one thing you can go outside and see tonight.
+Every evening has the same three parts, shown at the top left: **set it down**
+(anything weighing on you, hung low in the west), **look up** (the finds, a
+story, now and then a small question about your life), and **wind down**,
+when you choose. The screen dims, you say whether the night ends outside or
+in bed, and the sky time-lapses your weights down behind the horizon. Going
+outside, the last line names something real to look at; going to bed, it's
+something from tonight worth keeping.
 
 **The wisp keeps you company.** It sits on a tuft of moss on the horizon: the
 same wisp that lives in the [Glimmerwood](https://github.com/peterwalker78/glimmerwood)
@@ -65,11 +70,13 @@ so here so there's no trick in it.
   different: the Moon moves about thirteen degrees a night.
 - **It slows as you play.** The twinkle, the drift and the pace ease down over
   a visit, towards the speed of slow breathing. Nothing announces it.
-- **It dims before the end.** Eyes take about twenty minutes to open fully to
-  the dark, so the sky darkens to help yours begin.
-- **The last line points outside.** *"If it's clear: Saturn is up in the
-  south-west, the brightest thing there, and it doesn't twinkle. Give your eyes
-  twenty minutes."* Then the window closes itself.
+- **It dims before the end.** Bright light keeps a mind awake, and eyes take
+  about twenty minutes to open fully to the dark, so winding down dims the
+  screen a little at a time.
+- **The last line points away from the screen.** Outside: *"If it's clear:
+  Saturn is up in the south-east, a steady light that doesn't twinkle. Give
+  your eyes twenty minutes."* To bed: something from tonight, and goodnight.
+  Then the window closes itself.
 - **Nothing to come back for.** No streaks, scores, badges, levels,
   notifications or counts of nights. Missing a night costs nothing.
 
@@ -110,9 +117,10 @@ journal, not therapy or a crisis service.
 | `Tab`, or click one in the list | Turn towards the next find |
 | `C` | Draw a constellation: arrows step between stars, `Enter` joins, `C` finishes |
 | `L` | The logbook |
-| `?`, or click the wisp | What the keys do |
+| `?`, or click the wisp | What the keys do; a click also hurries the wisp on when it has more to say |
+| Point at anything | What it is; click it to hear more |
 | `M` | Music off or on |
-| `Esc` twice | End tonight's sky |
+| `W`, or Wind down at the top left | Wind down: the screen dims, and you choose outside or bed |
 | `Ctrl` `,` | Settings |
 | `F11` | Full screen |
 

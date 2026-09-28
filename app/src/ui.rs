@@ -137,6 +137,28 @@ button.menu-button:hover { background: rgba(240, 214, 168, 0.16); }
   padding: 12px 10px 10px 10px;
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
+.evening {
+  background: rgba(7, 9, 19, 0.6);
+  border-radius: 12px;
+  padding: 7px 12px 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.evening-step { font-size: 12px; color: rgba(220, 225, 240, 0.4); letter-spacing: 0.5px; }
+.evening-step.done { color: rgba(240, 214, 168, 0.5); }
+.evening-step.current { color: #f3dcae; font-weight: 600; }
+.evening-dot { font-size: 12px; color: rgba(220, 225, 240, 0.25); }
+button.evening-button {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0 4px;
+  min-height: 0;
+  border-radius: 6px;
+}
+button.evening-button:hover { background: rgba(240, 214, 168, 0.14); color: #f3dcae; }
+button.evening-button:disabled { color: rgba(220, 225, 240, 0.4); }
+button.evening-button.current:disabled { color: #f3dcae; }
+.evening-now { font-size: 12px; color: rgba(220, 225, 240, 0.72); }
 .tonight-title { font-size: 11px; font-weight: 600; letter-spacing: 2px; color: rgba(240, 214, 168, 0.8); margin: 0 8px 4px 8px; }
 .tonight-hint { font-size: 11px; color: rgba(220, 225, 240, 0.42); margin: 6px 8px 0 8px; }
 button.find-row {
