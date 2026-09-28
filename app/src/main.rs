@@ -8,6 +8,7 @@ mod drawing;
 mod field;
 mod game;
 mod guide;
+mod music;
 mod settings;
 mod sprite;
 mod talk;
@@ -191,7 +192,10 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
         *slot.borrow_mut() = Some(Box::new(move |r| go(r)));
     }
 
+    // Keys reach the sky before GTK's own arrow-key focus navigation can
+    // claim them; anything the sky doesn't want goes on to the focused widget.
     let keys = gtk::EventControllerKey::new();
+    keys.set_propagation_phase(gtk::PropagationPhase::Capture);
     {
         let game = game.clone();
         let window = window.clone();
@@ -273,7 +277,12 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
     }
     view.add_controller(scroll);
 
+    let music = Rc::new(RefCell::new(music::Music::new(
+        real as u64 / 86_400_000,
+        game.borrow().quiet(),
+    )));
     let last_frame = std::cell::Cell::new(0i64);
+    let last_music = std::cell::Cell::new(real);
     {
         let game = game.clone();
         let window = window.clone();
@@ -301,7 +310,15 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
                 let frame = g.tick(real);
                 let quit = g.quit;
                 let request = g.take_request();
+                let (level, quiet) = (g.music_level(real), g.quiet());
                 drop(g);
+                {
+                    let mut m = music.borrow_mut();
+                    m.quiet = quiet;
+                    let dt = (real - last_music.get()).clamp(0, 500) as f64 / 1000.0;
+                    last_music.set(real);
+                    m.tick(level, dt);
+                }
                 view.show(frame);
                 if prompt.sync(&game) && on_sky {
                     view.grab_focus();

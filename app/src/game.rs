@@ -507,12 +507,36 @@ impl Game {
                 return true;
             }
         }
+        let arrow = matches!(
+            key,
+            gdk::Key::Left | gdk::Key::Right | gdk::Key::Up | gdk::Key::Down
+        );
+        if arrow && self.card.is_some() {
+            // Looking away from a card puts it down.
+            self.dismiss_card(real);
+        }
         match key {
             gdk::Key::Left => self.held.left = true,
             gdk::Key::Right => self.held.right = true,
             gdk::Key::Up => self.held.up = true,
             gdk::Key::Down => self.held.down = true,
             gdk::Key::question | gdk::Key::F1 => self.guide_help(real),
+            gdk::Key::m | gdk::Key::M => {
+                let quiet = !self.journal.settings.quiet;
+                self.journal.settings.quiet = quiet;
+                if let Err(e) = self.journal.save_settings() {
+                    eprintln!("night-sky: couldn't save settings: {e}");
+                }
+                self.say(
+                    if quiet {
+                        "Music off."
+                    } else {
+                        "Music back on."
+                    },
+                    real,
+                    2_500,
+                );
+            }
             gdk::Key::c | gdk::Key::C => {
                 if self.hunting() && self.card.is_none() && self.talk.prompt.is_none() {
                     self.start_drawing(real);
@@ -862,7 +886,10 @@ impl Game {
                 self.finale_turned = true;
             }
         }
-        let free = matches!(phase, Phase::Arrival | Phase::Hunt | Phase::Dimming);
+        let free = matches!(
+            phase,
+            Phase::Arrival | Phase::Weights | Phase::Hunt | Phase::Dimming
+        );
         let speed = self.camera.fov * 0.5 * if self.held.fast { 2.6 } else { 1.0 } * tempo.sqrt();
         let want = if free && self.catch.progress < 0.02 {
             (
@@ -1657,6 +1684,21 @@ impl Game {
             out.push(Text::new(28.0, h - 40.0, dots, 11.0, 0.32 * brightness));
         }
         out
+    }
+
+    /// How loud the music should be, 0 to 1: it arrives with the sky, eases
+    /// down as the sky dims and goes with the lights.
+    pub fn music_level(&self, real: UnixMs) -> f64 {
+        let b = self.session.brightness(real);
+        let dim = night_sky_core::session::DIM;
+        match self.session.phase() {
+            Phase::LightsOut | Phase::Over => 0.6 * b / dim,
+            _ => 0.6 + 0.4 * ((b - dim) / (1.0 - dim)).max(0.0),
+        }
+    }
+
+    pub fn quiet(&self) -> bool {
+        self.journal.settings.quiet
     }
 
     /// Keeps the frame clock's pace honest: fast while things move, slow at rest.
