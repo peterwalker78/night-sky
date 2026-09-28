@@ -156,6 +156,7 @@ pub struct Game {
     pub(crate) reveal: Option<(usize, UnixMs)>,
     /// Something the window should open: the logbook, a course, settings.
     pub(crate) request: Option<crate::talk::Request>,
+    pub(crate) guide: crate::guide::Guide,
 }
 
 pub(crate) const WARM: Rgb = [1.0, 0.86, 0.66];
@@ -303,6 +304,7 @@ impl Game {
             drawing: None,
             reveal: None,
             request: already.then_some(crate::talk::Request::Book(None)),
+            guide: crate::guide::Guide::new(real_now),
         };
         game.arrive(real_now);
         game
@@ -380,6 +382,7 @@ impl Game {
             shown: real + 900,
             hold: 8_000,
         });
+        self.guide_arrival(real);
     }
 
     /// Where find `i` is, as a horizon vector.
@@ -447,8 +450,9 @@ impl Game {
         (self.camera.width.min(self.camera.height) * 0.055).max(26.0)
     }
 
-    pub fn resize(&mut self, width: f64, height: f64) {
+    pub fn resize(&mut self, width: f64, height: f64, scale: f64) {
         self.camera.set_size(width, height);
+        self.guide.scale = scale;
     }
 
     fn input(&mut self, real: UnixMs) {
@@ -508,6 +512,7 @@ impl Game {
             gdk::Key::Right => self.held.right = true,
             gdk::Key::Up => self.held.up = true,
             gdk::Key::Down => self.held.down = true,
+            gdk::Key::question | gdk::Key::F1 => self.guide_help(real),
             gdk::Key::c | gdk::Key::C => {
                 if self.hunting() && self.card.is_none() && self.talk.prompt.is_none() {
                     self.start_drawing(real);
@@ -635,6 +640,10 @@ impl Game {
     /// A click on something turns the view to it.
     pub fn click(&mut self, x: f64, y: f64, real: UnixMs) {
         self.input(real);
+        if self.on_wisp(x, y) {
+            self.guide_help(real);
+            return;
+        }
         if !self.hunting() {
             return;
         }
@@ -683,11 +692,7 @@ impl Game {
                 .zip(&self.finds)
                 .any(|(c, f)| !c && matches!(f.target, Target::Meteor(_)))
         {
-            self.hint = Some(Timed {
-                text: "The last one is a meteor: watch, and press Space when one flies".into(),
-                shown: real,
-                hold: 5_000,
-            });
+            self.guide_meteor_left(real);
         }
     }
 
@@ -726,6 +731,7 @@ impl Game {
             shown: real,
         });
         self.after_catch(i, real);
+        self.guide_caught(real);
     }
 
     fn save_page(&self) {
@@ -747,11 +753,7 @@ impl Game {
         self.catch.progress = 0.0;
         self.catch.target = None;
         if self.session.all_found() && self.hunting() {
-            self.hint = Some(Timed {
-                text: "That's tonight's sky.".into(),
-                shown: real,
-                hold: 6_000,
-            });
+            self.guide_all_found(real);
         }
     }
 
@@ -767,6 +769,7 @@ impl Game {
             self.quit = true;
         }
         self.tick_talk(real);
+        self.guide_tick(real);
         let tempo = self.session.tempo(real);
         self.steer(dt, tempo);
         let now = self.sky_now(real);
@@ -784,15 +787,10 @@ impl Game {
             self.set_prompt(None);
             self.drawing = None;
         }
+        self.guide_phase(phase, real);
         match phase {
             Phase::Weights => self.begin_weights(real),
-            Phase::Hunt => {
-                self.hint = Some(Timed {
-                    text: "Arrows to look around · hold Space to catch · Tab for the next · C to draw · L for the logbook · Esc when you're done".into(),
-                    shown: real + 2_500,
-                    hold: 16_000,
-                });
-            }
+            Phase::Hunt => self.guide_hunt(real),
             Phase::Dimming => {
                 self.card = None;
                 self.catch = Catch::default();
@@ -1391,7 +1389,10 @@ impl Game {
         let mut texts = self.labels(real, now, hz, prec, brightness);
         texts.extend(self.mark_labels(hz, brightness));
         texts.extend(self.words(real, brightness));
+        let (sprite, bubble) = self.guide_frame(real, brightness);
         Frame {
+            sprite,
+            bubble,
             texture: Some(frame_texture),
             cols: self.field.cols,
             rows: self.field.rows,
@@ -1596,7 +1597,7 @@ impl Game {
         let text_light = brightness.max(0.55);
         if self.talk.caring {
             out.push(
-                Text::new(28.0, h - 150.0, night_sky_core::care::NOTE, 13.0, 0.75)
+                Text::new(w - 400.0, h - 130.0, night_sky_core::care::NOTE, 13.0, 0.75)
                     .wrap(360.0)
                     .color([1.0, 0.9, 0.8]),
             );

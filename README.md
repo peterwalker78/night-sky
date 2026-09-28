@@ -24,6 +24,12 @@ about time or distance.
 Each visit slows down as you play, dims for a real reason, and ends by naming
 one thing you can go outside and see tonight.
 
+**The wisp keeps you company.** It sits on a tuft of moss on the horizon: the
+same wisp that lives in the [Glimmerwood](https://github.com/peterwalker78/glimmerwood)
+browser, out for the night. On your first visit it shows you around. After
+that it keeps quiet unless you seem stuck or ask, with `?` or a click on it. It
+brightens when you catch something, and falls asleep when the lights go out.
+
 ## It wants you to leave
 
 Most apps are built to keep you. This one is built to let you go, and it says
@@ -76,6 +82,7 @@ journal, not therapy or a crisis service.
 | `Tab` | Turn towards the next find |
 | `C` | Draw a constellation: arrows step between stars, `Enter` joins, `C` finishes |
 | `L` | The logbook |
+| `?`, or click the wisp | What the keys do |
 | `Esc` twice | End tonight's sky |
 | `Ctrl` `,` | Settings |
 | `F11` | Full screen |

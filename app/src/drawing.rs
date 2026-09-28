@@ -79,11 +79,7 @@ impl Game {
             current: Some(hr),
             anchor: None,
         });
-        self.hint = Some(Timed {
-            text: "Arrows step between stars · Enter joins them · Backspace takes one back · C when it's done".into(),
-            shown: real,
-            hold: 600_000,
-        });
+        self.guide_drawing(real);
     }
 
     /// Keys while drawing. Returns false for keys it doesn't use.
@@ -173,7 +169,7 @@ impl Game {
 
     fn finish_drawing(&mut self, real: UnixMs) {
         let empty = self.drawing.as_ref().is_none_or(|d| d.edges.is_empty());
-        self.hint = None;
+        self.hush();
         if empty {
             self.drawing = None;
             return;

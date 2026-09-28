@@ -2,7 +2,7 @@
 //! and the odd check-back. The window shows whatever prompt is current and
 //! hands the answers back here.
 
-use crate::game::{Game, Look, Timed};
+use crate::game::{Game, Look};
 use night_sky_core::care::Care;
 use night_sky_core::coords::{angles, apply, from_alt_az, horizon};
 use night_sky_core::events::{Kind as EventKind, SkyEvent, upcoming};
@@ -190,6 +190,7 @@ impl Game {
             return;
         }
         self.weight_prompt(0);
+        self.guide_weights(real);
     }
 
     fn weight_prompt(&mut self, count: usize) {
@@ -240,11 +241,7 @@ impl Game {
             fov: 80.0,
             rate: 1.1,
         });
-        self.hint = Some(Timed {
-            text: "Hang it low in the west with the arrows · Enter when it's there".into(),
-            shown: real,
-            hold: 60_000,
-        });
+        self.guide_placing(real);
     }
 
     /// Fixes the weight being placed where the reticle is.
@@ -261,7 +258,7 @@ impl Game {
         let (ra, dec) = angles(eq);
         self.page.weights.push(NightWeight { weight, ra, dec });
         self.save_page_now();
-        self.hint = None;
+        self.guide_placed();
         if count + 1 >= MAX_WEIGHTS {
             self.finish_weights(real);
         } else {
@@ -366,7 +363,10 @@ impl Game {
             return;
         };
         match pending {
-            Pending::Question { chosen, star } => self.show_question(*chosen, star),
+            Pending::Question { chosen, star } => {
+                self.show_question(*chosen, star);
+                self.guide_question(real);
+            }
             Pending::PlanOutcome(id) => {
                 let Some(plan) = self.journal.plans.iter().find(|p| p.id == id) else {
                     return;

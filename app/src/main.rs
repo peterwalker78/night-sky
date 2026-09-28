@@ -7,7 +7,9 @@ mod course;
 mod drawing;
 mod field;
 mod game;
+mod guide;
 mod settings;
+mod sprite;
 mod talk;
 mod ui;
 mod view;
@@ -291,7 +293,11 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
             if real - last_frame.get() >= interval {
                 last_frame.set(real);
                 let mut g = game.borrow_mut();
-                g.resize(view.width() as f64, view.height() as f64);
+                g.resize(
+                    view.width() as f64,
+                    view.height() as f64,
+                    view.scale_factor() as f64,
+                );
                 let frame = g.tick(real);
                 let quit = g.quit;
                 let request = g.take_request();
