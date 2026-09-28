@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.peterwalker78.NightSky</id>
+  <name>Night Sky</name>
+  <summary>Tonight's real sky, and then the real sky outside</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <developer id="io.github.peterwalker78">
+    <name>Night Sky contributors</name>
+  </developer>
+  <description>
+    <p>
+      Night Sky draws the real sky over you tonight in fine dots: the stars, the
+      Moon at its real phase, and the planets that are really up. Sweep across
+      it and catch the night's handful of finds. Each visit slows as you play,
+      dims for a real reason, and ends by naming something you can go outside
+      and see.
+    </p>
+    <ul>
+      <li>The sky is worked out on your computer from your time zone: no location service</li>
+      <li>A few things to find each night, and then the sky is done until it turns</li>
+      <li>Set down what's weighing on you, and watch it set in the west</li>
+      <li>A logbook kept as plain files you can read, copy or delete</li>
+      <li>No network access at all: nothing you write leaves your computer</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">io.github.peterwalker78.NightSky.desktop</launchable>
+  <url type="homepage">https://github.com/peterwalker78/night-sky</url>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.1.0" date="2026-09-28"/>
+  </releases>
+</component>

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Build and run from the source tree. Arguments are passed to night-sky, for
+# example: scripts/dev --at=2026-12-14T21:00 --speed=20 --data=/some/scratch/dir
+source "$(dirname "$0")/lib.sh"
+require_box "$@"
+cd "$ROOT"
+exec cargo run -- "$@"

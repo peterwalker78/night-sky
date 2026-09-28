@@ -1,0 +1,44 @@
+id: io.github.peterwalker78.NightSky
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+command: night-sky
+
+# No network permission at all: nothing the user writes can leave the machine.
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+
+build-options:
+  append-path: /usr/lib/sdk/rust-stable/bin
+
+modules:
+  - name: night-sky
+    buildsystem: simple
+    build-options:
+      env:
+        CARGO_HOME: /run/build/night-sky/cargo
+        CARGO_NET_OFFLINE: 'true'
+    build-commands:
+      - cargo build --release --locked --offline -p night-sky
+      - install -Dm755 target/release/night-sky /app/bin/night-sky
+      - install -Dm644 data/io.github.peterwalker78.NightSky.desktop -t /app/share/applications
+      - install -Dm644 data/io.github.peterwalker78.NightSky.metainfo.xml -t /app/share/metainfo
+      - install -Dm644 data/io.github.peterwalker78.NightSky.svg -t /app/share/icons/hicolor/scalable/apps
+    sources:
+      - type: dir
+        path: ..
+        skip:
+          - .git
+          - .tools
+          - .flatpak-builder
+          - .flatpak-repo
+          - build
+          - dist
+          - target
+          - tools/raw
+      - cargo-sources.json
