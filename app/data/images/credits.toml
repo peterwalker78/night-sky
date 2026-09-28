@@ -1,0 +1,334 @@
+[[image]]
+id = "moon"
+title = "The full Moon"
+credit = "NASA's Scientific Visualization Studio"
+licence = "Public domain (NASA)"
+source = "https://images.nasa.gov/details/GSFC_20171208_Archive_e000868"
+north = 0.0
+
+[[image]]
+id = "mercury"
+title = "Mercury in enhanced colour, from MESSENGER"
+credit = "NASA/Johns Hopkins University Applied Physics Laboratory/Carnegie Institution of Washington"
+licence = "Public domain (NASA)"
+source = "https://photojournal.jpl.nasa.gov/catalog/PIA16853"
+
+[[image]]
+id = "venus"
+title = "Venus from Mariner 10"
+credit = "NASA/JPL-Caltech"
+licence = "Public domain (NASA)"
+source = "https://photojournal.jpl.nasa.gov/catalog/PIA23791"
+
+[[image]]
+id = "mars"
+title = "Mars at opposition, 2016"
+credit = "NASA, ESA, the Hubble Heritage Team (STScI/AURA), J. Bell (ASU), and M. Wolff (Space Science Institute)"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/heic1609a/"
+
+[[image]]
+id = "jupiter"
+title = "Jupiter, 2019"
+credit = "NASA, ESA, A. Simon (Goddard Space Flight Center), and M.H. Wong (University of California, Berkeley)"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/heic1914a/"
+
+[[image]]
+id = "saturn"
+title = "Saturn, 2019"
+credit = "NASA, ESA, A. Simon (Goddard Space Flight Center), and M.H. Wong (University of California, Berkeley)"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/heic1917a/"
+
+[[image]]
+id = "pleiades"
+title = "The Pleiades (M45)"
+credit = "NOIRLab/NSF/AURA/T.A. Rector (University of Alaska Anchorage), R. Cool (University of Arizona) and WIYN"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m45/"
+north = 90.7
+
+[[image]]
+id = "hyades"
+title = "The Hyades"
+credit = "NASA, ESA, and STScI"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/heic1309c/"
+north = 0.4
+
+[[image]]
+id = "andromeda"
+title = "The Andromeda Galaxy"
+credit = "Bill Schoening, Vanessa Harvey/REU program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao0001a/"
+north = 0.0
+
+[[image]]
+id = "triangulum"
+title = "The Triangulum Galaxy (M33)"
+credit = "T.A.Rector (NRAO/AUI/NSF and NOIRLab/NSF/AURA) and M.Hanna (NOIRLab/NSF/AURA)"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m33_opt/"
+north = 0.2
+
+[[image]]
+id = "bodes-galaxy"
+title = "Bode's Galaxy (M81)"
+credit = "NASA, ESA and the Hubble Heritage Team (STScI/AURA). Acknowledgment: A. Zezas and J. Huchra (Harvard-Smithsonian Center for Astrophysics)"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/heic0710a/"
+north = -114.0
+
+[[image]]
+id = "orion-nebula"
+title = "The Orion Nebula"
+credit = "ESO/Igor Chekalin"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso1103a/"
+north = 0.0
+
+[[image]]
+id = "beehive"
+title = "The Beehive Cluster (M44)"
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m44/"
+north = 180.0
+
+[[image]]
+id = "double-cluster"
+title = "The Double Cluster, h and chi Persei"
+credit = "N.A.Sharp/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-hcper/"
+north = -1.5
+
+[[image]]
+id = "alpha-persei-cluster"
+title = "The Alpha Persei Cluster (Melotte 20)"
+credit = "Giuseppe Donatiello"
+licence = "CC0 1.0"
+source = "https://commons.wikimedia.org/wiki/File:Melotte_20_-_Alpha_Persei_Cluster_(Giuseppe_Donatiello).jpg"
+
+[[image]]
+id = "m13"
+title = "The Hercules Cluster (M13)"
+credit = "T.A. Rector (University of Alaska Anchorage) and H. Schweiker (WIYN and NOIRLab/NSF/AURA)"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m13kpno4m/"
+north = -89.9
+
+[[image]]
+id = "m92"
+title = "M92"
+credit = "Hillary Mathis, REU program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m92/"
+north = -2.6
+
+[[image]]
+id = "m3"
+title = "M3"
+credit = "T.A. Rector (University of Alaska Anchorage) and H. Schweiker (WIYN and NOIRLab/NSF/AURA)"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m3-kpno-mayall-4-m/"
+north = -90.0
+
+[[image]]
+id = "m5"
+title = "M5"
+credit = "Hillary Mathis, REU Program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m5/"
+north = -2.6
+
+[[image]]
+id = "coma-cluster"
+title = "The Coma Star Cluster (Melotte 111)"
+credit = "Alberto Pisabarro"
+licence = "CC BY-SA 4.0"
+source = "https://commons.wikimedia.org/wiki/File:ASY-MB0124-Coma-Star-Cluster.jpg"
+
+[[image]]
+id = "m35"
+title = "M35, with NGC 2158"
+credit = "N.A.Sharp/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m35/"
+north = -2.3
+
+[[image]]
+id = "m37"
+title = "M37"
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m37/"
+
+[[image]]
+id = "coathanger"
+title = "The Coathanger (Brocchi's Cluster, Collinder 399)"
+credit = "Giuseppe Donatiello"
+licence = "CC0 1.0"
+source = "https://commons.wikimedia.org/wiki/File:CR399_-_Brocchi%27s_Cluster_(Giuseppe_Donatiello).png"
+
+[[image]]
+id = "wild-duck"
+title = "The Wild Duck Cluster (M11)"
+credit = "ESO"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso1430a/"
+north = 0.0
+
+[[image]]
+id = "lagoon"
+title = "The Lagoon Nebula (M8)"
+credit = "ESO/VPHAS+ team"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso1403a/"
+north = 0.1
+
+[[image]]
+id = "m22"
+title = "M22"
+credit = "Giuseppe Donatiello"
+licence = "CC0 1.0"
+source = "https://commons.wikimedia.org/wiki/File:M22_Combine7_cp_Vs_(18670836859).jpg"
+
+[[image]]
+id = "m4"
+title = "M4"
+credit = "ESO. Acknowledgement: ESO Imaging Survey"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso1235a/"
+north = 0.0
+
+[[image]]
+id = "butterfly"
+title = "The Butterfly Cluster (M6)"
+credit = "Giuseppe Donatiello"
+licence = "CC0 1.0"
+source = "https://commons.wikimedia.org/wiki/File:Messier_6_-_The_Butterfly_Cluster.jpg"
+
+[[image]]
+id = "ptolemy"
+title = "Ptolemy's Cluster (M7)"
+credit = "ESO"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso1406a/"
+north = 0.0
+
+[[image]]
+id = "ngc6231"
+title = "NGC 6231"
+credit = "KPNO/NOIRLab/NSF/AURA/Adam Block"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-zetascoblock/"
+north = -0.7
+
+[[image]]
+id = "m41"
+title = "M41"
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m41/"
+north = -2.2
+
+[[image]]
+id = "omega-centauri"
+title = "Omega Centauri"
+credit = "ESO"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso0844a/"
+north = 0.0
+
+[[image]]
+id = "47-tucanae"
+title = "47 Tucanae"
+credit = "ESO/M.-R. Cioni/VISTA Magellanic Cloud survey. Acknowledgment: Cambridge Astronomical Survey Unit"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso1302a/"
+north = 6.3
+
+[[image]]
+id = "jewel-box"
+title = "The Jewel Box (NGC 4755)"
+credit = "ESO"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso0940b/"
+north = 0.0
+
+[[image]]
+id = "southern-pleiades"
+title = "The Southern Pleiades (IC 2602)"
+credit = "Tel Lekatsas"
+licence = "CC BY 2.0"
+source = "https://commons.wikimedia.org/wiki/File:The_Southern_Pleiades_(IC_2602).jpg"
+
+[[image]]
+id = "lmc"
+title = "The Large Magellanic Cloud"
+credit = "CTIO/NOIRLab/NSF/AURA/SMASH/D. Nidever (Montana State University). Acknowledgment: Image processing: Travis Rector (University of Alaska Anchorage), Mahdi Zamani & Davide de Martin"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noirlab2030a/"
+north = 16.9
+
+[[image]]
+id = "smc"
+title = "The Small Magellanic Cloud"
+credit = "CTIO/NOIRLab/NSF/AURA/SMASH/D. Nidever (Montana State University). Acknowledgment: Image processing: Travis Rector (University of Alaska Anchorage), Mahdi Zamani & Davide de Martin"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noirlab2030b/"
+north = -30.1
+
+[[image]]
+id = "carina-nebula"
+title = "The Carina Nebula"
+credit = "ESO"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso0905a/"
+north = -0.2
+
+[[image]]
+id = "eta-carinae"
+title = "Eta Carinae and the Homunculus Nebula"
+credit = "ESA/Hubble & NASA"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/potw1208a/"
+north = -35.0
+
+[[image]]
+id = "albireo"
+title = "Albireo"
+credit = "Topoignaz"
+licence = "CC BY-SA 4.0"
+source = "https://commons.wikimedia.org/wiki/File:Albireo_through_Celestron_C8.jpg"
+
+[[image]]
+id = "mizar-alcor"
+title = "Mizar and Alcor"
+credit = "Chuck Ayoub"
+licence = "CC0 1.0"
+source = "https://commons.wikimedia.org/wiki/File:Mizar_and_Alcor.png"
+
+[[image]]
+id = "double-double"
+title = "The Double Double (Epsilon Lyrae)"
+credit = "Minnastronomer"
+licence = "CC BY 4.0"
+source = "https://commons.wikimedia.org/wiki/File:Double_Double_June_9_2025.png"
+
+[[image]]
+id = "almach"
+title = "Almach"
+credit = "Damian Peach"
+licence = "CC BY-SA 4.0"
+source = "https://commons.wikimedia.org/wiki/File:Almach_dpeach_crop.jpg"
+
+[[image]]
+id = "garnet-star"
+title = "Herschel's Garnet Star (Mu Cephei)"
+credit = "Rudy Kokich"
+licence = "Public domain (Public Domain Mark)"
+source = "https://commons.wikimedia.org/wiki/File:The_Garnet_Star_(HD_206936,_HR_8316,_HIP_107259,_SAO_33693),_Cepheus.jpg"

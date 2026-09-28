@@ -146,6 +146,18 @@ shortens the visit itself, `--place=LAT,LON` stands somewhere else, and
 - **Meteor showers:** the International Meteor Organization's working list of
   visual meteor showers.
 
+## The photographs
+
+Once something has been found, looking at it close up shows a photograph of
+it in a round eyepiece, turned to sit as it does in your sky; the Moon and
+Mercury wear tonight's real phase. The 44 pictures come from NASA (public
+domain), ESA/Hubble, ESO and NOIRLab/NSF/AURA (CC BY 4.0), and a few from
+Wikimedia Commons (CC0, public domain, CC BY 2.0/4.0 and CC BY-SA 4.0).
+Each one's credit shows under it, and every title, credit, licence and source
+page is in [`app/data/images/credits.toml`](app/data/images/credits.toml) and
+in Settings. The pictures are cropped and resized; the CC BY-SA ones stay
+under CC BY-SA.
+
 ## The music
 
 Six slow lo-fi tracks, all dedicated to the public domain under CC0: "Ease

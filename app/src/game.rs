@@ -979,7 +979,8 @@ impl Game {
         let credit = self.photos.credit(&id).cloned()?;
         let rotation = north - credit.north.unwrap_or(0.0);
         let phase = match self.finds[i].target {
-            Target::Body(body @ (Body::Moon | Body::Mercury | Body::Venus)) => {
+            // Venus's picture already shows a part-lit disc, so only these two take tonight's phase.
+            Target::Body(body @ (Body::Moon | Body::Mercury)) => {
                 let seen = see(body, self.observer, now);
                 let sun = see(Body::Sun, self.observer, now);
                 let sv = from_alt_az(sun.alt, sun.az);
