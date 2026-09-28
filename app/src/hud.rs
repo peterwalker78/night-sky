@@ -29,8 +29,14 @@ impl Tonight {
             "tonight-hint",
         );
         let rows = gtk::Box::new(gtk::Orientation::Vertical, 1);
+        // A long night's list scrolls rather than running off the screen.
+        let scroll = gtk::ScrolledWindow::new();
+        scroll.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);
+        scroll.set_propagate_natural_height(true);
+        scroll.set_max_content_height(560);
+        scroll.set_child(Some(&rows));
         root.append(&title);
-        root.append(&rows);
+        root.append(&scroll);
         root.append(&hint);
         root.set_visible(false);
         Rc::new(Tonight {
@@ -65,7 +71,12 @@ impl Tonight {
                 format!("{} · {}", row.kind, row.whereabouts)
             };
             words.append(&name);
-            words.append(&label(&detail, "find-where"));
+            // Found things take one line, to leave room for the rest.
+            if !row.found {
+                words.append(&label(&detail, "find-where"));
+            } else {
+                name.set_tooltip_text(Some(&detail));
+            }
             line.append(&mark);
             line.append(&words);
             let button = gtk::Button::new();

@@ -38,13 +38,13 @@ impl Timings {
     pub const STANDARD: Timings = Timings {
         arrival: 4_500,
         after_last_find: 20_000,
-        hunt_most: 15 * MINUTE,
+        hunt_most: 25 * MINUTE,
         dimming: 75_000,
         lapse: 22_000,
         hold: 14_000,
         lights_out: 25_000,
         lapse_sky: 4 * HOUR,
-        slowing: 12 * MINUTE,
+        slowing: 18 * MINUTE,
     };
 
     /// Everything but the sky's own time-lapse shortened, for trying the arc
@@ -260,9 +260,9 @@ mod tests {
         let mut s = Session::new(0, Timings::STANDARD, 5, false);
         run_until(&mut s, 0, 10_000);
         assert_eq!(s.phase(), Phase::Hunt);
-        let changes = run_until(&mut s, 10_000, 20 * MINUTE);
+        let changes = run_until(&mut s, 10_000, 30 * MINUTE);
         assert_eq!(changes[0].1, Phase::Dimming);
-        assert!(changes[0].0 >= 15 * MINUTE);
+        assert!(changes[0].0 >= 25 * MINUTE);
     }
 
     #[test]

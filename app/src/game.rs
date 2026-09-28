@@ -176,6 +176,16 @@ pub struct Game {
     /// The find the eyepiece shows, and how far it has faded in.
     eye: Option<usize>,
     eye_alpha: f64,
+    /// How many steps of each hop have been found.
+    pub(crate) steps: Vec<usize>,
+    /// A find being told a card at a time.
+    pub(crate) tour: Option<crate::tour::Tour>,
+    /// Tonight's places on the Moon, by index into the features.
+    pub(crate) moon_stops: Vec<usize>,
+    /// Algol's place among the prepared stars: it dims now and then.
+    algol: Option<usize>,
+    /// Points drawn over the photographs.
+    pub(crate) marks: Vec<crate::view::Point>,
 }
 
 pub(crate) const WARM: Rgb = [1.0, 0.86, 0.66];
@@ -263,7 +273,7 @@ impl Game {
         let now = clock.sky(real_now);
         let night = night_key(night_of(now, offset_s));
         let finds = tonight(&sky, observer, now, offset_s, &|id| {
-            journal.found_before(id, &night)
+            journal.times_found_before(id, &night)
         });
         let caught: Vec<bool> = finds
             .iter()
@@ -285,7 +295,7 @@ impl Game {
         );
         let already = !finds.is_empty() && caught.iter().all(|c| *c);
         let star_dirs = sky.stars.precessed(&precession(now));
-        let prepared = sky
+        let prepared: Vec<Prepared> = sky
             .stars
             .stars
             .iter()
@@ -300,6 +310,19 @@ impl Game {
                 phase: s.hr as f64,
             })
             .collect();
+        let moon_stops = night_sky_core::tours::moon_stops(
+            &sky.tours.moon,
+            moon_age(now) * night_sky_core::tours::SYNODIC_DAYS,
+            night_of(now, offset_s),
+            &|name| journal.found_before(&format!("moon:{name}"), &night),
+        );
+        let algol = sky
+            .stars
+            .stars
+            .iter()
+            .take(prepared.len())
+            .position(|s| s.hr == 936);
+        let steps = vec![0; finds.len()];
         let mut game = Game {
             sky,
             prepared,
@@ -345,6 +368,11 @@ impl Game {
             track: None,
             eye: None,
             eye_alpha: 0.0,
+            steps,
+            tour: None,
+            moon_stops,
+            algol,
+            marks: Vec::new(),
         };
         game.arrive(real_now);
         game
@@ -445,6 +473,18 @@ impl Game {
             Target::Figure(f) => self.sky.figures[f]
                 .centre(&self.sky.stars)
                 .map(|(c, _)| apply(hz, apply(prec, c))),
+            Target::Hop(_) => self.stop_dir(self.hop_stop(i)?, hz, prec),
+            Target::Story(s) => {
+                let anchor = self.sky.tours.stories[s].anchor;
+                self.sky
+                    .stars
+                    .index_of(anchor)
+                    .map(|idx| apply(hz, self.star_dirs[idx]))
+            }
+            Target::MoonWalk => {
+                let s = see(Body::Moon, self.observer, now);
+                Some(from_alt_az(s.alt, s.az))
+            }
         }
     }
 
@@ -464,6 +504,9 @@ impl Game {
             },
             Target::Meteor(_) => "Meteor",
             Target::Figure(_) => "Constellation",
+            Target::Hop(_) => "Star-hop",
+            Target::Story(_) => "Tonight's story",
+            Target::MoonWalk => "Moon walk",
         }
     }
 
@@ -473,6 +516,9 @@ impl Game {
             Target::Body(Body::Moon) => "You can't miss it.",
             Target::Body(_) => "Look for a bright, steady light that doesn't twinkle.",
             Target::Star(_) => "Look for a single bright star.",
+            Target::Showpiece(p) if self.sky.lists.showpieces[p].deep => {
+                "Too faint for the eye alone: turn to it and zoom in close with +, and it will show."
+            }
             Target::Showpiece(p) => match self.sky.lists.showpieces[p].kind {
                 Kind::Cluster => "Look for a little knot of faint stars.",
                 Kind::Galaxy | Kind::Nebula => "Look for a faint smudge of light.",
@@ -481,6 +527,12 @@ impl Game {
             },
             Target::Meteor(_) => "Watch the sky, and press Space the moment one flies.",
             Target::Figure(_) => "Look for its shape; put the ring in the middle of it.",
+            Target::Hop(_) => "Start from a star you know, and hop from star to star.",
+            Target::Story(_) => "It starts at this star: hold Space when it's in the ring.",
+            Target::MoonWalk if self.moon_find().is_some_and(|m| !self.caught[m]) => {
+                "Catch the Moon first, then hold Space on it again to go closer."
+            }
+            Target::MoonWalk => "Hold Space on the Moon to go closer.",
         }
     }
 
@@ -508,6 +560,10 @@ impl Game {
             Target::Figure(f) => self.sky.figures[f]
                 .centre(&self.sky.stars)
                 .map_or(60.0, |(_, reach)| (reach * 3.0).clamp(20.0, 100.0)),
+            // A hop keeps the view wide enough to see the next step.
+            Target::Hop(_) => self.catch.fov_before.unwrap_or(self.camera.fov),
+            Target::Story(_) => 50.0,
+            Target::MoonWalk => self.moon_walk_fov(),
         }
     }
 
@@ -559,6 +615,11 @@ impl Game {
 
     /// How big find `i` looks, in pixels, at a field of view.
     fn apparent_radius(&self, i: usize, fov: f64) -> f64 {
+        if let Target::MoonWalk = self.finds[i].target {
+            return self
+                .moon_find()
+                .map_or(0.0, |m| self.apparent_radius(m, fov));
+        }
         if self.caught[i] && self.photo_id(i).is_some() {
             // Keep the card on the screen beside a picture that fills the view.
             return self
@@ -595,7 +656,9 @@ impl Game {
         let object = i.map(|i| self.apparent_radius(i, fov)).unwrap_or(0.0);
         // The Tonight list takes the right-hand edge during the hunt, except
         // while a photograph is up.
-        let photo = i.is_some_and(|i| self.photo_id(i).is_some());
+        let photo = i.is_some_and(|i| {
+            self.photo_id(i).is_some() || self.finds[i].target == Target::MoonWalk
+        });
         let list = if photo { 0.0 } else { 300.0 };
         let clear = r.max(object) + 34.0;
         let (w, cx) = (self.camera.width, self.camera.width / 2.0);
@@ -674,6 +737,7 @@ impl Game {
         );
         if arrow && self.card.is_some() {
             // Looking away from a card puts it down.
+            self.end_tour(real);
             self.dismiss_card(real);
         }
         match key {
@@ -733,6 +797,7 @@ impl Game {
             }
             gdk::Key::Escape => {
                 if self.card.is_some() {
+                    self.end_tour(real);
                     self.dismiss_card(real);
                 } else if matches!(phase, Phase::Arrival | Phase::Hunt) {
                     if real < self.esc_armed {
@@ -914,7 +979,11 @@ impl Game {
         });
         self.track = Some(i);
         if !self.caught[i] {
-            let line = format!("{}. {}", self.finds[i].name, self.look_for(i));
+            let hint = match self.hop_stop(i) {
+                Some(stop) => stop.say.clone(),
+                None => self.look_for(i).to_owned(),
+            };
+            let line = format!("{}. {hint}", self.finds[i].name);
             self.say_at(crate::guide::Aim::Find(i), line, real, 7_000);
         }
     }
@@ -933,6 +1002,14 @@ impl Game {
                         Some((alt, az)) => night_sky_core::finale::whereabouts(alt, az),
                         None => String::new(),
                     },
+                };
+                let whereabouts = match self.finds[i].target {
+                    Target::Hop(h) if self.steps[i] > 0 => format!(
+                        "step {} of {}, {whereabouts}",
+                        self.steps[i] + 1,
+                        self.sky.tours.hops[h].steps.len()
+                    ),
+                    _ => whereabouts,
                 };
                 Row {
                     name: self.finds[i].name.clone(),
@@ -1112,13 +1189,30 @@ impl Game {
             self.page.finds.push(find.name.clone());
         }
         self.save_page();
+        if self.begin_tour(i, real) {
+            self.guide_tour_began(real);
+            return;
+        }
         let x = self.beside(Some(i), self.zoom_for(i));
         let kicker = self.kind_word(i).to_owned();
+        let mut body = find.fact;
+        if matches!(self.finds[i].target, Target::Hop(_))
+            && (!self.journal.settings.seen.iter().any(|k| k == "hop-done")
+                || night_sky_core::finds::stable_hash((0, 0, 0), &self.night).is_multiple_of(3))
+        {
+            body = format!("{body}\n\n{}", self.sky.tours.hop_closing);
+            if !self.journal.settings.seen.iter().any(|k| k == "hop-done") {
+                self.journal.settings.seen.push("hop-done".into());
+                if let Err(e) = self.journal.save_settings() {
+                    eprintln!("night-sky: couldn't save settings: {e}");
+                }
+            }
+        }
         self.card = Some(Card {
             x,
             kicker,
             title: find.name,
-            body: find.fact,
+            body,
             shown: real,
         });
         if let Target::Figure(f) = self.finds[i].target {
@@ -1134,7 +1228,10 @@ impl Game {
         }
     }
 
-    fn dismiss_card(&mut self, real: UnixMs) {
+    pub(crate) fn dismiss_card(&mut self, real: UnixMs) {
+        if self.tour.is_some() && self.turn_page(real) {
+            return;
+        }
         self.card = None;
         if let Some(fov) = self.catch.fov_before.take() {
             self.look = Some(Look {
@@ -1344,7 +1441,7 @@ impl Game {
         let r = self.reticle_radius();
         let (cx, cy) = (self.camera.width / 2.0, self.camera.height / 2.0);
         let near = (0..self.finds.len())
-            .filter(|&i| !self.caught[i])
+            .filter(|&i| !self.caught[i] && self.catchable(i))
             .filter_map(|i| {
                 let v = self.find_dir(i, now, hz, prec)?;
                 if alt_az(v).0 < -0.5 {
@@ -1367,7 +1464,12 @@ impl Game {
             if self.catch.fov_before.is_none() {
                 self.catch.fov_before = Some(self.camera.fov);
             }
-            self.catch.progress += dt / (1.4 / tempo.max(0.3));
+            let hold = if matches!(self.finds[i].target, Target::Hop(_)) {
+                0.8
+            } else {
+                1.4
+            };
+            self.catch.progress += dt / (hold / tempo.max(0.3));
             if let Some(v) = self.find_dir(i, now, hz, prec) {
                 let (alt, az) = alt_az(v);
                 let p = smoothstep(self.catch.progress);
@@ -1383,7 +1485,9 @@ impl Game {
             if self.catch.progress >= 1.0 {
                 self.catch.progress = 1.0;
                 self.catch.holding = false;
-                self.caught_one(i, real);
+                if !self.hop_step(i, real) {
+                    self.caught_one(i, real);
+                }
             }
         } else if self.catch.progress > 0.0 {
             self.catch.progress = (self.catch.progress - dt * 1.8).max(0.0);
@@ -1608,10 +1712,17 @@ impl Game {
         let ppd = cam.px_per_degree();
         let shown = limit.min(5.6) + 0.6;
         let low_sin = 14f64.to_radians().sin();
-        for star in &self.prepared {
+        let algol = self
+            .algol
+            .map(|k| (k, night_sky_core::tours::algol_magnitude(now)));
+        for (k, star) in self.prepared.iter().enumerate() {
             if star.mag > shown {
                 break;
             }
+            let (mag, star_light) = match algol {
+                Some((a, m)) if a == k => (m, light(m)),
+                _ => (star.mag, star.light),
+            };
             let mut v = apply(hz, star.dir);
             if v[2] < -0.02 {
                 continue;
@@ -1648,8 +1759,8 @@ impl Game {
                 + depth
                     * ((t * rate + star.phase).sin() * 0.6
                         + (t * rate * 1.7 + star.phase * 0.37).sin() * 0.4);
-            let amount = star.light * fade * (low * twinkle) as f32;
-            if star.mag < BRIGHT {
+            let amount = star_light * fade * (low * twinkle) as f32;
+            if mag < BRIGHT {
                 self.points.push(point(x, y, star.tint, amount, 1.0));
             } else {
                 // Single dots on the fine lattice need a little more light to hold the eye.
@@ -1666,10 +1777,12 @@ impl Game {
         };
         let keep = (1.0 - self.eye_alpha) as f32;
 
-        // Showpieces' soft light.
+        // Showpieces' soft light. Zoomed in, the view gathers light like a
+        // telescope and fainter things show.
+        let gather = 2.5 * (60.0 / cam.fov).clamp(1.0, 100.0).log10();
         for (pi, piece) in self.sky.lists.showpieces.iter().enumerate() {
             let fade = if photo_piece == Some(pi) { keep } else { 1.0 };
-            if piece.mag > limit + 0.5
+            if piece.mag > limit + gather + 0.5
                 || !matches!(piece.kind, Kind::Cluster | Kind::Galaxy | Kind::Nebula)
             {
                 continue;
@@ -1685,7 +1798,7 @@ impl Game {
                 continue;
             }
             let radius = (piece.size / 60.0 / 2.0 * ppd).max(pitch as f64 * 0.8);
-            let strength = (10f64.powf(-0.4 * (piece.mag - 3.0))).min(2.0) as f32;
+            let strength = (10f64.powf(-0.4 * (piece.mag - gather - 3.0))).min(2.0) as f32;
             if piece.kind == Kind::Cluster {
                 // Stars too faint to see one by one, sprinkled as single dots.
                 let count = (piece.size / 4.0).clamp(8.0, 36.0) as usize;
@@ -1892,6 +2005,8 @@ impl Game {
         }
 
         self.draw_marks(real, hz);
+        self.marks.clear();
+        self.draw_tours(real, hz, prec);
         self.draw_reticle(real, tempo);
 
         let brightness = self.session.brightness(real);
@@ -1927,7 +2042,7 @@ impl Game {
                 .wrap(400.0),
             );
         }
-        self.points.extend(embers);
+        self.marks.extend(embers);
         let eyepiece = self.eyepiece(now, hz, prec);
         let card = self.card.as_ref().map(|c| crate::view::CardView {
             x: c.x,
@@ -1935,10 +2050,17 @@ impl Game {
             kicker: c.kicker.clone(),
             title: c.title.clone(),
             body: c.body.clone(),
-            keys: vec![
-                ("Space".into(), "carry on".into()),
-                ("Tab".into(), "next".into()),
-            ],
+            keys: match &self.tour {
+                Some(t) if t.on_last_page() => vec![("Space".into(), "carry on".into())],
+                Some(_) => vec![
+                    ("Space".into(), "go on".into()),
+                    ("Esc".into(), "stop here".into()),
+                ],
+                None => vec![
+                    ("Space".into(), "carry on".into()),
+                    ("Tab".into(), "next".into()),
+                ],
+            },
             alpha: envelope(real - c.shown, 600, 600_000, 800),
         });
         let compass = matches!(
@@ -1954,6 +2076,7 @@ impl Game {
             card,
             compass,
             points: std::mem::take(&mut self.points),
+            marks: std::mem::take(&mut self.marks),
             sprites,
             bubble,
             texture: Some(frame_texture),

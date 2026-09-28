@@ -21,17 +21,22 @@ pub struct Settings {
 }
 
 /// What the app is for, in a few plain sentences.
-pub const PURPOSE: &str = "Night Sky is a small ritual for the end of the day: ten or fifteen minutes with the real sky over you. Something to find, something to learn, somewhere to set down what's on your mind, and then a nudge to go outside and look at the real thing.
+pub const PURPOSE: &str = "Night Sky is a few quiet minutes at the end of the day, to help you wind down and come back to what matters to you.
 
-The sky is never the same two nights running. The Moon moves and changes shape, planets wander, meteor showers come and go, and over the year the seasons turn the whole sky round, so there is always something new up there. The more nights you come, the more you'll know your way around it.
+You look up at the real sky over you tonight: something to find, a story, now and then a small question. Underneath, it's about the things that keep a life steady: the people who are there for you, having something to look forward to, and setting down what's weighing on you so it's lighter in the morning. The stars are the way in, and the stories are about us as much as about them.
 
-Over weeks, your logbook becomes a quiet record of your evenings: what you saw, what was on your mind, the people who come up again and again, and the things you looked forward to. It's meant to leave you a little calmer than it found you, and then let you go.";
+The sky never repeats. The Moon moves on and changes shape, planets wander, the stories and star-hops change from night to night, and over the year the seasons turn the whole sky round, so there's always something new up there.
+
+Over weeks, your logbook becomes a quiet record of your evenings: what you saw, what was on your mind and how it turned out, the people who come up again and again, and the things you looked forward to. It's meant to leave you a little calmer than it found you, and then let you go: outside to see the real thing, or off to bed.";
 
 const CREDITS: &str = "Night Sky is free software under the GNU GPL, version 3 or later. \
 Stars from the Yale Bright Star Catalogue (Hoffleit and Warren), through the CDS in Strasbourg. \
 Constellation figures from d3-celestial by Olaf Frohn (BSD licence). \
 Positions of the Sun, Moon and planets after Paul Schlyter's method. \
 Meteor showers from the International Meteor Organization's working list. \
+Deep-sky positions from SIMBAD (CDS, Strasbourg), and facts checked against Wikipedia. \
+Names on the Moon from the IAU Gazetteer of Planetary Nomenclature. \
+Jupiter's moons after Jean Meeus; Algol's eclipses after Kreiner. \
 Music, all dedicated to the public domain (CC0): \"Ease into Night\", \"Moon Unit\", \"Into The Mist\" and \"Calm Currents\" by HoliznaCC0; \
 \"Chill lofi inspired\" and \"Lofi Hip Hop Loop\" by omfgdude.";
 
@@ -264,7 +269,7 @@ impl Settings {
                 ),
                 (
                     format!("Weights ({})", j.weights.len()),
-                    "so you can bring one back, mark it sorted, or chart a course for it.",
+                    "so you can bring one back, mark it sorted or chart a course for it, and so now and then the sky can ask how an old one sits now.",
                 ),
                 (
                     format!("Names ({})", j.people.len()),

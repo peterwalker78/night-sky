@@ -13,6 +13,7 @@ pub struct Sky {
     pub figures: Vec<Figure>,
     pub notes: Vec<figures::Note>,
     pub lists: Catalogues,
+    pub tours: crate::tours::Tours,
 }
 
 impl Sky {
@@ -22,6 +23,7 @@ impl Sky {
             figures: figures::bundled(),
             notes: figures::notes(),
             lists: Catalogues::bundled(),
+            tours: crate::tours::Tours::bundled(),
         }
     }
 }

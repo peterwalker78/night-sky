@@ -1,0 +1,376 @@
+# Features on the Moon's near side. Latitude and longitude are selenographic,
+# planetocentric, east positive (east is towards Mare Crisium), from the IAU
+# Gazetteer of Planetary Nomenclature; diameters in km. Landing sites have no
+# diameter; the Apollo ones are the lunar module positions measured in LRO images,
+# from NASA's NSSDCA.
+# The walk's first and last words.
+intro = "Where day meets night on the Moon, the Sun is low and every crater throws a long shadow. That line moves on a little every night, so no two walks are the same."
+closing = "Only half of the Moon is ever lit, and it's still the whole Moon. A day doesn't have to be bright all over to have been a good one."
+
+[[feature]]
+name = "Oceanus Procellarum"
+kind = "sea"
+lat = 20.67
+lon = -56.68
+diameter = 2592.2
+fact = "The \"Ocean of Storms\", the only lunar plain called an ocean. It covers about a tenth of the Moon, and some of its lavas are only about a billion years old."
+
+[[feature]]
+name = "Mare Imbrium"
+kind = "sea"
+lat = 34.72
+lon = -14.91
+diameter = 1145.5
+fact = "The \"Sea of Showers\", a basin blasted out about 3.9 billion years ago and later flooded with lava. Lunokhod 1, the first rover on another world, drove here in 1970."
+
+[[feature]]
+name = "Mare Serenitatis"
+kind = "sea"
+lat = 27.29
+lon = 18.36
+diameter = 674.3
+fact = "The \"Sea of Serenity\", a round lava plain 674 km across. Its dense lava makes a gravity high, a mascon, first found by tracking orbiting spacecraft in 1968."
+
+[[feature]]
+name = "Mare Tranquillitatis"
+kind = "sea"
+lat = 8.35
+lon = 30.83
+diameter = 875.8
+fact = "The \"Sea of Tranquility\", where Apollo 11 landed. Its metal-rich lava gives it a faint blue tint in colour-enhanced photographs."
+
+[[feature]]
+name = "Mare Crisium"
+kind = "sea"
+lat = 16.18
+lon = 59.10
+diameter = 555.9
+fact = "The \"Sea of Crises\", a flat, walled-off plain 556 km across near the eastern edge. Luna 24 brought its soil back to Earth in 1976."
+
+[[feature]]
+name = "Mare Fecunditatis"
+kind = "sea"
+lat = -7.83
+lon = 53.67
+diameter = 840.4
+fact = "The \"Sea of Fertility\". In September 1970 Luna 16 scooped soil here, the first sample returned to Earth by a robot."
+
+[[feature]]
+name = "Mare Nectaris"
+kind = "sea"
+lat = -15.19
+lon = 34.60
+diameter = 339.4
+fact = "The \"Sea of Nectar\". The impact that made its basin, 3.8 to 3.9 billion years ago, marks the start of the Nectarian period of lunar history."
+
+[[feature]]
+name = "Mare Frigoris"
+kind = "sea"
+lat = 57.59
+lon = -0.01
+diameter = 1446.4
+fact = "The \"Sea of Cold\", a long, narrow band of lava stretching across the far north, just beyond Plato."
+
+[[feature]]
+name = "Mare Humorum"
+kind = "sea"
+lat = -24.48
+lon = -38.57
+diameter = 419.7
+fact = "The \"Sea of Moisture\", a round basin about 3.9 billion years old. The lava in its middle is thought to be more than 3 km thick."
+
+[[feature]]
+name = "Mare Nubium"
+kind = "sea"
+lat = -20.59
+lon = -17.29
+diameter = 714.5
+fact = "The \"Sea of Clouds\". Within it lies Rupes Recta, the Straight Wall, a cliff more than 100 km long."
+
+[[feature]]
+name = "Mare Vaporum"
+kind = "sea"
+lat = 13.20
+lon = 4.09
+diameter = 242.5
+fact = "The \"Sea of Vapours\", a small plain 242 km across, bordered to the north-east by the Apennine mountains."
+
+[[feature]]
+name = "Mare Cognitum"
+kind = "sea"
+lat = -10.53
+lon = -22.31
+diameter = 350.0
+fact = "The \"Sea that has become known\", named in 1964 after Ranger 7 crashed here, having sent back the first close-up American pictures of the Moon."
+
+[[feature]]
+name = "Sinus Iridum"
+kind = "sea"
+lat = 45.01
+lon = -31.67
+diameter = 249.3
+fact = "The \"Bay of Rainbows\". About ten days after new Moon the Jura mountains around it catch the sunrise while the bay is still dark, a bright arc called the Golden Handle."
+
+[[feature]]
+name = "Sinus Medii"
+kind = "sea"
+lat = 1.63
+lon = 1.03
+diameter = 286.7
+fact = "The \"Middle Bay\", at the centre of the Moon's face and the point nearest Earth. From here Earth would hang almost straight overhead."
+
+[[feature]]
+name = "Tycho"
+kind = "crater"
+lat = -43.30
+lon = -11.22
+diameter = 85.3
+fact = "A young crater, about 108 million years old and 4.7 km deep. Its bright rays reach up to 1,500 km and dominate the full Moon."
+
+[[feature]]
+name = "Copernicus"
+kind = "crater"
+lat = 9.62
+lon = -20.08
+diameter = 96.1
+fact = "A crisp, terraced crater thought to be about 800 million years old, with rays splashed across the Ocean of Storms. It is just visible to the naked eye."
+
+[[feature]]
+name = "Kepler"
+kind = "crater"
+lat = 8.12
+lon = -38.01
+diameter = 29.5
+fact = "A small, bright crater at the centre of a ray system over 300 km wide. Riccioli named it Kepler because a ray from Tycho reaches it, as Kepler built on Tycho Brahe's observations."
+
+[[feature]]
+name = "Aristarchus"
+kind = "crater"
+lat = 23.73
+lon = -47.49
+diameter = 40.0
+fact = "The brightest large feature on the Moon, bright enough to pick out by earthshine. It is about 3.5 km deep, deeper than the Grand Canyon."
+
+[[feature]]
+name = "Plato"
+kind = "crater"
+lat = 51.62
+lon = -9.38
+diameter = 100.7
+fact = "A dark, lava-filled crater 101 km across, about 3.84 billion years old. Its jagged rim throws long spiky shadows across the smooth floor at sunrise."
+
+[[feature]]
+name = "Clavius"
+kind = "crater"
+lat = -58.62
+lon = -14.73
+diameter = 230.8
+fact = "One of the largest craters on the near side, a notch in the terminator you can see with the naked eye a day or two after first quarter. In 2020 NASA confirmed water molecules in the soil near it."
+
+[[feature]]
+name = "Grimaldi"
+kind = "crater"
+lat = -5.38
+lon = -68.36
+diameter = 235.0
+fact = "A huge basin near the western edge whose lava floor is one of the darkest patches on the Moon and easy to find. Named after the Italian astronomer Francesco Maria Grimaldi."
+
+[[feature]]
+name = "Riccioli"
+kind = "crater"
+lat = -2.90
+lon = -74.42
+diameter = 155.7
+fact = "A worn crater right at the western edge, seen almost side-on. Named after Giovanni Battista Riccioli, whose 1651 map gave the Moon's features the names still used today."
+
+[[feature]]
+name = "Langrenus"
+kind = "crater"
+lat = -8.86
+lon = 61.04
+diameter = 132.0
+fact = "A terraced crater 132 km across near the eastern edge, with central peaks and a floor that shines bright at full Moon. Named after Michael van Langren, who drew a map of the Moon in 1645."
+
+[[feature]]
+name = "Petavius"
+kind = "crater"
+lat = -25.39
+lon = 60.78
+diameter = 184.1
+fact = "A great crater with a double rampart and a cleft running across its domed floor. It looks best when the Moon is about three days old."
+
+[[feature]]
+name = "Gauss"
+kind = "crater"
+lat = 36.01
+lon = 79.08
+diameter = 170.7
+fact = "A walled plain 171 km across on the north-eastern edge, squashed to a thin oval by perspective and best seen when libration tips it towards us. Named after the mathematician Carl Friedrich Gauss."
+
+[[feature]]
+name = "Theophilus"
+kind = "crater"
+lat = -11.45
+lon = 26.28
+diameter = 98.6
+fact = "A deep crater, about 4.2 km from rim to floor, with a central mountain of several peaks. With its neighbours Cyrillus and Catharina it makes a striking chain on the terminator five days after new Moon."
+
+[[feature]]
+name = "Posidonius"
+kind = "crater"
+lat = 31.88
+lon = 29.99
+diameter = 95.1
+fact = "A lava-flooded crater on the edge of Mare Serenitatis whose floor is laced with fine rilles. Best around six days after new Moon."
+
+[[feature]]
+name = "Archimedes"
+kind = "crater"
+lat = 29.72
+lon = -3.99
+diameter = 81.0
+fact = "The largest crater in Mare Imbrium, 81 km across, its floor drowned flat by lava. At sunrise its rim casts long spires of shadow across the floor."
+
+[[feature]]
+name = "Ptolemaeus"
+kind = "crater"
+lat = -9.16
+lon = -1.84
+diameter = 153.7
+fact = "An ancient walled plain 154 km across near the centre of the Moon, with a flat lava floor. At low sun its surface shows ripples like waves."
+
+[[feature]]
+name = "Alphonsus"
+kind = "crater"
+lat = -13.39
+lon = -2.85
+diameter = 110.5
+fact = "An old crater with a central peak and small dark-haloed craters on its floor. NASA's Ranger 9 crashed here, and glowing red clouds have been reported in it."
+
+[[feature]]
+name = "Arzachel"
+kind = "crater"
+lat = -18.26
+lon = -1.93
+diameter = 97.0
+fact = "A sharp, well-preserved crater with terraced walls and a central peak, the southern end of a chain with Alphonsus and Ptolemaeus. Its name is a Latin form of al-Zarqali, a Spanish-Arab astronomer who died in 1100."
+
+[[feature]]
+name = "Eratosthenes"
+kind = "crater"
+lat = 14.47
+lon = -11.32
+diameter = 58.8
+fact = "A deep crater about 3.2 billion years old at the tip of the Apennines; a whole period of lunar history is named after it. It stands out at low sun and almost vanishes at full Moon."
+
+[[feature]]
+name = "Gassendi"
+kind = "crater"
+lat = -17.55
+lon = -39.96
+diameter = 111.4
+fact = "A flooded crater on the northern shore of Mare Humorum with a cracked floor and central peaks. With the smaller Gassendi A on its rim it looks like a diamond ring."
+
+[[feature]]
+name = "Schickard"
+kind = "crater"
+lat = -44.38
+lon = -55.11
+diameter = 212.2
+fact = "A vast walled plain 212 km across near the south-western edge, foreshortened into an oval. Its floor is crossed by a lighter band between darker patches."
+
+[[feature]]
+name = "Endymion"
+kind = "crater"
+lat = 53.61
+lon = 56.48
+diameter = 122.1
+fact = "A dark-floored crater near the north-eastern edge. Its dark patches seem to change shape as the Sun rises, which once led W. H. Pickering to suggest vegetation."
+
+[[feature]]
+name = "Atlas"
+kind = "crater"
+lat = 46.74
+lon = 44.38
+diameter = 88.1
+fact = "A terraced crater named after the Titan who held up the sky. It pairs with its slightly smaller neighbour Hercules."
+
+[[feature]]
+name = "Montes Apenninus"
+kind = "mountains"
+lat = 19.87
+lon = 0.03
+diameter = 599.7
+fact = "The most prominent stretch of the ring of mountains thrown up by the Imbrium impact about 3.9 billion years ago. Apollo 15 landed in a valley at their foot."
+
+[[feature]]
+name = "Montes Alpes"
+kind = "mountains"
+lat = 48.36
+lon = -0.58
+diameter = 334.5
+fact = "A range with peaks of 1.8 to 2.4 km on the north-east shore of Mare Imbrium. It straddles the Moon's central meridian, so at quarter phase it is half lit and half in shadow."
+
+[[feature]]
+name = "Vallis Alpes"
+kind = "valley"
+lat = 49.21
+lon = 3.63
+diameter = 155.4
+fact = "The Alpine Valley, a straight flat-floored cut 166 km long and up to 10 km wide through the Alps. A slender rille runs down its middle, notoriously hard to spot."
+
+[[feature]]
+name = "Apollo 11"
+kind = "landing"
+lat = 0.67416
+lon = 23.47314
+fact = "Neil Armstrong and Buzz Aldrin landed the Eagle here on 20 July 1969, the first people to walk on another world. They called it Tranquility Base."
+
+[[feature]]
+name = "Apollo 12"
+kind = "landing"
+lat = -3.0128
+lon = -23.4219
+fact = "Pete Conrad and Alan Bean landed on 19 November 1969 within walking distance of Surveyor 3, which had been here since 1967. They brought pieces of it home."
+
+[[feature]]
+name = "Apollo 14"
+kind = "landing"
+lat = -3.64589
+lon = -17.47194
+fact = "Alan Shepard and Edgar Mitchell landed in the Fra Mauro highlands on 5 February 1971. Shepard hit two golf balls here with a makeshift club."
+
+[[feature]]
+name = "Apollo 15"
+kind = "landing"
+lat = 26.13239
+lon = 3.6333
+fact = "David Scott and James Irwin landed beside Hadley Rille on 30 July 1971 and drove the first lunar rover. They found the Genesis Rock, a piece of the Moon's early crust."
+
+[[feature]]
+name = "Apollo 16"
+kind = "landing"
+lat = -8.9734
+lon = 15.5011
+fact = "John Young and Charles Duke landed in the Descartes Highlands on 21 April 1972. Scientists expected volcanic rock here; it turned out not to be."
+
+[[feature]]
+name = "Apollo 17"
+kind = "landing"
+lat = 20.1911
+lon = 30.7723
+fact = "Gene Cernan and geologist Harrison Schmitt landed in the Taurus-Littrow valley on 11 December 1972, the last time people walked on the Moon. They found orange volcanic glass at Shorty crater."
+
+[[feature]]
+name = "Chang'e 3 (Guang Han Gong)"
+kind = "landing"
+lat = 44.12
+lon = -19.51
+fact = "China's Chang'e 3 landed here on 14 December 2013 with the Yutu (\"Jade Rabbit\") rover, the first soft landing on the Moon since 1976. The site is named after the palace where the Moon goddess Chang'e lives."
+
+[[feature]]
+name = "Chang'e 5 (Statio Tianchuan)"
+kind = "landing"
+lat = 43.06
+lon = -51.92
+fact = "Chang'e 5 landed near Mons Rümker on 1 December 2020 and brought 1,731 g of samples back to Earth. The basalts proved unusually young, under 2 billion years old."

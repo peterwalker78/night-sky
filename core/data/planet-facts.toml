@@ -1,0 +1,26 @@
+# Three lines about each of the Moon and the naked-eye planets, for second and
+# third visits. Checked against the Wikipedia article on each.
+
+[[body]]
+id = "moon"
+facts = ["Its dark patches are seas of old lava, called maria; the Moon was volcanically active until about 1.2 billion years ago.", "Its surface is about as dark as asphalt: it looks bright only because it is so big in our sky.", "Twelve people walked on it, landed by six Apollo missions between 1969 and 1972."]
+
+[[body]]
+id = "mercury"
+facts = ["From one sunrise to the next on Mercury takes about 176 Earth days: two of its years.", "Its surface swings from about −170 °C at night to 420 °C by day.", "Its largest crater, Caloris, is 1,550 km wide, a third of the planet's own width."]
+
+[[body]]
+id = "venus"
+facts = ["The hottest planet: its surface is about 464 °C, under air 92 times as heavy as Earth's.", "It spins backwards, and so slowly that a day there lasts 116.75 Earth days.", "Its phases, seen through telescopes by 1613, helped show that the planets go round the Sun, not the Earth."]
+
+[[body]]
+id = "mars"
+facts = ["Olympus Mons, the tallest of its extinct volcanoes, stands 21.9 km high.", "A Martian year lasts 687 Earth days, and its tilted axis gives it seasons much like ours.", "It has two small, lumpy moons, Phobos and Deimos."]
+
+[[body]]
+id = "jupiter"
+facts = ["It holds about two and a half times as much mass as all the other planets put together.", "The Great Red Spot, a storm bigger than Earth, has been watched since 1831.", "It spins once in about ten hours, so fast that it bulges at the equator."]
+
+[[body]]
+id = "saturn"
+facts = ["The only planet less dense than water.", "Its rings are made mostly of ice, and at least 293 moons circle it.", "Its largest moon, Titan, is bigger than Mercury and the only moon with a thick atmosphere."]

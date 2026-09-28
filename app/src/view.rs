@@ -128,6 +128,8 @@ pub struct Bubble {
 #[derive(Default)]
 pub struct Frame {
     pub points: Vec<Point>,
+    /// Points drawn over the photographs: the wisp's trail and what it marks.
+    pub marks: Vec<Point>,
     pub eyepiece: Option<Eyepiece>,
     pub card: Option<CardView>,
     pub compass: Option<Compass>,
@@ -286,6 +288,32 @@ fn draw_card(widget: &gtk::Widget, snapshot: &gtk::Snapshot, c: &CardView) {
         );
         kx += l.pixel_size().0 as f32 + 18.0;
     }
+}
+
+fn draw_point(snapshot: &gtk::Snapshot, p: &Point) {
+    let [r, g, b] = p.color;
+    let (x, y) = (p.x as f32, p.y as f32);
+    if p.halo > 0.01 {
+        let reach = p.radius * 4.5;
+        let stops = [
+            gsk::ColorStop::new(0.0, gdk::RGBA::new(r, g, b, 0.32 * p.halo * p.alpha)),
+            gsk::ColorStop::new(0.35, gdk::RGBA::new(r, g, b, 0.08 * p.halo * p.alpha)),
+            gsk::ColorStop::new(1.0, gdk::RGBA::new(r, g, b, 0.0)),
+        ];
+        snapshot.append_radial_gradient(
+            &graphene::Rect::new(x - reach, y - reach, 2.0 * reach, 2.0 * reach),
+            &graphene::Point::new(x, y),
+            reach,
+            reach,
+            0.0,
+            1.0,
+            &stops,
+        );
+    }
+    let rect = graphene::Rect::new(x - p.radius, y - p.radius, 2.0 * p.radius, 2.0 * p.radius);
+    snapshot.push_rounded_clip(&gsk::RoundedRect::from_rect(rect, p.radius));
+    snapshot.append_color(&gdk::RGBA::new(r, g, b, p.alpha.min(1.0)), &rect);
+    snapshot.pop();
 }
 
 fn draw_eyepiece(_widget: &gtk::Widget, snapshot: &gtk::Snapshot, e: &Eyepiece) {
@@ -470,30 +498,15 @@ mod imp {
                 snapshot.pop();
             }
             for p in &frame.points {
-                let [r, g, b] = p.color;
-                let (x, y) = (p.x as f32, p.y as f32);
-                if p.halo > 0.01 {
-                    let reach = p.radius * 4.5;
-                    let stops = [
-                        gsk::ColorStop::new(0.0, gdk::RGBA::new(r, g, b, 0.32 * p.halo * p.alpha)),
-                        gsk::ColorStop::new(0.35, gdk::RGBA::new(r, g, b, 0.08 * p.halo * p.alpha)),
-                        gsk::ColorStop::new(1.0, gdk::RGBA::new(r, g, b, 0.0)),
-                    ];
-                    snapshot.append_radial_gradient(
-                        &graphene::Rect::new(x - reach, y - reach, 2.0 * reach, 2.0 * reach),
-                        &graphene::Point::new(x, y),
-                        reach,
-                        reach,
-                        0.0,
-                        1.0,
-                        &stops,
-                    );
-                }
-                let rect =
-                    graphene::Rect::new(x - p.radius, y - p.radius, 2.0 * p.radius, 2.0 * p.radius);
-                snapshot.push_rounded_clip(&gsk::RoundedRect::from_rect(rect, p.radius));
-                snapshot.append_color(&gdk::RGBA::new(r, g, b, p.alpha.min(1.0)), &rect);
-                snapshot.pop();
+                draw_point(snapshot, p);
+            }
+            if let Some(e) = &frame.eyepiece
+                && e.alpha > 0.004
+            {
+                draw_eyepiece(widget.upcast_ref(), snapshot, e);
+            }
+            for p in &frame.marks {
+                draw_point(snapshot, p);
             }
             for sprite in &frame.sprites {
                 snapshot.push_opacity(sprite.alpha.clamp(0.0, 1.0));
@@ -549,11 +562,6 @@ mod imp {
                 snapshot.translate(&graphene::Point::new(rect.x() + pad, rect.y() + pad));
                 snapshot.append_layout(&layout, &gdk::RGBA::new(1.0, 0.96, 0.88, 0.95 * a));
                 snapshot.restore();
-            }
-            if let Some(e) = &frame.eyepiece
-                && e.alpha > 0.004
-            {
-                draw_eyepiece(widget.upcast_ref(), snapshot, e);
             }
             if let Some(c) = &frame.compass {
                 draw_compass(widget.upcast_ref(), snapshot, w, c);

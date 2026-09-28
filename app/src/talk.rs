@@ -10,7 +10,7 @@ use night_sky_core::finds::Target;
 use night_sky_core::journal::{Answer, Asked, Check, Journal, Mention, NightWeight, Plan};
 use night_sky_core::questions::{
     self, AnswerKind, Chosen, Context, Question, course_to_check, days_between, key_of,
-    plan_nearby, plan_to_ask_about,
+    plan_nearby, plan_to_ask_about, weight_to_look_back,
 };
 use night_sky_core::time::UnixMs;
 use std::cell::RefCell;
@@ -66,6 +66,9 @@ pub(crate) enum Flow {
     CourseCheck {
         course: u32,
     },
+    LookBack {
+        weight: u32,
+    },
     DrawingName,
 }
 
@@ -77,6 +80,7 @@ pub(crate) enum Pending {
     },
     PlanOutcome(u32),
     CourseCheck(u32),
+    LookBack(u32),
 }
 
 #[derive(Default)]
@@ -95,6 +99,17 @@ pub struct Talk {
 }
 
 const MAX_WEIGHTS: usize = 3;
+
+/// How an old weight sits now.
+const LOOKS: [&str; 4] = ["Lighter", "Much the same", "Heavier", "It's behind me"];
+
+/// "The Moon" becomes "the Moon"; names stay as they are.
+fn lower_first(name: &str) -> String {
+    match name.strip_prefix("The ") {
+        Some(rest) => format!("the {rest}"),
+        None => name.to_owned(),
+    }
+}
 
 impl Talk {
     pub fn new(journal: &Journal, night: &str, events: Vec<SkyEvent>) -> Talk {
@@ -309,6 +324,12 @@ impl Game {
                 self.talk.pending = Some((real + 2_200, Pending::CourseCheck(course.id)));
                 return;
             }
+            if let Some(weight) =
+                weight_to_look_back(&self.journal.weights, &self.journal.courses, &today)
+            {
+                self.talk.pending = Some((real + 2_200, Pending::LookBack(weight.id)));
+                return;
+            }
         }
         let find = self.finds[i].clone();
         let triggers = questions::triggers(&find, &self.sky);
@@ -388,6 +409,39 @@ impl Game {
                     hint: "Enter to keep it · Esc to let it pass".into(),
                     names: false,
                 }));
+            }
+            Pending::LookBack(id) => {
+                let Some(weight) = self.journal.weight(id) else {
+                    return;
+                };
+                let text = weight.text.clone();
+                let when = weight.nights.last().cloned().unwrap_or_default();
+                // The night it was set down, as the sky was that night.
+                let page = self.journal.night(&when);
+                let date = {
+                    let mut p = when.split('-').map(|x| x.parse::<u32>().unwrap_or(1));
+                    let (_, m, d) = (p.next(), p.next().unwrap_or(1), p.next().unwrap_or(1));
+                    format!(
+                        "{d} {}",
+                        night_sky_core::time::MONTHS[(m.clamp(1, 12) - 1) as usize]
+                    )
+                };
+                let found = page
+                    .as_ref()
+                    .and_then(|p| p.finds.first())
+                    .map(|f| format!(", the night you found {}", lower_first(f)))
+                    .unwrap_or_default();
+                self.remember_asked(&format!("look-back:{id}"));
+                self.talk.flow = Some(Flow::LookBack { weight: id });
+                self.set_prompt(Some(Prompt {
+                    text: format!("On {date}{found}, you set down “{text}”. How does it sit now?"),
+                    placeholder: String::new(),
+                    chips: LOOKS.iter().map(|s| (*s).to_owned()).collect(),
+                    entry: false,
+                    hint: "Esc to let it pass".into(),
+                    names: false,
+                }));
+                self.guide_look_back(real);
             }
             Pending::CourseCheck(id) => {
                 let Some(course) = self.journal.courses.iter().find(|c| c.id == id) else {
@@ -663,6 +717,22 @@ impl Game {
                 }
                 let _ = self.journal.save_plans();
                 self.done_talking();
+            }
+            Flow::LookBack { weight } => {
+                let answer = LOOKS.get(chip).copied().unwrap_or(LOOKS[1]);
+                let night = self.night.clone();
+                if let Some(w) = self.journal.weights.iter_mut().find(|w| w.id == weight) {
+                    w.looks.push(Check {
+                        night,
+                        answer: answer.into(),
+                    });
+                    if chip == 3 {
+                        w.sorted = true;
+                    }
+                }
+                self.save_weights_now();
+                self.done_talking();
+                self.guide_looked_back(chip, real);
             }
             Flow::CourseCheck { course } => {
                 let answer = ["Going well", "Mixed", "Not yet", "Change the plan"]

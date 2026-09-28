@@ -22,6 +22,8 @@ impl Figure {
 pub struct Note {
     pub abbrev: String,
     pub fact: String,
+    #[serde(default)]
+    pub more: Vec<String>,
 }
 
 #[derive(serde::Deserialize)]

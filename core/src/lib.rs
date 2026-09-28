@@ -21,4 +21,5 @@ pub mod session;
 pub mod sky;
 pub mod stars;
 pub mod time;
+pub mod tours;
 pub mod wisp;

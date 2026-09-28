@@ -42,6 +42,10 @@ pub enum Aim {
     Find(usize),
     /// Tonight's weights, low in the west.
     Weights,
+    /// A place on the sky, by right ascension and declination (J2000).
+    Sky(f64, f64),
+    /// A place on the Moon, by index into the features.
+    Moon(usize),
 }
 
 struct Line {
@@ -58,7 +62,7 @@ pub struct Guide {
     queue: Vec<Line>,
     cheer_until: UnixMs,
     last_nudge: UnixMs,
-    last_progress: UnixMs,
+    pub(crate) last_progress: UnixMs,
     pub(crate) scale: f64,
     flight: Flight,
     /// Where it's going, and until when it has something to do there.
@@ -219,7 +223,7 @@ impl Game {
             );
             self.say_at(
                 Aim::Near(0.4, 0.4),
-                "Come here for a few quiet minutes at the end of the day. The sky is never quite the same two nights running, so there's always something new to find.",
+                "Come here for a few quiet minutes at the end of the day: to put the day down, come back to what matters to you, and get ready for sleep. The sky is never the same two nights running, so there's always something new to find.",
                 real + 1_200,
                 9_000,
             );
@@ -230,6 +234,8 @@ impl Game {
             "Good to see you.",
             "The sky has turned since you were last here.",
             "Clear skies in here, at least.",
+            "Let's set the day down for a while.",
+            "A few quiet minutes, and then the rest of the night is yours.",
         ];
         let pick = stable_hash((0, 0, 0), &self.night) as usize % greetings.len();
         let text = if n == 0 && !self.finds.is_empty() {
@@ -325,6 +331,14 @@ impl Game {
         }
     }
 
+    /// A story or a walk has begun: the wisp goes along, and keeps its tips
+    /// for later.
+    pub(crate) fn guide_tour_began(&mut self, real: UnixMs) {
+        self.guide.cheer_until = real + 3_000;
+        self.guide.last_progress = real;
+        self.hush();
+    }
+
     pub(crate) fn guide_all_found(&mut self, real: UnixMs) {
         self.guide.cheer_until = real + 5_000;
         if self.say_once(
@@ -402,6 +416,28 @@ impl Game {
             real + 800,
             11_000,
         );
+    }
+
+    pub(crate) fn guide_look_back(&mut self, real: UnixMs) {
+        self.say_once(
+            "look-back",
+            Aim::Prompt,
+            "Now and then I'll bring back something you set down a while ago. Most weights change shape once they're written down; it helps to notice when one has.",
+            real + 400,
+            11_000,
+        );
+    }
+
+    /// A word after an old weight has been looked at again.
+    pub(crate) fn guide_looked_back(&mut self, chip: usize, real: UnixMs) {
+        let line = match chip {
+            0 | 3 => "Good. Whatever helped with that is worth remembering.",
+            1 => "Some things take longer. It can stay in the west as long as it needs.",
+            _ => {
+                "If you'd like, the logbook can help you chart a small course for it. Only if you want to."
+            }
+        };
+        self.say_at(Aim::Near(0.3, 0.55), line, real + 500, 8_000);
     }
 
     pub(crate) fn guide_drawing(&mut self, real: UnixMs) {
@@ -580,6 +616,33 @@ impl Game {
                     _ => ((cx - 120.0, cy - 60.0), Some((cx, cy))),
                 }
             }
+            Aim::Sky(ra, dec) => {
+                let now = self.sky_now(self.last_real);
+                let hz = night_sky_core::coords::horizon(self.observer, now);
+                let prec = night_sky_core::coords::precession(now);
+                match self.camera.project(apply(&hz, apply(&prec, unit(ra, dec)))) {
+                    // Above it, clear of a card beside the middle.
+                    Some((x, y)) if self.camera.on_screen(x, y, -40.0) => (
+                        ((x + 20.0).clamp(60.0, w - 60.0), (y - 95.0).max(60.0)),
+                        Some((x, y)),
+                    ),
+                    _ => ((cx - 120.0, cy - 60.0), None),
+                }
+            }
+            Aim::Moon(f) => match self.moon_spot(f) {
+                Some((x, y, _)) => {
+                    // Hover just off the place, towards the middle of the disc.
+                    let (dx, dy) = (cx - x, cy - y);
+                    let l = (dx * dx + dy * dy).sqrt().max(1.0);
+                    let hover = if l > 90.0 {
+                        (x + dx / l * 70.0, y + dy / l * 70.0 - 20.0)
+                    } else {
+                        (x - 70.0, y - 40.0)
+                    };
+                    (hover, Some((x, y)))
+                }
+                None => ((cx - 120.0, cy - 60.0), None),
+            },
             Aim::Weights => {
                 let now = self.sky_now(self.last_real);
                 let hz = night_sky_core::coords::horizon(self.observer, now);

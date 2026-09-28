@@ -201,6 +201,7 @@ impl Book {
             for w in &night.weights {
                 if let Some(weight) = journal.weight(w.weight) {
                     self.weight_row(weight.id, &weight.text, weight.sorted);
+                    self.looks(weight);
                 }
             }
         }
@@ -237,6 +238,22 @@ impl Book {
                 ));
             }
         }
+    }
+
+    /// How a weight sat when it was looked back at, later.
+    fn looks(&self, weight: &night_sky_core::journal::Weight) {
+        if weight.looks.is_empty() {
+            return;
+        }
+        let later: Vec<String> = weight
+            .looks
+            .iter()
+            .map(|k| format!("{} on {}", k.answer, short_date(&k.night)))
+            .collect();
+        self.content.append(&label(
+            &format!("Looking back: {}", later.join(" · ")),
+            "book-quiet",
+        ));
     }
 
     fn weight_row(&self, id: u32, text: &str, sorted: bool) {
@@ -434,6 +451,7 @@ impl Book {
         }
         for w in recurring {
             self.weight_row(w.id, &w.text, w.sorted);
+            self.looks(w);
             let dates: Vec<String> = w.nights.iter().map(|n| short_date(n)).collect();
             self.content
                 .append(&label(&dates.join(" · "), "book-quiet"));

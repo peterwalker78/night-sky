@@ -16,6 +16,27 @@ pub struct Showpiece {
     /// Apparent size in arcminutes; zero for a point.
     pub size: f64,
     pub fact: String,
+    /// More to say on later visits.
+    #[serde(default)]
+    pub more: Vec<String>,
+    /// From the longer list of fainter things, best seen zoomed in.
+    #[serde(skip)]
+    pub deep: bool,
+}
+
+impl Showpiece {
+    /// What to say about it the `n`th time it's found, counting from zero.
+    pub fn fact_for(&self, n: usize) -> String {
+        say_for(&self.fact, &self.more, n)
+    }
+}
+
+/// The first line, then each of the others in turn, then round again.
+pub fn say_for(first: &str, more: &[String], n: usize) -> String {
+    match n % (more.len() + 1) {
+        0 => first.to_owned(),
+        k => more[k - 1].clone(),
+    }
 }
 
 fn no_light() -> f64 {
@@ -43,6 +64,8 @@ pub struct NamedStar {
     /// How far away, when it's known well enough to say.
     #[serde(default)]
     pub light_years: Option<f64>,
+    #[serde(default)]
+    pub more: Vec<String>,
 }
 
 /// A distance rounded down to a number that reads easily: 104 is "100",
@@ -100,6 +123,24 @@ impl NamedStar {
             (None, None) => None,
         }
     }
+
+    /// Its line the `n`th time it's found: the first time, the usual one.
+    pub fn describe_for(&self, this_year: i32, n: usize) -> Option<String> {
+        let first = self.describe(this_year)?;
+        Some(say_for(&first, &self.more, n))
+    }
+}
+
+/// A few more lines about the Moon or a planet, for later visits.
+#[derive(Clone, Debug, Deserialize)]
+pub struct BodyFacts {
+    pub id: String,
+    pub facts: Vec<String>,
+}
+
+#[derive(Deserialize)]
+struct BodyFile {
+    body: Vec<BodyFacts>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -149,17 +190,28 @@ struct ShowerFile {
 }
 
 pub struct Catalogues {
+    /// The showpieces, then the longer deep-sky list (marked `deep`).
     pub showpieces: Vec<Showpiece>,
+    pub bodies: Vec<BodyFacts>,
     pub stars: Vec<NamedStar>,
     pub showers: Vec<Shower>,
 }
 
 impl Catalogues {
     pub fn bundled() -> Catalogues {
-        Catalogues {
-            showpieces: toml::from_str::<ShowpieceFile>(include_str!("../data/showpieces.toml"))
+        let mut showpieces =
+            toml::from_str::<ShowpieceFile>(include_str!("../data/showpieces.toml"))
                 .expect("showpieces.toml")
-                .showpiece,
+                .showpiece;
+        let deep = toml::from_str::<ShowpieceFile>(include_str!("../data/deep-sky.toml"))
+            .expect("deep-sky.toml")
+            .showpiece;
+        showpieces.extend(deep.into_iter().map(|p| Showpiece { deep: true, ..p }));
+        Catalogues {
+            showpieces,
+            bodies: toml::from_str::<BodyFile>(include_str!("../data/planet-facts.toml"))
+                .expect("planet-facts.toml")
+                .body,
             stars: toml::from_str::<StarFile>(include_str!("../data/star-names.toml"))
                 .expect("star-names.toml")
                 .star,

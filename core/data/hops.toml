@@ -1,0 +1,178 @@
+# Star-hops: routes from something easy to find to something harder, star by
+# star. Each step is a star, by Yale Bright Star Catalogue (HR) number, or a
+# showpiece id. Each step has a short line the guide says on reaching it.
+# HR numbers from SIMBAD identifiers. Distances are great-circle separations from
+# SIMBAD positions, rounded; a fist at arm's length is about 10 degrees.
+
+# Said when a hop is done.
+closing = "People found their way like this long before there were maps: start from something you're sure of, and take it one step at a time."
+
+[[hop]]
+id = "pointers-polaris"
+title = "The Pointers to Polaris"
+hemisphere = "north"
+steps = [
+  { hr = 4295, say = "Start at Merak, the bottom of the Plough's bowl, furthest from the handle." },
+  { hr = 4301, say = "Up to Dubhe, the top of the bowl. These two are the Pointers." },
+  { hr = 424,  say = "Carry on about five times as far and you reach Polaris, the North Star." },
+]
+
+[[hop]]
+id = "arc-arcturus-spica"
+title = "Arc to Arcturus, speed on to Spica"
+hemisphere = "north"
+steps = [
+  { hr = 4905, say = "Start at Alioth, the first star of the Plough's handle, next to the bowl." },
+  { hr = 5054, say = "Along the handle to Mizar, the middle star. It has a faint companion, Alcor." },
+  { hr = 5191, say = "On to Alkaid, the end of the handle. Feel the curve the three make." },
+  { hr = 5340, say = "Follow that curve on about three fists and arc to Arcturus, bright and orange." },
+  { hr = 5056, say = "Keep the curve going another three fists or so and speed on to Spica." },
+]
+
+[[hop]]
+id = "pegasus-andromeda"
+title = "From Pegasus to the Andromeda Galaxy"
+hemisphere = "north"
+steps = [
+  { hr = 15,  say = "Start at Alpheratz, the corner of the Great Square of Pegasus nearest Cassiopeia." },
+  { hr = 337, say = "Away from the Square about a fist and a half to Mirach, the next bright star in the chain." },
+  { hr = 269, say = "Turn towards Cassiopeia: about four degrees takes you to the fainter mu Andromedae." },
+  { hr = 226, say = "Carry on about three degrees in the same direction to nu Andromedae, fainter still." },
+  { showpiece = "andromeda", say = "Just past it, about a degree on, is a soft oval glow: the Andromeda Galaxy. It sits as far beyond mu as mu is from Mirach." },
+]
+
+[[hop]]
+id = "belt-sirius"
+title = "Orion's Belt to Sirius"
+hemisphere = "both"
+steps = [
+  { hr = 1852, say = "Start at Mintaka, the end of Orion's Belt furthest from Sirius." },
+  { hr = 1903, say = "Along the Belt to Alnilam, the middle star." },
+  { hr = 1948, say = "And on to Alnitak, the other end. The whole Belt is under three degrees long." },
+  { hr = 2491, say = "Carry the line of the Belt on about eight Belt-lengths, two fists, to Sirius, the brightest star in the night sky." },
+]
+
+[[hop]]
+id = "belt-aldebaran-pleiades"
+title = "Orion's Belt to Aldebaran and the Pleiades"
+hemisphere = "both"
+steps = [
+  { hr = 1948, say = "Start at Alnitak, the end of Orion's Belt nearest Sirius." },
+  { hr = 1903, say = "Along the Belt to Alnilam, the middle star." },
+  { hr = 1852, say = "And on to Mintaka, the other end." },
+  { hr = 1457, say = "Follow the Belt on, the opposite way from Sirius, about two fists to Aldebaran, the orange eye of Taurus." },
+  { showpiece = "pleiades", say = "Keep going roughly the same way, a bit over a fist, to a tiny misty dipper of stars: the Pleiades." },
+]
+
+[[hop]]
+id = "orion-castor-pollux"
+title = "Across Orion to Castor and Pollux"
+hemisphere = "both"
+steps = [
+  { hr = 1713, say = "Start at Rigel, Orion's bright blue-white foot." },
+  { hr = 2061, say = "Across Orion's body, nearly two fists, to Betelgeuse, the orange shoulder." },
+  { hr = 2891, say = "Carry the line on nearly twice as far again to Castor, one of the Gemini twins." },
+  { hr = 2990, say = "About four and a half degrees away is Pollux, the other twin, slightly brighter and more orange." },
+]
+
+[[hop]]
+id = "summer-triangle-albireo"
+title = "The Summer Triangle and Albireo"
+hemisphere = "north"
+steps = [
+  { hr = 7001, say = "Start at Vega, the brightest of the Summer Triangle, blue-white." },
+  { hr = 7557, say = "About three and a half fists away is Altair, with a fainter star close on each side." },
+  { hr = 7924, say = "Nearly four fists from Altair is Deneb, the third corner and the Swan's tail." },
+  { hr = 7796, say = "Just over half a fist back towards the middle of the triangle is Sadr, the middle of the Swan where its wings cross." },
+  { showpiece = "albireo", say = "Carry on along the Swan's long neck, a fist and a half, to Albireo, its head. A small telescope splits it into gold and blue." },
+]
+
+[[hop]]
+id = "plough-leo-sickle"
+title = "Leo's Sickle from the Plough"
+hemisphere = "north"
+steps = [
+  { hr = 4660, say = "Start at Megrez, the faintest star of the Plough's bowl, where the handle joins." },
+  { hr = 4554, say = "Down to Phecda, the bowl's bottom corner below it." },
+  { hr = 3982, say = "Let the bowl leak: carry that line on about four and a half fists, away from Polaris, to Regulus, the heart of Leo." },
+  { hr = 3975, say = "From Regulus the Sickle curves up like a backwards question mark. First, eta Leonis, half a fist away." },
+  { hr = 4057, say = "On to Algieba, the brightest star of the curve." },
+  { hr = 4031, say = "Then Adhafera, fainter, bending round." },
+  { hr = 3905, say = "Round the top of the hook to Rasalas." },
+  { hr = 3873, say = "And down a little to epsilon Leonis, the end of the Sickle, Leo's head." },
+]
+
+[[hop]]
+id = "plough-capella"
+title = "From the Plough to Capella"
+hemisphere = "north"
+steps = [
+  { hr = 4660, say = "Start at Megrez, where the Plough's handle joins the bowl." },
+  { hr = 4301, say = "Across the top of the bowl, about a fist, to Dubhe." },
+  { hr = 1708, say = "Carry on about five times as far to Capella, the brightest star in that part of the sky, yellowish." },
+]
+
+[[hop]]
+id = "scorpius-m4"
+title = "Antares to M4"
+hemisphere = "both"
+steps = [
+  { hr = 5953, say = "Start at Dschubba, the middle of the short curved line of stars that makes the Scorpion's head." },
+  { hr = 6134, say = "Just under a fist along the body to Antares, the red heart of the Scorpion." },
+  { hr = 6084, say = "Two degrees back towards the head is sigma Scorpii, a fainter star." },
+  { showpiece = "m4", say = "About halfway back towards Antares, just off the line, is a round fuzzy patch: the globular cluster M4." },
+]
+
+[[hop]]
+id = "pointers-crux"
+title = "The Pointers to the Southern Cross"
+hemisphere = "south"
+steps = [
+  { hr = 5459, say = "Start at Rigil Kentaurus, Alpha Centauri, the brighter of the two Pointers." },
+  { hr = 5267, say = "Across to Hadar, Beta Centauri, about four degrees away. These are the Pointers." },
+  { hr = 4853, say = "Carry on about twice the gap to Mimosa, one arm of the Southern Cross. Nearby look-alikes, the False Cross, have no Pointers." },
+  { hr = 4763, say = "Across the Cross to Gacrux, at its head, with an orange tint." },
+  { hr = 4730, say = "Down the long bar of the Cross, about six degrees, to Acrux, its brightest star and foot." },
+]
+
+[[hop]]
+id = "crux-south-pole"
+title = "The Southern Cross to the South Pole"
+hemisphere = "south"
+steps = [
+  { hr = 4763, say = "Start at Gacrux, the head of the Southern Cross." },
+  { hr = 4730, say = "Down the long bar to Acrux, the foot. That bar is about six degrees long." },
+  { hr = 7228, say = "Carry on about four and a half times its length. There is no bright pole star: faint sigma Octantis, about a degree from the pole, needs a dark sky." },
+]
+
+[[hop]]
+id = "pegasus-fomalhaut"
+title = "From Pegasus to Fomalhaut"
+hemisphere = "both"
+steps = [
+  { hr = 8775, say = "Start at Scheat, a corner of the Great Square of Pegasus on the side away from Andromeda." },
+  { hr = 8781, say = "Down the side of the Square, just over a fist, to Markab." },
+  { hr = 8728, say = "Carry that line on about three and a half times as far, over four fists, to Fomalhaut, a lone bright star in a dim part of sky." },
+]
+
+[[hop]]
+id = "keystone-m13"
+title = "Hercules' Keystone to M13"
+hemisphere = "north"
+steps = [
+  { hr = 7001, say = "Start at Vega, bright and blue-white." },
+  { hr = 6418, say = "About a fist and a half towards Arcturus is pi Herculis, a corner of the Keystone, a lopsided square of four stars." },
+  { hr = 6324, say = "About half a fist on is epsilon Herculis, the next corner." },
+  { hr = 6212, say = "On to zeta Herculis, the brightest corner." },
+  { hr = 6220, say = "Across to eta Herculis, the last corner, about seven degrees away." },
+  { showpiece = "m13", say = "Go back a third of the way towards zeta. That fuzzy ball is M13, the Great Globular Cluster." },
+]
+
+[[hop]]
+id = "sirius-m41"
+title = "Sirius to M41"
+hemisphere = "both"
+steps = [
+  { hr = 2491, say = "Start at Sirius, the brightest star in the night sky." },
+  { showpiece = "m41", say = "About four degrees due south, less than half a fist, is a hazy patch that binoculars turn into a cluster of stars: M41." },
+]

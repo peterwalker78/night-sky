@@ -10,6 +10,7 @@ name = "Polaris"
 bayer = "alpha Ursae Minoris"
 fact = "The North Star."
 light_years = 436
+more = ["A triple star: William Herschel found its faint companion in August 1779.", "The closest Cepheid variable to us, it pulses gently in brightness every four days."]
 
 [[star]]
 hr = 5563
@@ -26,6 +27,7 @@ hr = 4301
 name = "Dubhe"
 bayer = "alpha Ursae Majoris"
 light_years = 123
+more = ["Its name comes from the Arabic for 'bear', from 'the back of the Greater Bear'.", "Unlike most of the Plough's stars, it does not travel with the Ursa Major moving group."]
 
 [[star]]
 hr = 4295
@@ -47,12 +49,14 @@ hr = 4905
 name = "Alioth"
 bayer = "epsilon Ursae Majoris"
 light_years = 83
+more = ["The brightest star in the Great Bear: the star of the Plough's handle closest to the bowl.", "Its strange spectral lines change as it turns, once every 5.1 days."]
 
 [[star]]
 hr = 5054
 name = "Mizar"
 bayer = "zeta Ursae Majoris"
 fact = "Mizar and its companion Alcor both lie about 80 light years away."
+more = ["In 1617 Benedetto Castelli asked Galileo to look at it; it may be the first double star seen through a telescope.", "Mizar A was the first spectroscopic binary ever found; its orbit was published in 1890."]
 
 [[star]]
 hr = 5062
@@ -64,6 +68,7 @@ hr = 5191
 name = "Alkaid"
 bayer = "eta Ursae Majoris"
 light_years = 104
+more = ["Its name means 'the leader of the daughters of the bier': the handle's three stars are mourners following the bowl.", "A young star, about six million years old, spinning so fast that it bulges at the equator."]
 
 [[star]]
 hr = 168
@@ -80,6 +85,7 @@ hr = 264
 name = "Navi"
 bayer = "gamma Cassiopeiae"
 fact = "Nicknamed Navi by astronaut Gus Grissom: his middle name, Ivan, spelled backwards."
+more = ["In 1866 it became the first star ever seen with bright emission lines in its spectrum.", "It spins at about 450 kilometres a second at its equator, bulging as it turns."]
 
 [[star]]
 hr = 403
@@ -96,6 +102,7 @@ hr = 2061
 name = "Betelgeuse"
 bayer = "alpha Orionis"
 fact = "Somewhere around 400 to 550 light years away, so its light left between roughly 1480 and 1620."
+more = ["Placed where the Sun is, it would swallow the orbits of Mercury, Venus, Earth and Mars.", "Between October 2019 and February 2020 it faded to about a third of its usual brightness, then recovered."]
 
 [[star]]
 hr = 1713
@@ -103,12 +110,14 @@ name = "Rigel"
 bayer = "beta Orionis"
 fact = "About 850 light years away."
 light_years = 846
+more = ["A blue supergiant somewhere between 61,500 and 363,000 times as luminous as the Sun.", "Really a system of at least four stars; a faint triple lies 9.5 arcseconds from it."]
 
 [[star]]
 hr = 1790
 name = "Bellatrix"
 bayer = "gamma Orionis"
 light_years = 256
+more = ["Its name is Latin for 'female warrior'.", "The closest of Orion's major stars."]
 
 [[star]]
 hr = 1852
@@ -140,18 +149,21 @@ hr = 7001
 name = "Vega"
 bayer = "alpha Lyrae"
 light_years = 25
+more = ["The first star other than the Sun to be photographed, and the first to have its spectrum photographed.", "A disc of dust circles it, much like the Kuiper belt around the Sun."]
 
 [[star]]
 hr = 7924
 name = "Deneb"
 bayer = "alpha Cygni"
 fact = "So remote that its distance is still disputed: somewhere between about 1,400 and 2,600 light years."
+more = ["Its name comes from the Arabic for 'tail', from 'the tail of the hen'.", "Somewhere between 55,000 and 196,000 times as luminous as the Sun, it rivals Rigel as the most luminous first-magnitude star."]
 
 [[star]]
 hr = 7557
 name = "Altair"
 bayer = "alpha Aquilae"
 light_years = 17
+more = ["It spins once in under eight hours; the Sun's equator takes more than 25 days.", "Its name is Arabic for 'the flying eagle'."]
 
 [[star]]
 hr = 7417
@@ -173,12 +185,14 @@ hr = 3982
 name = "Regulus"
 bayer = "alpha Leonis"
 light_years = 79
+more = ["Its name is Latin for 'prince' or 'little king'.", "It lies closer to the Sun's path than any other bright star, so the Moon often passes in front of it."]
 
 [[star]]
 hr = 4534
 name = "Denebola"
 bayer = "beta Leonis"
 light_years = 36
+more = ["Its name comes from the Arabic for 'tail of the lion'.", "Al-Biruni wrote of it: 'The heat turns away when it rises, and the cold turns away when it disappears.'"]
 
 [[star]]
 hr = 4057
@@ -210,6 +224,7 @@ hr = 6134
 name = "Antares"
 bayer = "alpha Scorpii"
 fact = "Roughly 550 light years away; its light left around 1470, give or take a century."
+more = ["A red supergiant: placed where the Sun is, it would reach somewhere into the asteroid belt.", "It is really two stars: the red supergiant and a hot companion of magnitude 5.5."]
 
 [[star]]
 hr = 5984
@@ -242,6 +257,7 @@ name = "Sirius"
 bayer = "alpha Canis Majoris"
 fact = "The brightest star in the night sky."
 light_years = 8.6
+more = ["Its name comes from the Greek for 'glowing' or 'scorching'.", "It will stay the brightest star in our sky for about another 210,000 years."]
 
 [[star]]
 hr = 2294
@@ -253,6 +269,7 @@ hr = 2618
 name = "Adhara"
 bayer = "epsilon Canis Majoris"
 light_years = 406
+more = ["About 4.7 million years ago it was the brightest star in the night sky, at magnitude −3.99.", "Its name comes from the Arabic for 'virgins'."]
 
 [[star]]
 hr = 2693
@@ -269,18 +286,21 @@ hr = 2943
 name = "Procyon"
 bayer = "alpha Canis Minoris"
 light_years = 11.5
+more = ["A faint white dwarf circles it; the pair go round each other every 41 years.", "With Sirius and Betelgeuse it makes the Winter Triangle."]
 
 [[star]]
 hr = 2891
 name = "Castor"
 bayer = "alpha Geminorum"
 light_years = 51
+more = ["James Pound first recorded it as a double star in 1718.", "Its two brightest pairs have drifted from about 2 to about 6 arcseconds apart since 1970."]
 
 [[star]]
 hr = 2990
 name = "Pollux"
 bayer = "beta Geminorum"
 light_years = 34
+more = ["The closest giant star to the Sun.", "Its planet, found in 2006, is named Thestias, a name for Leda, the twins' mother."]
 
 [[star]]
 hr = 2421
@@ -292,6 +312,7 @@ hr = 1708
 name = "Capella"
 bayer = "alpha Aurigae"
 light_years = 43
+more = ["Really four stars: two yellow giants circling every 104 days, and a distant pair of red dwarfs.", "One of the brightest X-ray sources in the sky."]
 
 [[star]]
 hr = 2088
@@ -303,12 +324,14 @@ hr = 1457
 name = "Aldebaran"
 bayer = "alpha Tauri"
 light_years = 67
+more = ["A red giant 45 times the Sun's width, yet of about the same mass.", "It turns slowly, taking 520 days to spin once."]
 
 [[star]]
 hr = 1791
 name = "Elnath"
 bayer = "beta Tauri"
 light_years = 136
+more = ["Its name comes from the Arabic for 'the butting': the tip of the bull's horn.", "Ptolemy counted it in both Taurus and Auriga, so it was once also called gamma Aurigae."]
 
 [[star]]
 hr = 1165
@@ -320,12 +343,14 @@ hr = 5340
 name = "Arcturus"
 bayer = "alpha Bootis"
 light_years = 37
+more = ["In 1635 Jean-Baptiste Morin saw it through a telescope in full daylight, the first star besides the Sun recorded that way.", "A red giant about 7.1 billion years old, swollen to 25 times the Sun's size."]
 
 [[star]]
 hr = 5056
 name = "Spica"
 bayer = "alpha Virginis"
 light_years = 246
+more = ["Its name means 'the virgin's ear of grain'.", "It is believed to be the star that led Hipparchus to discover the precession of the equinoxes."]
 
 [[star]]
 hr = 4825
@@ -337,6 +362,7 @@ hr = 1017
 name = "Mirfak"
 bayer = "alpha Persei"
 light_years = 506
+more = ["Its name comes from the Arabic for 'elbow'.", "In Native Hawaiian astronomy it is Hinaliʻi, named in memory of a great tsunami."]
 
 [[star]]
 hr = 936
@@ -433,6 +459,7 @@ hr = 8728
 name = "Fomalhaut"
 bayer = "alpha Piscis Austrini"
 light_years = 25
+more = ["Its name comes from the Arabic for 'the mouth of the southern fish'.", "A disc of dust surrounds it; what was hailed as a photographed planet now seems to be debris from a collision."]
 
 [[star]]
 hr = 3748
@@ -454,6 +481,7 @@ hr = 6879
 name = "Kaus Australis"
 bayer = "epsilon Sagittarii"
 light_years = 146
+more = ["Its name means 'the southern part of the bow'.", "It spins at 95% of the speed that would tear it apart, the fastest rate yet measured for a star in the Milky Way."]
 
 [[star]]
 hr = 7121
@@ -471,12 +499,14 @@ name = "Canopus"
 bayer = "alpha Carinae"
 fact = "The second-brightest star in the night sky."
 light_years = 306
+more = ["Chinese astronomers called it the Old Man of the South Pole; in ancient India it was named after the sage Agastya.", "A bright giant more than 10,000 times as luminous as the Sun."]
 
 [[star]]
 hr = 3685
 name = "Miaplacidus"
 bayer = "beta Carinae"
 light_years = 113
+more = ["The brightest star of the Diamond Cross, a pattern often mistaken for the Southern Cross.", "The meaning of its name is uncertain: perhaps 'placid waters', from Arabic and Latin."]
 
 [[star]]
 hr = 3307
@@ -488,24 +518,28 @@ hr = 472
 name = "Achernar"
 bayer = "alpha Eridani"
 light_years = 136
+more = ["Its name comes from the Arabic for 'the end of the river'.", "The hottest and bluest of the ten brightest stars, spinning so fast that it is flattened."]
 
 [[star]]
 hr = 4730
 name = "Acrux"
 bayer = "alpha Crucis"
 light_years = 346
+more = ["Really a system of seven stars; in 1685 it became the second star system ever recognised as a binary.", "The southernmost first-magnitude star, 2.3 degrees further south than Alpha Centauri."]
 
 [[star]]
 hr = 4853
 name = "Mimosa"
 bayer = "beta Crucis"
 light_years = 276
+more = ["Its name comes from the Latin for 'actor', perhaps by way of the flower.", "Only 8 to 11 million years old; in Greek and Roman times it could be seen from as far north as 40 degrees."]
 
 [[star]]
 hr = 4763
 name = "Gacrux"
 bayer = "gamma Crucis"
 light_years = 89
+more = ["The nearest M-type red giant to us, swollen to 73 times the Sun's width.", "In Brazil it is called Rubídea, 'ruby-like', for its colour."]
 
 [[star]]
 hr = 4656
@@ -518,12 +552,14 @@ name = "Rigil Kentaurus"
 bayer = "alpha Centauri A"
 fact = "Part of the nearest star system to the Sun."
 light_years = 4.37
+more = ["A little larger than the Sun: 1.1 times its mass and 1.5 times its brightness.", "Its name comes from the Arabic for 'the foot of the centaur'."]
 
 [[star]]
 hr = 5267
 name = "Hadar"
 bayer = "beta Centauri"
 light_years = 396
+more = ["The Boorong people of Victoria saw it and Alpha Centauri as two brothers who speared the Emu, the Coalsack.", "Its old name, Agena, is thought to come from the Latin for 'knees': it marks the centaur's left knee."]
 
 [[star]]
 hr = 5288
@@ -540,12 +576,14 @@ hr = 8425
 name = "Alnair"
 bayer = "alpha Gruis"
 light_years = 101
+more = ["Its name comes from the Arabic for 'the bright one'.", "One of the 58 stars chosen for celestial navigation."]
 
 [[star]]
 hr = 6217
 name = "Atria"
 bayer = "alpha Trianguli Australis"
 light_years = 391
+more = ["A huge orange star: placed where the Sun is, it would reach almost to the orbit of Venus.", "It marks one corner of the Southern Triangle, with beta and gamma Trianguli Australis."]
 
 [[star]]
 hr = 99

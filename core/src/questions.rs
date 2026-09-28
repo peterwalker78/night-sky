@@ -6,7 +6,7 @@ use crate::catalogues::Kind;
 use crate::ephem::Body;
 use crate::events::{Kind as EventKind, SkyEvent};
 use crate::finds::{Find, Target, stable_hash};
-use crate::journal::{Ask, Asked, Course, Person, Plan};
+use crate::journal::{Ask, Asked, Course, Person, Plan, Weight};
 use crate::sky::Sky;
 use crate::time::{DAY, HOUR, MONTHS, UnixMs, civil_date, midnight_utc, weekday};
 use serde::Deserialize;
@@ -82,6 +82,8 @@ pub fn triggers(find: &Find, sky: &Sky) -> Vec<&'static str> {
         Target::Meteor(_) => vec!["meteor"],
         Target::Figure(i) if sky.figures[i].abbrev == "Ori" => vec!["orion"],
         Target::Figure(_) => vec![],
+        Target::MoonWalk => vec!["moon"],
+        Target::Hop(_) | Target::Story(_) => vec![],
     };
     out.push("any");
     out
@@ -341,6 +343,25 @@ pub fn plan_to_ask_about<'a>(plans: &'a [Plan], today: &str) -> Option<&'a Plan>
     })
 }
 
+/// A weight set down a week to six weeks ago, still open, that hasn't been
+/// looked back at for three weeks and has no course being charted for it.
+pub fn weight_to_look_back<'a>(
+    weights: &'a [Weight],
+    courses: &[Course],
+    today: &str,
+) -> Option<&'a Weight> {
+    weights
+        .iter()
+        .filter(|w| !w.sorted && !courses.iter().any(|c| c.weight == w.id && !c.draft))
+        .filter(|w| {
+            w.nights
+                .last()
+                .is_some_and(|last| (6..=42).contains(&days_between(last, today)))
+        })
+        .filter(|w| w.looks.iter().all(|k| days_between(&k.night, today) >= 21))
+        .min_by_key(|w| w.looks.len())
+}
+
 /// A course whose check-back is due and hasn't been answered since.
 pub fn course_to_check<'a>(courses: &'a [Course], today: &str) -> Option<&'a Course> {
     courses.iter().find(|c| {
@@ -380,7 +401,7 @@ pub fn plan_nearby(plans: &[Plan], today: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::journal::Mention;
+    use crate::journal::{Check, Mention};
 
     fn ctx<'a>(night: &'a str, asked: &'a [Asked], now_ids: &'a [String]) -> Context<'a> {
         Context {
@@ -529,6 +550,37 @@ mod tests {
             }
         }
         assert!(found, "no plan offered across a month");
+    }
+
+    #[test]
+    fn old_weights_are_looked_back_at_now_and_then() {
+        let mut w = Weight {
+            id: 1,
+            text: "the move".into(),
+            nights: vec!["2026-11-01".into()],
+            ..Weight::default()
+        };
+        let weights = std::slice::from_ref(&w);
+        assert!(
+            weight_to_look_back(weights, &[], "2026-11-03").is_none(),
+            "too soon"
+        );
+        assert!(weight_to_look_back(weights, &[], "2026-11-10").is_some());
+        assert!(
+            weight_to_look_back(weights, &[], "2027-01-10").is_none(),
+            "long gone"
+        );
+        w.looks.push(Check {
+            night: "2026-11-10".into(),
+            answer: "Lighter".into(),
+        });
+        let weights = std::slice::from_ref(&w);
+        assert!(
+            weight_to_look_back(weights, &[], "2026-11-15").is_none(),
+            "just asked"
+        );
+        w.sorted = true;
+        assert!(weight_to_look_back(std::slice::from_ref(&w), &[], "2026-12-05").is_none());
     }
 
     #[test]

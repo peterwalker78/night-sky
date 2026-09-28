@@ -21,6 +21,9 @@ pub struct Weight {
     pub nights: Vec<String>,
     #[serde(default)]
     pub sorted: bool,
+    /// How it sat when the sky looked back at it, later.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub looks: Vec<Check>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
@@ -307,6 +310,14 @@ impl Journal {
         self.found.iter().any(|f| f.id == id && f.night != night)
     }
 
+    /// How many earlier nights something was found on.
+    pub fn times_found_before(&self, id: &str, night: &str) -> usize {
+        self.found
+            .iter()
+            .filter(|f| f.id == id && f.night != night)
+            .count()
+    }
+
     pub fn found_on(&self, id: &str, night: &str) -> bool {
         self.found.iter().any(|f| f.id == id && f.night == night)
     }
@@ -385,6 +396,7 @@ impl Journal {
             text: text.to_owned(),
             nights: vec![night.to_owned()],
             sorted: false,
+            looks: Vec::new(),
         });
         id
     }

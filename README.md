@@ -15,13 +15,34 @@ Nothing you write ever leaves your computer.
 
 ## What it is
 
-Night Sky draws the sky over you right now, in fine dots: the real stars, the
+Night Sky is a few quiet minutes at the end of the day, to wind down and come
+back to what matters to you: the people who are there for you, something to
+look forward to, and setting down what's weighing on you so it's lighter in the
+morning. The sky is the way in, and its stories are about us as much as about
+the stars.
+
+It draws the sky over you right now, in fine dots: the real stars, the
 Moon at its real phase, the planets that are really up, the Milky Way where it
-really runs. Sweep across it and catch the night's finds: up to a dozen
-planets, clusters, galaxies, named stars and constellations to find by their
-shape, listed at the top right with where to look for each as the sky turns. Hold Space
-on one and the view closes in; a card says something true about it, usually
-about time or distance.
+really runs. Sweep across it and catch the night's finds: planets, clusters, galaxies, named stars and
+constellations to find by their shape, listed at the top right with where to
+look for each as the sky turns. Hold Space on one and the view closes in; a
+card says something true about it, and something new each time you find it
+again.
+
+Some finds take a few minutes:
+
+- **Tonight's story.** Myth and science about stars that are really up, told a
+  card at a time while the view moves round them. Each ends on a thought
+  turned from the sky back to everyday life.
+- **A star-hop.** The old way of finding things: from a star you know, one
+  step at a time, with the trail drawn as you go.
+- **A walk on the Moon.** Close up on the real photograph at tonight's phase,
+  the wisp flies to craters, seas and landing sites near the edge of night,
+  where the shadows are long. The line moves every night, so no two walks are
+  the same.
+- **Things that change.** Jupiter's four big moons in their real places, Venus
+  and Mercury at their real phase, Algol dimming on its real schedule, and on
+  dark nights one fainter thing to zoom in on, from a list of over a hundred.
 
 Each visit slows down as you play, dims for a real reason, and ends by naming
 one thing you can go outside and see tonight.
@@ -37,7 +58,7 @@ brightens when you catch something, and falls asleep when the lights go out.
 Most apps are built to keep you. This one is built to let you go, and it says
 so here so there's no trick in it.
 
-- **The sky is finite.** There are up to a dozen things to find each night.
+- **The sky is finite.** There are only so many things to find each night.
   Once they're found, the sky is done until it has turned. Tomorrow really is
   different: the Moon moves about thirteen degrees a night.
 - **It slows as you play.** The twinkle, the drift and the pace ease down over
@@ -60,6 +81,9 @@ Now and then, at most twice a visit and never on your first night, the sky asks
 a question as you catch something. They are small and specific, and they tend
 to be about people, and about things to look forward to. When the answer is a
 name, that person can have a star.
+
+Now and then the sky brings back a weight from a week or a month ago and asks
+how it sits now: lighter, the same, heavier, or behind you.
 
 Everything goes into a **logbook**: a page for each night, and contents pages
 that gather what keeps coming back, including the people whose names come up
@@ -145,6 +169,13 @@ shortens the visit itself, `--place=LAT,LON` stands somewhere else, and
   the ground.
 - **Meteor showers:** the International Meteor Organization's working list of
   visual meteor showers.
+- **Deep-sky objects:** positions from [SIMBAD](https://simbad.cds.unistra.fr/);
+  magnitudes, sizes and facts checked against each object's Wikipedia article.
+- **Jupiter's moons:** the lower-accuracy method in Jean Meeus's *Astronomical
+  Algorithms*, checked against JPL Horizons.
+- **The Moon's features:** the IAU Gazetteer of Planetary Nomenclature, and
+  NASA's NSSDCA for the landing sites.
+- **Algol's eclipses:** Kreiner's ephemeris.
 
 ## The photographs
 

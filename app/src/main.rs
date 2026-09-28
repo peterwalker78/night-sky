@@ -15,6 +15,7 @@ mod music;
 mod settings;
 mod sprite;
 mod talk;
+mod tour;
 mod ui;
 mod view;
 

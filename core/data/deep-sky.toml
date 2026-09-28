@@ -1,0 +1,1481 @@
+# Messier objects not already in showpieces.toml, and some of the brightest and best-known
+# NGC and IC objects of both hemispheres. Same format as showpieces.toml. Positions (J2000)
+# from SIMBAD: the Veil uses its entry for the Cygnus Loop, the Rosette Nebula its entry for
+# the whole nebula, and M102 NGC 5866. Magnitudes and sizes from Wikipedia, the infobox or
+# else the article text (NGC 6543's infobox gives only a blue magnitude); SIMBAD's size where
+# Wikipedia has none (M54, IC 4756). M40 is a double: its magnitude is the brighter star's and
+# its size the separation. Facts checked against each object's Wikipedia page.
+
+[[showpiece]]
+id = "m1"
+name = "Crab Nebula (M1)"
+kind = "nebula"
+ra = 83.632
+dec = 22.017
+mag = 8.4
+size = 7.0
+fact = "The wreck of a star whose explosion Chinese and Japanese astronomers recorded in 1054; it lies about 6,500 light years away."
+more = ["At its heart spins a neutron star about 30 kilometres across, turning some 30 times a second.", "Charles Messier came across it in 1758 while hunting a comet, and made it the first entry in his catalogue."]
+
+[[showpiece]]
+id = "m2"
+name = "M2"
+kind = "cluster"
+ra = 323.363
+dec = -0.823
+mag = 6.5
+size = 16.0
+fact = "About 37,500 light years away and 175 light years across, one of the larger globular clusters known."
+more = ["Around 150,000 stars, some 12.5 billion years old.", "Messier took it for a starless nebula; William Herschel was the first to see its stars, in 1783."]
+
+[[showpiece]]
+id = "m9"
+name = "M9"
+kind = "cluster"
+ra = 259.799
+dec = -18.516
+mag = 7.7
+size = 9.3
+fact = "About 25,800 light years away, and one of the nearer globular clusters to the centre of the galaxy."
+more = ["It lies against a dark cloud of dust called Barnard 64.", "Together its stars shine around 120,000 times as brightly as the Sun."]
+
+[[showpiece]]
+id = "m10"
+name = "M10"
+kind = "cluster"
+ra = 254.288
+dec = -4.100
+mag = 6.6
+size = 20.0
+fact = "About 14,300 light years away; its bright core is only 35 light years across."
+more = ["It goes round the Milky Way about every 140 million years, crossing the galaxy's disc every 53 million.", "Messier saw only a 'nebula without stars'; William Herschel later called it a beautiful cluster of extremely compressed stars."]
+
+[[showpiece]]
+id = "m12"
+name = "M12"
+kind = "cluster"
+ra = 251.809
+dec = -1.949
+mag = 6.7
+size = 16.0
+fact = "About 16,400 light years away, and so loosely packed that it was once taken for an open cluster."
+more = ["It has unusually few low-mass stars, perhaps stripped away as it passed through the Milky Way's disc.", "Only a few thousand light years separate it from M10; seen from one, the other would shine at about magnitude 4.5."]
+
+[[showpiece]]
+id = "m14"
+name = "M14"
+kind = "cluster"
+ra = 264.401
+dec = -3.246
+mag = 7.6
+size = 11.0
+fact = "About 30,000 light years away and home to several hundred thousand stars."
+more = ["A nova flared here in 1938, but nobody noticed until old photographic plates were studied in 1964.", "Its stars together shine roughly 400,000 times as brightly as the Sun."]
+
+[[showpiece]]
+id = "m15"
+name = "M15"
+kind = "cluster"
+ra = 322.493
+dec = 12.167
+mag = 6.2
+size = 18.0
+fact = "About 35,700 light years away and roughly 12.5 billion years old, one of the oldest globular clusters known."
+more = ["One of the most densely packed globulars in the galaxy: its core has collapsed in on itself.", "It holds Pease 1, found in 1928, the first planetary nebula discovered inside a globular cluster."]
+
+[[showpiece]]
+id = "m16"
+name = "Eagle Nebula (M16)"
+kind = "nebula"
+ra = 274.688
+dec = -13.792
+mag = 6.4
+size = 70.0
+fact = "Home of the Pillars of Creation, the towers of gas and dust made famous by the Hubble Space Telescope in 1995."
+more = ["About 5,700 light years away; its cluster's stars are only 1 to 2 million years old.", "Its brightest star is a binary of roughly 80 solar masses, up to a million times as luminous as the Sun."]
+
+[[showpiece]]
+id = "m17"
+name = "Omega Nebula (M17)"
+kind = "nebula"
+ra = 275.196
+dec = -16.172
+mag = 6.0
+size = 11.0
+fact = "Also called the Swan Nebula; it lies 5,000 to 6,000 light years away and is one of the brightest star-forming regions in the galaxy."
+more = ["The cluster inside it is one of the youngest known, only about a million years old.", "John Herschel, drawing it in 1833, likened it to a distorted Greek capital omega."]
+
+[[showpiece]]
+id = "m18"
+name = "M18"
+kind = "cluster"
+ra = 274.988
+dec = -17.088
+mag = 7.5
+size = 9.8
+fact = "A sparse open cluster about 4,200 light years away, whose stars are some 33 million years old."
+more = ["It takes about 186 million years to travel once around the centre of the Milky Way.", "It sits in the Milky Way between the Omega Nebula and the Small Sagittarius Star Cloud."]
+
+[[showpiece]]
+id = "m19"
+name = "M19"
+kind = "cluster"
+ra = 255.657
+dec = -26.268
+mag = 6.8
+size = 17.0
+fact = "About 28,700 light years away, and only about 6,500 light years from the centre of the galaxy."
+more = ["One of the most flattened-looking globulars, though mostly because dust dims one edge; in infrared it looks almost round.", "John Herschel called it 'a superb cluster resolvable into countless stars'."]
+
+[[showpiece]]
+id = "m20"
+name = "Trifid Nebula (M20)"
+kind = "nebula"
+ra = 270.675
+dec = -22.972
+mag = 6.3
+size = 28.0
+fact = "Its name means 'three-lobed': dark lanes of dust split its glowing gas into three."
+more = ["Four things in one: a star cluster, a red emission nebula, a blue reflection nebula and dark dust.", "About 4,100 light years away; in 2005 the Spitzer telescope found 30 embryonic and 120 newborn stars hidden inside."]
+
+[[showpiece]]
+id = "m21"
+name = "M21"
+kind = "cluster"
+ra = 271.036
+dec = -22.505
+mag = 6.5
+size = 14.0
+fact = "A young, tightly packed cluster about 3,900 light years away, its stars only around 6.6 million years old."
+more = ["It sits beside the Trifid Nebula in the sky but has nothing to do with it.", "Its stars show little spread in age, as if they all formed at once."]
+
+[[showpiece]]
+id = "m23"
+name = "M23"
+kind = "cluster"
+ra = 269.237
+dec = -18.987
+mag = 5.5
+size = 35.0
+fact = "About 2,050 light years away; its stars are around 330 million years old."
+more = ["It lies so near the Sun's yearly path that the Moon can pass in front of it.", "Counts of its member stars range from about 170 to more than 400."]
+
+[[showpiece]]
+id = "m24"
+name = "Small Sagittarius Star Cloud (M24)"
+kind = "cluster"
+ra = 274.200
+dec = -18.550
+mag = 2.5
+size = 120.0
+fact = "Not a cluster but a window through the dust into the Milky Way, showing stars 10,000 to 15,000 light years deep."
+more = ["Binoculars show around 1,000 stars at once here, the densest crowd of stars they can reach.", "A dark cloud, Barnard 92, makes a round, starless hole in its north-western side."]
+
+[[showpiece]]
+id = "m25"
+name = "M25"
+kind = "cluster"
+ra = 277.937
+dec = -19.114
+mag = 4.6
+size = 36.0
+fact = "About 2,000 light years away and some 68 million years old."
+more = ["One member, U Sagittarii, is a Cepheid: a star that regularly swells and fades.", "Philippe Loys de Chéseaux first recorded it in 1745; Messier listed it in 1764."]
+
+[[showpiece]]
+id = "m26"
+name = "M26"
+kind = "cluster"
+ra = 281.317
+dec = -9.386
+mag = 8.0
+size = 14.0
+fact = "About 5,160 light years away and some 85 million years old."
+more = ["A patch of oddly few stars near its centre still has no clear explanation.", "About 25 of its stars show in a 150 to 200 mm telescope; the brightest is only magnitude 11."]
+
+[[showpiece]]
+id = "m27"
+name = "Dumbbell Nebula (M27)"
+kind = "nebula"
+ra = 299.902
+dec = 22.721
+mag = 7.4
+size = 8.0
+fact = "The first planetary nebula ever found, by Messier in 1764: the cast-off shell of a dying star, about 1,360 light years away."
+more = ["Its gas is spreading at about 31 kilometres a second, which makes it roughly 10,000 years old.", "It lies inside the Summer Triangle, a few degrees north of gamma Sagittae."]
+
+[[showpiece]]
+id = "m28"
+name = "M28"
+kind = "cluster"
+ra = 276.137
+dec = -24.870
+mag = 6.8
+size = 11.2
+fact = "About 18,300 light years away and very roughly 12 billion years old."
+more = ["The first millisecond pulsar found in a globular cluster turned up here, spotted with Jodrell Bank's Lovell Telescope.", "It lies less than a degree from Kaus Borealis, a third-magnitude star in Sagittarius."]
+
+[[showpiece]]
+id = "m29"
+name = "M29"
+kind = "cluster"
+ra = 305.942
+dec = 38.487
+mag = 7.1
+size = 7.0
+fact = "A small cluster about 1.7 degrees south of Sadr in Cygnus, its stars only around 10 million years old."
+more = ["Its brightest stars make a little box, and its shape earned it the nickname the Cooling Tower.", "Together its stars shine about 160,000 times as brightly as the Sun."]
+
+[[showpiece]]
+id = "m30"
+name = "M30"
+kind = "cluster"
+ra = 325.092
+dec = -23.180
+mag = 7.2
+size = 12.0
+fact = "About 27,100 light years away and roughly 12.9 billion years old."
+more = ["It orbits the galaxy backwards, against the general flow, so it was probably captured from a smaller galaxy.", "Its collapsed core packs about a million Suns' worth of mass into every cubic parsec, one of the densest places in the Milky Way."]
+
+[[showpiece]]
+id = "m32"
+name = "M32"
+kind = "galaxy"
+ra = 10.674
+dec = 40.865
+mag = 8.08
+size = 8.7
+fact = "A small companion of the Andromeda Galaxy, about 2.5 million light years away."
+more = ["Its old red and yellow stars have almost no gas or dust left, so no new stars are forming.", "The prototype of a rare kind of galaxy, the compact elliptical."]
+
+[[showpiece]]
+id = "m34"
+name = "M34"
+kind = "cluster"
+ra = 40.531
+dec = 42.722
+mag = 5.5
+size = 35.0
+fact = "About 1,500 light years away and some 200 to 250 million years old."
+more = ["Just visible to the naked eye in a truly dark sky, far from city lights.", "At least 19 of its members are white dwarfs, the cooling cores of stars that have already died."]
+
+[[showpiece]]
+id = "m36"
+name = "M36"
+kind = "cluster"
+ra = 84.084
+dec = 34.135
+mag = 6.3
+size = 12.0
+fact = "Roughly 4,000 light years away and only around 25 million years old."
+more = ["Much like the Pleiades: placed as far away, the Pleiades would look about as bright.", "Giovanni Batista Hodierna saw it as a nebulous patch before 1654."]
+
+[[showpiece]]
+id = "m38"
+name = "M38"
+kind = "cluster"
+ra = 82.167
+dec = 35.824
+mag = 7.4
+size = 21.0
+fact = "About 3,500 light years away and around 290 million years old."
+more = ["Its brightest stars trace a shape like the Greek letter pi, or an oblique cross.", "Its brightest star is a yellow giant about 900 times as luminous as the Sun; from there, our Sun would be a faint 15th-magnitude speck."]
+
+[[showpiece]]
+id = "m39"
+name = "M39"
+kind = "cluster"
+ra = 322.889
+dec = 48.247
+mag = 4.6
+size = 29.0
+fact = "About 1,010 light years away and about as wide as the full Moon; best in binoculars."
+more = ["Guillaume Le Gentil found it in 1749, and Messier added it to his list in 1764.", "Six of its 15 brightest stars are binaries."]
+
+[[showpiece]]
+id = "m40"
+name = "Winnecke 4 (M40)"
+kind = "double"
+ra = 185.550
+dec = 58.083
+mag = 9.64
+size = 0.86
+fact = "Messier's mistake: two unrelated stars he catalogued in 1764 while searching for a nebula that wasn't there."
+more = ["The pair only look close: Gaia puts one about 1,000 light years away and the other about 470.", "The gap between them has widened since Messier's day, to about 52 arcseconds in 1991."]
+
+[[showpiece]]
+id = "m43"
+name = "De Mairan's Nebula (M43)"
+kind = "nebula"
+ra = 83.879
+dec = -5.270
+mag = 9.0
+size = 20.0
+fact = "Part of the Orion Nebula, cut off from it by a lane of dust, about 1,360 light years away."
+more = ["Jean-Jacques d'Ortous de Mairan found it some time before 1731; Messier listed it in 1769.", "Its glow is driven by a single quadruple star system, NU Orionis."]
+
+[[showpiece]]
+id = "m46"
+name = "M46"
+kind = "cluster"
+ra = 115.445
+dec = -14.844
+mag = 6.0
+size = 22.8
+fact = "About 5,000 light years away: around 500 stars some 250 million years old."
+more = ["A planetary nebula, NGC 2438, seems to sit inside it but is most likely unrelated.", "It lies about a degree east of M47, and binoculars take in both at once."]
+
+[[showpiece]]
+id = "m47"
+name = "M47"
+kind = "cluster"
+ra = 114.147
+dec = -14.489
+mag = 4.4
+size = 30.0
+fact = "About 1,600 light years away and some 78 million years old."
+more = ["Messier mixed up the signs in its position, so it was 'lost' until 1959, when T. F. Morris spotted the slip.", "Its hot blue stars are set off by a few red giants, a pleasing contrast of colour."]
+
+[[showpiece]]
+id = "m48"
+name = "M48"
+kind = "cluster"
+ra = 123.412
+dec = -5.726
+mag = 5.8
+size = 30.0
+fact = "About 2,500 light years away and some 400 to 450 million years old."
+more = ["Messier got its declination wrong by five degrees, so no cluster sits exactly where he said.", "John Herschel called it 'a superb cluster which fills the whole field'."]
+
+[[showpiece]]
+id = "m49"
+name = "M49"
+kind = "galaxy"
+ra = 187.445
+dec = 8.000
+mag = 8.4
+size = 10.2
+fact = "A giant elliptical galaxy about 56 million light years away, the first member of the Virgo Cluster ever found."
+more = ["Some 5,900 globular clusters swarm around it, against about 200 around the Milky Way.", "Its core probably hides a black hole of about 565 million solar masses."]
+
+[[showpiece]]
+id = "m50"
+name = "M50"
+kind = "cluster"
+ra = 105.684
+dec = -8.365
+mag = 5.9
+size = 16.0
+fact = "About 2,900 light years away and some 140 million years old; its shape is often likened to a heart."
+more = ["In 2025 it turned out to be two clusters, not one.", "Giovanni Domenico Cassini recorded it before 1711; Messier found it again in 1772 while following a comet."]
+
+[[showpiece]]
+id = "m51"
+name = "Whirlpool Galaxy (M51)"
+kind = "galaxy"
+ra = 202.470
+dec = 47.195
+mag = 8.4
+size = 11.2
+fact = "The first 'nebula' seen to have a spiral shape, found by Lord Rosse with his giant telescope at Birr Castle in Ireland."
+more = ["It is caught up with a smaller companion galaxy, NGC 5195; binoculars can show the pair in a dark sky.", "Find it 3.5 degrees south-west of Alkaid, the star at the end of the Plough's handle."]
+
+[[showpiece]]
+id = "m52"
+name = "M52"
+kind = "cluster"
+ra = 351.195
+dec = 61.590
+mag = 7.3
+size = 13.0
+fact = "A rich cluster in Cassiopeia, about 4,600 light years away and some 160 million years old."
+more = ["Its core is oddly clear of gas and dust, perhaps swept out by supernovae early in its life.", "Messier found it in 1774; binoculars show it under a good sky."]
+
+[[showpiece]]
+id = "m53"
+name = "M53"
+kind = "cluster"
+ra = 198.230
+dec = 18.168
+mag = 7.6
+size = 13.0
+fact = "About 58,000 light years away, almost as far from us as it is from the centre of the galaxy."
+more = ["A faint bridge of stars seems to join it to its neighbour NGC 5053, which may be unique in the Milky Way.", "Johann Elert Bode discovered it in 1775."]
+
+[[showpiece]]
+id = "m54"
+name = "M54"
+kind = "cluster"
+ra = 283.764
+dec = -30.480
+mag = 7.6
+size = 9.1
+fact = "The first globular once counted as the Milky Way's to be given to another galaxy: the Sagittarius Dwarf, some 80,000 light years away."
+more = ["It shines with roughly 850,000 times the Sun's light.", "It sits close to zeta Sagittarii, yet no amateur telescope can split it into stars."]
+
+[[showpiece]]
+id = "m55"
+name = "M55"
+kind = "cluster"
+ra = 294.999
+dec = -30.965
+mag = 6.3
+size = 19.0
+fact = "About 17,600 light years away; Nicolas Louis de Lacaille found it in 1752 from what is now South Africa."
+more = ["Messier tried for years to see it from Paris, where it barely clears the horizon, and finally logged it in 1778.", "Its stars have only about a hundredth of the Sun's share of iron."]
+
+[[showpiece]]
+id = "m56"
+name = "M56"
+kind = "cluster"
+ra = 289.148
+dec = 30.183
+mag = 8.3
+size = 8.8
+fact = "About 32,900 light years away, roughly halfway between Albireo and gamma Lyrae."
+more = ["Thought to be about 13.7 billion years old, and it orbits the galaxy backwards.", "Its brightest stars are only 13th magnitude, so it takes a 20 cm telescope to show them."]
+
+[[showpiece]]
+id = "m57"
+name = "Ring Nebula (M57)"
+kind = "nebula"
+ra = 283.396
+dec = 33.029
+mag = 8.8
+size = 1.4
+fact = "A dying star's cast-off shell of gas, about 2,570 light years away and now around a light year across."
+more = ["Easy to find: it lies between beta and gamma Lyrae, a little closer to beta.", "Antoine Darquier, who found it independently in 1779, said it looked like a planet that was fading."]
+
+[[showpiece]]
+id = "m58"
+name = "M58"
+kind = "galaxy"
+ra = 189.432
+dec = 11.818
+mag = 9.7
+size = 5.9
+fact = "A barred spiral about 68 million light years away, one of the brightest galaxies in the Virgo Cluster."
+more = ["From 1779 it was arguably the most distant thing anyone knew of for about a century, though no one realised it.", "Messier said it vanished in the faintest light he used to see his micrometer wires."]
+
+[[showpiece]]
+id = "m59"
+name = "M59"
+kind = "galaxy"
+ra = 190.509
+dec = 11.647
+mag = 9.6
+size = 5.4
+fact = "An elliptical galaxy in the Virgo Cluster, around 50 million light years away."
+more = ["Johann Gottfried Koehler found it in April 1779 while watching a comet; Messier listed it three days later.", "Around 2,200 globular clusters orbit it."]
+
+[[showpiece]]
+id = "m60"
+name = "M60"
+kind = "galaxy"
+ra = 190.917
+dec = 11.553
+mag = 8.8
+size = 7.4
+fact = "A giant elliptical about 57 million light years away, home to one of the largest black holes known: some 4.5 billion solar masses."
+more = ["It overlaps the spiral galaxy NGC 4647 in our view, yet shows no sign of the two disturbing each other.", "Koehler found it along with M59 in April 1779, while following a comet."]
+
+[[showpiece]]
+id = "m61"
+name = "M61"
+kind = "galaxy"
+ra = 185.479
+dec = 4.474
+mag = 9.7
+size = 6.5
+fact = "A barred spiral about 45 million light years away, one of the largest members of the Virgo Cluster."
+more = ["Eight supernovae have been seen in it, making it one of the most prolific galaxies for them.", "Messier saw it the same night as Barnaba Oriani in 1779 but took it for a comet."]
+
+[[showpiece]]
+id = "m62"
+name = "M62"
+kind = "cluster"
+ra = 255.302
+dec = -30.112
+mag = 6.5
+size = 15.0
+fact = "About 21,500 light years away, one of the most massive and luminous globular clusters in the Milky Way."
+more = ["It may hold more RR Lyrae variable stars than any other cluster in the galaxy: at least 209.", "One of its pulsars has a planet about three times the mass of Jupiter."]
+
+[[showpiece]]
+id = "m63"
+name = "Sunflower Galaxy (M63)"
+kind = "galaxy"
+ra = 198.955
+dec = 42.029
+mag = 9.3
+size = 12.6
+fact = "About 29 million light years away, and one of the first galaxies in which Lord Rosse saw spiral structure, in the mid-1800s."
+more = ["Its gas reaches 130,000 light years from the centre, far beyond the part we can see.", "Pierre Méchain found it first; Messier confirmed it on 14 June 1779."]
+
+[[showpiece]]
+id = "m64"
+name = "Black Eye Galaxy (M64)"
+kind = "galaxy"
+ra = 194.182
+dec = 21.683
+mag = 8.52
+size = 10.7
+fact = "A dark band of dust across its bright centre gives it a black eye; it lies about 17 million light years away."
+more = ["Its gas turns in two discs spinning opposite ways, perhaps the remains of a small galaxy it swallowed.", "Edward Pigott found it in March 1779, a month before Bode and a year before Messier."]
+
+[[showpiece]]
+id = "m65"
+name = "M65"
+kind = "galaxy"
+ra = 169.733
+dec = 13.092
+mag = 9.3
+size = 8.7
+fact = "One of the Leo Triplet, three galaxies sharing a small patch of sky in Leo."
+more = ["Low on gas and dust, it makes few new stars.", "Only a third of a degree from M66, so one telescope view can hold both."]
+
+[[showpiece]]
+id = "m66"
+name = "M66"
+kind = "galaxy"
+ra = 170.063
+dec = 12.992
+mag = 8.9
+size = 9.1
+fact = "A spiral about 95,000 light years across and some 31 million light years away, a member of the Leo Triplet."
+more = ["A past brush with its neighbour NGC 3628 left it with oddly prominent spiral arms.", "Five supernovae have been seen in it since 1973."]
+
+[[showpiece]]
+id = "m67"
+name = "M67"
+kind = "cluster"
+ra = 132.846
+dec = 11.814
+mag = 6.1
+size = 30.0
+fact = "Billions of years old, remarkably old for an open cluster, and about 2,600 to 2,900 light years away."
+more = ["It holds more than 100 stars like the Sun.", "Johann Gottfried Koehler discovered it in 1779."]
+
+[[showpiece]]
+id = "m68"
+name = "M68"
+kind = "cluster"
+ra = 189.867
+dec = -26.744
+mag = 7.8
+size = 11.0
+fact = "About 33,600 light years away; its stretched orbit carries it out to 100,000 light years from the galaxy's centre."
+more = ["One of the most metal-poor globulars: its stars hold very little besides hydrogen and helium.", "William Herschel called it 'a beautiful cluster of stars, extremely rich'."]
+
+[[showpiece]]
+id = "m69"
+name = "M69"
+kind = "cluster"
+ra = 277.846
+dec = -32.348
+mag = 7.6
+size = 10.8
+fact = "About 28,700 light years away and only 5,200 light years from the centre of the galaxy."
+more = ["Messier found it on 31 August 1780, the same night as its neighbour M70.", "Possibly only 1,800 light years separate it from M70."]
+
+[[showpiece]]
+id = "m70"
+name = "M70"
+kind = "cluster"
+ra = 280.803
+dec = -32.292
+mag = 7.9
+size = 8.0
+fact = "About 29,400 light years away, some 6,500 light years from the centre of the galaxy."
+more = ["Comet Hale–Bopp was discovered close to it in the sky in 1995.", "Its core has collapsed, crowding its stars tightly towards the middle."]
+
+[[showpiece]]
+id = "m71"
+name = "M71"
+kind = "cluster"
+ra = 298.444
+dec = 18.779
+mag = 8.2
+size = 7.2
+fact = "About 13,000 light years away; until the 1970s it was thought to be an open cluster."
+more = ["At 9 to 10 billion years old, it is young for a globular cluster.", "Philippe Loys de Chéseaux found it in 1745, in the little constellation Sagitta."]
+
+[[showpiece]]
+id = "m72"
+name = "M72"
+kind = "cluster"
+ra = 313.365
+dec = -12.537
+mag = 9.3
+size = 6.6
+fact = "About 54,500 light years away and some 9.5 billion years old."
+more = ["Pierre Méchain found it on 29 August 1780; Messier looked for it 36 days later.", "Both men took it for a faint nebula; John Herschel saw a bright, round cluster of stars."]
+
+[[showpiece]]
+id = "m73"
+name = "M73"
+kind = "cluster"
+ra = 314.750
+dec = -12.633
+mag = 9.0
+size = 2.8
+fact = "Just four stars in a chance line-up, between 1,000 and 2,300 light years away, long mistaken for a cluster."
+more = ["Messier saw some nebulosity with them in 1780; John Herschel could find none.", "Whether they formed a cluster was argued over until 2002, when their distances and motions showed they are unrelated."]
+
+[[showpiece]]
+id = "m74"
+name = "Phantom Galaxy (M74)"
+kind = "galaxy"
+ra = 24.174
+dec = 15.784
+mag = 9.4
+size = 10.5
+fact = "A face-on spiral about 32 million light years away, with some 100 billion stars."
+more = ["Its faint, spread-out light makes it the hardest Messier object for amateurs to see.", "Three supernovae have been seen in it; the one in 2002 was the brightest of that year."]
+
+[[showpiece]]
+id = "m75"
+name = "M75"
+kind = "cluster"
+ra = 301.520
+dec = -21.922
+mag = 8.5
+size = 6.8
+fact = "About 67,500 light years away, on the far side of the centre of the galaxy."
+more = ["One of the more densely packed globular clusters known.", "Its long, stretched orbit takes about 400 million years to go round the galaxy."]
+
+[[showpiece]]
+id = "m76"
+name = "Little Dumbbell Nebula (M76)"
+kind = "nebula"
+ra = 25.582
+dec = 51.575
+mag = 10.1
+size = 2.7
+fact = "A dying star's cast-off gas about 2,500 light years away, named for its likeness to the larger Dumbbell Nebula."
+more = ["Once thought to be two nebulae, it still carries two catalogue numbers, NGC 650 and 651.", "Its bright bar is a ring seen edge-on, with a lobe of gas blown out on either side."]
+
+[[showpiece]]
+id = "m77"
+name = "M77"
+kind = "galaxy"
+ra = 40.670
+dec = -0.013
+mag = 8.9
+size = 7.1
+fact = "A barred spiral about 35 million light years away, with a fierce, active core hidden from view by dust."
+more = ["Messier and William Herschel both took it for a star cluster.", "One of the brightest and closest galaxies of its active kind, the textbook example of a type 2 Seyfert."]
+
+[[showpiece]]
+id = "m78"
+name = "M78"
+kind = "nebula"
+ra = 86.691
+dec = 0.079
+mag = 8.3
+size = 8.0
+fact = "A cloud of dust lit by two young stars, about 1,350 light years away in Orion."
+more = ["Amateur astronomers call it Casper the Friendly Ghost Nebula.", "Inside it are 45 stars still forming and 17 jets blown out by newborn stars."]
+
+[[showpiece]]
+id = "m79"
+name = "M79"
+kind = "cluster"
+ra = 81.044
+dec = -24.524
+mag = 7.7
+size = 8.7
+fact = "About 42,000 light years away and 60,000 light years from the centre of the galaxy."
+more = ["The Milky Way's pull is tearing it apart, leaving a long trail of stars behind it.", "Pierre Méchain discovered it in 1780."]
+
+[[showpiece]]
+id = "m80"
+name = "M80"
+kind = "cluster"
+ra = 244.260
+dec = -22.976
+mag = 7.3
+size = 10.0
+fact = "One of the densest globular clusters in the Milky Way: several hundred thousand stars about 32,600 light years away."
+more = ["In May 1860 a nova, T Scorpii, briefly outshone the whole cluster.", "It lies midway between Antares and beta Scorpii."]
+
+[[showpiece]]
+id = "m82"
+name = "Cigar Galaxy (M82)"
+kind = "galaxy"
+ra = 148.968
+dec = 69.680
+mag = 8.41
+size = 11.2
+fact = "A starburst galaxy about 12 million light years away, whose centre makes stars ten times faster than the whole Milky Way."
+more = ["Its burst of star birth is thought to have been set off by its neighbour M81.", "A supernova, SN 2014J, was discovered in it in January 2014."]
+
+[[showpiece]]
+id = "m83"
+name = "Southern Pinwheel Galaxy (M83)"
+kind = "galaxy"
+ra = 204.254
+dec = -29.866
+mag = 7.6
+size = 12.9
+fact = "One of the closest and brightest barred spirals, about 15 million light years away and visible in binoculars."
+more = ["Nicolas-Louis de Lacaille discovered it in 1752 from the Cape of Good Hope.", "Six supernovae have been seen in it since 1923."]
+
+[[showpiece]]
+id = "m84"
+name = "M84"
+kind = "galaxy"
+ra = 186.266
+dec = 12.887
+mag = 9.1
+size = 6.5
+fact = "A giant galaxy in the crowded heart of the Virgo Cluster, about 55 million light years away."
+more = ["Two jets shoot from its centre, where a black hole of about 1.5 billion solar masses sits.", "Three supernovae have been seen in it, a high rate for a galaxy of its kind."]
+
+[[showpiece]]
+id = "m85"
+name = "M85"
+kind = "galaxy"
+ra = 186.350
+dec = 18.191
+mag = 9.1
+size = 7.1
+fact = "About 60 million light years away, on the outskirts of the Virgo Cluster."
+more = ["Shells and ripples around it are thought to be scars of a merger 4 to 7 billion years ago.", "The first luminous red nova ever identified was spotted in its outskirts in 2006."]
+
+[[showpiece]]
+id = "m86"
+name = "M86"
+kind = "galaxy"
+ra = 186.549
+dec = 12.946
+mag = 8.9
+size = 8.9
+fact = "Coming towards us at about 244 kilometres a second, the largest blueshift of any Messier object."
+more = ["About 52 million light years away, with some 3,800 globular clusters.", "Racing through the Virgo Cluster, it trails a long tail of hot gas stripped from it."]
+
+[[showpiece]]
+id = "m87"
+name = "M87"
+kind = "galaxy"
+ra = 187.706
+dec = 12.391
+mag = 8.6
+size = 7.2
+fact = "The first black hole ever pictured sits at its centre: the Event Horizon Telescope image released in April 2019."
+more = ["A giant elliptical of several trillion stars, about 53 million light years away.", "About 15,000 globular clusters swarm around it, against 150 to 200 around the Milky Way."]
+
+[[showpiece]]
+id = "m88"
+name = "M88"
+kind = "galaxy"
+ra = 187.996
+dec = 14.420
+mag = 9.6
+size = 6.9
+fact = "A spiral 50 to 60 million light years away, one of 15 Messier objects in the Virgo Cluster."
+more = ["It is falling towards the cluster's centre and will make its closest pass in 200 to 300 million years.", "Its regular spiral arms can be traced right down to its core."]
+
+[[showpiece]]
+id = "m89"
+name = "M89"
+kind = "galaxy"
+ra = 188.916
+dec = 12.556
+mag = 9.8
+size = 5.1
+fact = "An elliptical galaxy about 50 million light years away that may be almost perfectly round."
+more = ["Shells and plumes of stars around it hint at one or more past mergers.", "Around 2,000 globular clusters surround it."]
+
+[[showpiece]]
+id = "m90"
+name = "M90"
+kind = "galaxy"
+ra = 189.208
+dec = 13.163
+mag = 9.5
+size = 9.5
+fact = "One of the largest and brightest spirals in the Virgo Cluster, about 60 million light years away."
+more = ["Racing through the cluster has stripped away much of its gas, leaving smooth, quiet spiral arms.", "Unlike most galaxies it is getting closer to us: its light is blueshifted."]
+
+[[showpiece]]
+id = "m91"
+name = "M91"
+kind = "galaxy"
+ra = 188.860
+dec = 14.496
+mag = 10.2
+size = 5.4
+fact = "The faintest object in Messier's catalogue, a barred spiral in the Virgo Cluster."
+more = ["A slip in Messier's notes left it 'missing' until 1969, when William C. Williams worked out that it was NGC 4548.", "Messier measured its position from the wrong reference galaxy: M58 instead of M89."]
+
+[[showpiece]]
+id = "m93"
+name = "M93"
+kind = "cluster"
+ra = 116.141
+dec = -23.853
+mag = 6.0
+size = 10.0
+fact = "About 3,400 light years away and some 390 million years old."
+more = ["Caroline Herschel found it independently in 1783, not knowing Messier had already listed it.", "Some observers see the shape of a starfish in it."]
+
+[[showpiece]]
+id = "m94"
+name = "M94"
+kind = "galaxy"
+ra = 192.721
+dec = 41.120
+mag = 8.2
+size = 11.2
+fact = "A spiral about 16 million light years away, its bright core circled by a ring of intense star birth."
+more = ["Its inner ring is about 5,400 light years across; a fainter outer one spans some 45,000.", "Pierre Méchain discovered it in 1781, and Messier catalogued it two days later."]
+
+[[showpiece]]
+id = "m95"
+name = "M95"
+kind = "galaxy"
+ra = 160.991
+dec = 11.704
+mag = 9.7
+size = 3.1
+fact = "A barred spiral about 33 million light years away in Leo, with a ring of star birth around its bar."
+more = ["A supernova flared in it in March 2012; its parent star has since vanished from images.", "It belongs to the M96 Group, along with M96 and M105."]
+
+[[showpiece]]
+id = "m96"
+name = "M96"
+kind = "galaxy"
+ra = 161.691
+dec = 11.820
+mag = 9.2
+size = 7.6
+fact = "A lopsided spiral about 31 million light years away, roughly the size and mass of the Milky Way."
+more = ["Its supernova of May 1998 was the brightest of that year.", "It is the brightest galaxy of the M96 Group in Leo."]
+
+[[showpiece]]
+id = "m97"
+name = "Owl Nebula (M97)"
+kind = "nebula"
+ra = 168.699
+dec = 55.019
+mag = 9.9
+size = 3.4
+fact = "A dying star's cast-off shell about 2,030 light years away and some 8,000 years old."
+more = ["Its two dark 'eyes' come from a barrel-shaped inner shell that we see at an angle.", "Its central star, at around 123,000 degrees, is shrinking into a white dwarf."]
+
+[[showpiece]]
+id = "m98"
+name = "M98"
+kind = "galaxy"
+ra = 183.451
+dec = 14.901
+mag = 10.1
+size = 9.8
+fact = "A spiral about 44 million light years away, seen nearly edge-on, 6 degrees east of Denebola."
+more = ["Unlike most galaxies it is approaching us, at about 140 kilometres a second.", "It may have brushed past M99 about 750 million years ago."]
+
+[[showpiece]]
+id = "m99"
+name = "M99"
+kind = "galaxy"
+ra = 184.707
+dec = 14.416
+mag = 9.9
+size = 5.4
+fact = "One of the first galaxies whose spiral pattern was seen, by Lord Rosse in the spring of 1846; about 49 million light years away."
+more = ["One of its arms is stretched out longer than the others, perhaps by a close encounter.", "It makes stars about three times as fast as similar galaxies."]
+
+[[showpiece]]
+id = "m100"
+name = "M100"
+kind = "galaxy"
+ra = 185.729
+dec = 15.822
+mag = 9.3
+size = 7.4
+fact = "One of the largest and brightest galaxies in the Virgo Cluster, about 55 million light years away and 166,000 light years across."
+more = ["Lord Rosse listed it in 1850 among the first fourteen known spiral nebulae.", "Seven supernovae have been found in it since 1901."]
+
+[[showpiece]]
+id = "m101"
+name = "Pinwheel Galaxy (M101)"
+kind = "galaxy"
+ra = 210.802
+dec = 54.349
+mag = 7.9
+size = 28.8
+fact = "A face-on spiral about 21 million light years away and some 252,000 light years across, far wider than the Milky Way."
+more = ["It holds around a trillion stars.", "In 2006, Hubble's portrait of it was the largest and most detailed image of a galaxy the telescope had made."]
+
+[[showpiece]]
+id = "m102"
+name = "M102 (NGC 5866)"
+kind = "galaxy"
+ra = 226.623
+dec = 55.763
+mag = 9.9
+size = 4.7
+fact = "Messier's notes on M102 are ambiguous; most, NASA included, take it to be the Spindle Galaxy, NGC 5866."
+more = ["Its dust lane, seen almost exactly edge-on, is highly unusual for a galaxy of its kind.", "Pierre Méchain, who found M102, later said it was only M101 counted twice."]
+
+[[showpiece]]
+id = "m103"
+name = "M103"
+kind = "cluster"
+ra = 23.339
+dec = 60.659
+mag = 7.4
+size = 6.0
+fact = "About 9,400 light years away and 15 light years across; the last deep-sky object Messier added himself."
+more = ["Its stars are only 12.6 to 25 million years old.", "Find it about a degree north-east of Ruchbah, in Cassiopeia's W."]
+
+[[showpiece]]
+id = "m104"
+name = "Sombrero Galaxy (M104)"
+kind = "galaxy"
+ra = 189.998
+dec = -11.623
+mag = 8.0
+size = 9.0
+fact = "A huge bulge and a dark lane of dust seen nearly edge-on make it look like a sombrero; it lies about 31 million light years away."
+more = ["It was only added to Messier's list in 1921, after Camille Flammarion found Messier's handwritten note about it.", "William Herschel noticed its 'dark stratum', the dust lane, in 1784."]
+
+[[showpiece]]
+id = "m105"
+name = "M105"
+kind = "galaxy"
+ra = 161.957
+dec = 12.582
+mag = 9.3
+size = 5.4
+fact = "An elliptical galaxy about 36.6 million light years away in Leo."
+more = ["It and its neighbour NGC 3384 sit inside a vast ring of hydrogen gas some 650,000 light years in radius.", "It joined Messier's list only after Helen Sawyer Hogg found a letter in which Méchain described it."]
+
+[[showpiece]]
+id = "m106"
+name = "M106"
+kind = "galaxy"
+ra = 184.740
+dec = 47.304
+mag = 8.4
+size = 18.6
+fact = "A spiral 22 to 25 million light years away, similar in size and brightness to the Andromeda Galaxy."
+more = ["Water vapour near its black hole acts as a natural maser, which gave the first direct measurement of a galaxy's distance.", "Besides its two visible arms, X-rays reveal two 'anomalous arms'."]
+
+[[showpiece]]
+id = "m107"
+name = "M107"
+kind = "cluster"
+ra = 248.133
+dec = -13.054
+mag = 7.9
+size = 10.0
+fact = "A loose globular cluster about 20,900 light years away, the last of its kind in Messier's list."
+more = ["Pierre Méchain found it in April 1782, but it joined the catalogue only in 1947, thanks to Helen Sawyer Hogg.", "Look 2.5 degrees south and slightly west of zeta Ophiuchi."]
+
+[[showpiece]]
+id = "m108"
+name = "M108"
+kind = "galaxy"
+ra = 167.879
+dec = 55.674
+mag = 10.0
+size = 8.7
+fact = "A barred spiral about 46 million light years away, seen almost edge-on."
+more = ["In 2016 the Spitzer telescope caught a supernova in it so buried in dust that it showed only in infrared.", "The Chandra X-ray Observatory has found 83 X-ray sources in it."]
+
+[[showpiece]]
+id = "m109"
+name = "M109"
+kind = "galaxy"
+ra = 179.400
+dec = 53.375
+mag = 9.8
+size = 7.6
+fact = "The most distant object in Messier's catalogue, a barred spiral around 67 million light years away."
+more = ["It lies just south-east of Phecda, one of the stars of the Plough.", "It is the brightest of the M109 Group, which may number over 50 galaxies."]
+
+[[showpiece]]
+id = "m110"
+name = "M110"
+kind = "galaxy"
+ra = 10.092
+dec = 41.685
+mag = 8.5
+size = 21.9
+fact = "A dwarf companion of the Andromeda Galaxy, about 2.7 million light years away."
+more = ["Messier drew it in 1773 but never listed it; it became the last Messier object only in 1967.", "Unusually for its kind, it has patches of dust and young blue stars near its centre."]
+
+[[showpiece]]
+id = "ngc7000"
+name = "North America Nebula (NGC 7000)"
+kind = "nebula"
+ra = 314.696
+dec = 44.330
+mag = 4.0
+size = 120.0
+fact = "Its outline resembles North America, and it covers more than ten times the area of the full Moon."
+more = ["Max Wolf noticed the shape on a long-exposure photograph in 1890 and gave it its name.", "It and the Pelican Nebula are one glowing cloud, split by a dark band of dust."]
+
+[[showpiece]]
+id = "veil"
+name = "Veil Nebula"
+kind = "nebula"
+ra = 312.750
+dec = 30.667
+mag = 7.0
+size = 180.0
+fact = "The shreds of a star 20 times the Sun's mass that exploded 10,000 to 20,000 years ago, about 2,400 light years away."
+more = ["When the star blew up it would have outshone Venus and been visible by day.", "Its western arc, the Witch's Broom, runs right past the star 52 Cygni."]
+
+[[showpiece]]
+id = "ngc7293"
+name = "Helix Nebula (NGC 7293)"
+kind = "nebula"
+ra = 337.411
+dec = -20.837
+mag = 7.6
+size = 25.0
+fact = "One of the closest bright planetary nebulae, about 655 light years away: the shed outer layers of a dying star."
+more = ["Some 10,600 years old and 2.5 light years across.", "The first planetary nebula found to hold 'cometary knots', clumps of gas with tails like comets."]
+
+[[showpiece]]
+id = "ngc6826"
+name = "Blinking Planetary (NGC 6826)"
+kind = "nebula"
+ra = 296.201
+dec = 50.525
+mag = 8.8
+size = 0.45
+fact = "Look straight at it and the bright central star swamps the nebula; look slightly aside and the nebula blinks back."
+more = ["Two bright patches on either side are knots of gas flying outwards at supersonic speeds.", "Its central star is a hot O-type star, HD 186924."]
+
+[[showpiece]]
+id = "ngc6543"
+name = "Cat's Eye Nebula (NGC 6543)"
+kind = "nebula"
+ra = 269.639
+dec = 66.633
+mag = 8.1
+size = 0.4
+fact = "The first planetary nebula whose spectrum was studied, by William Huggins, which proved such nebulae are gas, not stars."
+more = ["It lies within a few arcminutes of the north ecliptic pole, the fixed point that the sky's pole slowly circles.", "Hubble found knots, jets, bubbles and rings like a dartboard around its dying central star."]
+
+[[showpiece]]
+id = "ngc7009"
+name = "Saturn Nebula (NGC 7009)"
+kind = "nebula"
+ra = 316.045
+dec = -11.363
+mag = 8.0
+size = 0.68
+fact = "Lord Rosse named it in the 1840s for its likeness to Saturn with its rings seen edge-on."
+more = ["William Herschel discovered it in 1782, from his garden in Datchet, England.", "Its green tint comes from oxygen lit up by a central star of about 55,000 degrees."]
+
+[[showpiece]]
+id = "ngc3242"
+name = "Ghost of Jupiter (NGC 3242)"
+kind = "nebula"
+ra = 156.192
+dec = -18.642
+mag = 7.7
+size = 0.67
+fact = "Named for its planet-like disc, it looks bluish-green to most people through a small telescope."
+more = ["About two light years from end to end; its inner layers formed some 1,500 years ago.", "William Herschel discovered it in 1785; his son John observed it from the Cape of Good Hope in the 1830s."]
+
+[[showpiece]]
+id = "ngc2392"
+name = "Clown Face Nebula (NGC 2392)"
+kind = "nebula"
+ra = 112.295
+dec = 20.912
+mag = 9.1
+size = 0.8
+fact = "About 6,500 light years away: the shed outer layers of a Sun-like star, visible in a small telescope."
+more = ["William Herschel found it in 1787 and called it 'a very remarkable phenomenon'.", "During the total lunar eclipse of January 1982 the Moon passed in front of it; that will happen again in 2066."]
+
+[[showpiece]]
+id = "ngc7662"
+name = "Blue Snowball (NGC 7662)"
+kind = "nebula"
+ra = 351.474
+dec = 42.535
+mag = 8.3
+size = 0.53
+fact = "About 5,700 light years away; a small telescope shows a star-like dot, a 15 cm one a bluish disc."
+more = ["Its central star has a surface of around 100,000 degrees.", "Judging by how fast it is spreading, the nebula is about 3,000 years old."]
+
+[[showpiece]]
+id = "ngc457"
+name = "Owl Cluster (NGC 457)"
+kind = "cluster"
+ra = 19.887
+dec = 58.278
+mag = 6.4
+size = 20.0
+fact = "Over 7,900 light years away and some 21 million years old; two bright stars make the eyes of an owl, or of E.T."
+more = ["If its brightest star, phi Cassiopeiae, truly belongs to it, that star outshines even Rigel.", "Easy to see in a small telescope, even from light-polluted skies."]
+
+[[showpiece]]
+id = "ngc752"
+name = "NGC 752"
+kind = "cluster"
+ra = 29.223
+dec = 37.794
+mag = 5.7
+size = 75.0
+fact = "A large cluster about 1,400 light years away and some 1.3 billion years old, easy in binoculars."
+more = ["Caroline Herschel discovered it in 1783, though Hodierna may have seen it before 1654.", "Of its 302 known members, most are small main-sequence stars and red giants."]
+
+[[showpiece]]
+id = "ngc7789"
+name = "Caroline's Rose (NGC 7789)"
+kind = "cluster"
+ra = 359.334
+dec = 56.726
+mag = 6.7
+size = 16.0
+fact = "Loops of stars and dark lanes look like the petals of a rose seen from above; it lies about 7,600 light years away."
+more = ["Caroline Herschel discovered it in 1783.", "Some 1.4 to 1.7 billion years old."]
+
+[[showpiece]]
+id = "ngc2237"
+name = "Rosette Nebula (NGC 2237)"
+kind = "nebula"
+ra = 98.112
+dec = 4.794
+mag = 9.0
+size = 78.0
+fact = "A rose of glowing gas about 5,000 light years away and 130 light years across, around the star cluster NGC 2244."
+more = ["About 2,500 young stars are forming in and around it.", "John Flamsteed discovered the cluster at its heart in 1690."]
+
+[[showpiece]]
+id = "ngc2264"
+name = "Christmas Tree Cluster (NGC 2264)"
+kind = "cluster"
+ra = 100.217
+dec = 9.877
+mag = 4.1
+size = 40.0
+fact = "The Christmas Tree Cluster and the Cone Nebula, about 2,300 light years away in Monoceros."
+more = ["Its young stars are still wrapped in the dust and gas they formed from.", "Fairly near and large, it is one of the most closely studied places where stars are born."]
+
+[[showpiece]]
+id = "ngc4565"
+name = "Needle Galaxy (NGC 4565)"
+kind = "galaxy"
+ra = 189.087
+dec = 25.987
+mag = 10.42
+size = 15.9
+fact = "A spiral seen edge-on, so thin in profile it is called the Needle Galaxy; it lies 30 to 50 million light years away."
+more = ["A giant spiral, more luminous than the Andromeda Galaxy.", "William Herschel discovered it on 6 April 1785."]
+
+[[showpiece]]
+id = "ngc4631"
+name = "Whale Galaxy (NGC 4631)"
+kind = "galaxy"
+ra = 190.533
+dec = 32.542
+mag = 9.8
+size = 15.5
+fact = "Seen edge-on, its slightly bent wedge looks like a whale or a herring; it lies about 30 million light years away."
+more = ["So many stars have exploded at its centre that they are blowing gas out of the galaxy's plane.", "It has a small companion galaxy, NGC 4627, just beside it."]
+
+[[showpiece]]
+id = "ngc2403"
+name = "NGC 2403"
+kind = "galaxy"
+ra = 114.214
+dec = 65.603
+mag = 8.2
+size = 23.4
+fact = "A spiral about 9.7 million light years away, within reach of 10×50 binoculars."
+more = ["Edwin Hubble found Cepheid stars in it: the first found in any galaxy beyond our Local Group.", "It holds NGC 2404, a star-forming cloud 940 light years across and one of the largest known."]
+
+[[showpiece]]
+id = "ngc7331"
+name = "NGC 7331"
+kind = "galaxy"
+ra = 339.267
+dec = 34.416
+mag = 10.4
+size = 10.5
+fact = "A spiral about 44 million light years away, sometimes called the Milky Way's twin."
+more = ["Its central bulge spins the opposite way to the rest of its disc.", "The small galaxies beside it in the sky lie far behind, some 300 to 350 million light years away."]
+
+[[showpiece]]
+id = "ic4665"
+name = "Summer Beehive (IC 4665)"
+kind = "cluster"
+ra = 266.554
+dec = 5.615
+mag = 4.2
+size = 40.0
+fact = "A loose, bright cluster about 1,100 light years away, a degree north-east of beta Ophiuchi."
+more = ["One of the brightest clusters that neither Messier nor Herschel catalogued, probably because it is so loose.", "It seems to be colliding with an older cluster, Collinder 350, about 4 degrees away in the sky."]
+
+[[showpiece]]
+id = "ngc6633"
+name = "NGC 6633"
+kind = "cluster"
+ra = 276.845
+dec = 6.615
+mag = 4.6
+size = 27.0
+fact = "Nearly as wide as the full Moon and bright enough for the naked eye; its stars are about 550 million years old."
+more = ["Paired with nearby IC 4756, it is nicknamed Tweedledum to that cluster's Tweedledee.", "Philippe Loys de Chéseaux found it in 1745–46; Caroline Herschel found it again in 1783."]
+
+[[showpiece]]
+id = "ic4756"
+name = "Graff's Cluster (IC 4756)"
+kind = "cluster"
+ra = 279.649
+dec = 5.435
+mag = 4.6
+size = 64.1
+fact = "A large, bright cluster in Serpens, about 1,300 light years away and visible to the naked eye."
+more = ["Nicknamed Tweedledee, partner to NGC 6633 nearby.", "One of its stars, HD 172189, is an eclipsing pair that dips in brightness every 5.7 days."]
+
+[[showpiece]]
+id = "ngc663"
+name = "NGC 663"
+kind = "cluster"
+ra = 26.587
+dec = 61.212
+mag = 7.1
+size = 15.0
+fact = "A young cluster of about 400 stars, some 8,800 light years away and 20 to 25 million years old."
+more = ["It has an unusual number of Be stars, hot stars with bright hydrogen lines: about 24.", "It belongs to the same family of clusters as M103, and is probably the most massive of them."]
+
+[[showpiece]]
+id = "ngc253"
+name = "Sculptor Galaxy (NGC 253)"
+kind = "galaxy"
+ra = 11.888
+dec = -25.289
+mag = 8.0
+size = 27.5
+fact = "One of the brightest galaxies in the sky, 11.4 million light years away and in the midst of a burst of star birth."
+more = ["Caroline Herschel discovered it in 1783 during one of her comet searches.", "John Herschel, seeing it from the Cape of Good Hope, called it 'a superb object'."]
+
+[[showpiece]]
+id = "ngc5128"
+name = "Centaurus A (NGC 5128)"
+kind = "galaxy"
+ra = 201.365
+dec = -43.019
+mag = 6.84
+size = 25.7
+fact = "The closest radio galaxy to Earth and the fifth-brightest galaxy in the sky."
+more = ["Its central black hole, of 55 million solar masses, drives radio jets over a million light years long.", "James Dunlop discovered it in 1826 from his home in Parramatta, New South Wales."]
+
+[[showpiece]]
+id = "ngc2070"
+name = "Tarantula Nebula (30 Doradus)"
+kind = "nebula"
+ra = 84.675
+dec = -69.100
+mag = 8.0
+size = 40.0
+fact = "In the Large Magellanic Cloud, 160,000 light years away; if it were as close as the Orion Nebula it would cast shadows."
+more = ["The most active star-forming region known in our Local Group of galaxies.", "Its glowing filaments stretch out like the legs of a tarantula."]
+
+[[showpiece]]
+id = "ngc362"
+name = "NGC 362"
+kind = "cluster"
+ra = 15.809
+dec = -70.849
+mag = 6.8
+size = 14.0
+fact = "Beside the Small Magellanic Cloud in the sky but completely unrelated, some 29,000 light years away."
+more = ["Rich in heavier elements for a globular, which suggests it is a relatively young one.", "Its stretched orbit brings it within 3,260 light years of the galaxy's centre."]
+
+[[showpiece]]
+id = "ngc6397"
+name = "NGC 6397"
+kind = "cluster"
+ra = 265.175
+dec = -53.674
+mag = 6.68
+size = 32.0
+fact = "About 7,800 light years away, one of the two nearest globular clusters to Earth."
+more = ["In 2004 its stars gave an estimate of the Milky Way's age: about 13.6 billion years.", "Hubble studies of its faintest stars showed the least mass a star needs to shine: about 0.083 times the Sun's."]
+
+[[showpiece]]
+id = "ngc6752"
+name = "NGC 6752"
+kind = "cluster"
+ra = 287.717
+dec = -59.985
+mag = 5.4
+size = 20.4
+fact = "The fourth-brightest globular cluster in the sky, about 13,000 light years away and 11.8 billion years old."
+more = ["In binoculars it covers about three quarters the size of the full Moon.", "James Dunlop found it from Parramatta on 30 June 1826."]
+
+[[showpiece]]
+id = "ngc3532"
+name = "Wishing Well Cluster (NGC 3532)"
+kind = "cluster"
+ra = 166.417
+dec = -58.707
+mag = 3.0
+size = 50.0
+fact = "About 1,320 light years away; on 20 May 1990 it became the first target the Hubble Space Telescope ever observed."
+more = ["John Herschel thought it one of the finest star clusters in the sky, full of double stars.", "It sits between the Southern Cross and the larger, fainter False Cross."]
+
+[[showpiece]]
+id = "ngc2516"
+name = "Southern Beehive (NGC 2516)"
+kind = "cluster"
+ra = 119.527
+dec = -60.800
+mag = 3.8
+size = 22.0
+fact = "About 1,300 light years away, a hazy patch to the naked eye that binoculars break into stars."
+more = ["Two 5th-magnitude red giants shine among its stars.", "Lacaille discovered it in 1751–52, from the Cape of Good Hope."]
+
+[[showpiece]]
+id = "ic2391"
+name = "Omicron Velorum Cluster (IC 2391)"
+kind = "cluster"
+ra = 130.292
+dec = -52.991
+mag = 2.5
+size = 50.0
+fact = "About 490 light years away: some 30 hot, young, blue stars, visible to the naked eye."
+more = ["The Persian astronomer al-Sufi described it as 'a nebulous star' around the year 964.", "Its stars formed about 50 million years ago, around the same time as the Southern Pleiades nearby."]
+
+[[showpiece]]
+id = "ngc3766"
+name = "NGC 3766"
+kind = "cluster"
+ra = 174.061
+dec = -61.616
+mag = 5.3
+size = 15.0
+fact = "A young cluster in the vast Carina star-forming cloud, only about 14 million years old."
+more = ["Among its stars are two red supergiants and eleven Be stars.", "It is home to 36 stars of an unusual kind that pulse by only a few hundredths of a magnitude."]
+
+[[showpiece]]
+id = "ngc4945"
+name = "NGC 4945"
+kind = "galaxy"
+ra = 196.364
+dec = -49.468
+mag = 9.3
+size = 20.0
+fact = "An edge-on spiral about 11 million light years away, thought to be much like the Milky Way."
+more = ["Its active core, one of the closest to Earth, is hidden by dust but blazes in infrared.", "James Dunlop discovered it in 1826; look near the star xi Centauri."]
+
+[[showpiece]]
+id = "ngc55"
+name = "String of Pearls Galaxy (NGC 55)"
+kind = "galaxy"
+ra = 3.723
+dec = -39.197
+mag = 7.87
+size = 32.4
+fact = "A barred spiral about 6.5 million light years away, one of the closest galaxies beyond our Local Group."
+more = ["Robert Burnham called it 'one of the outstanding galaxies of the southern heavens'.", "It probably forms a bound pair with its neighbour NGC 300."]
+
+[[showpiece]]
+id = "ngc300"
+name = "Sculptor Pinwheel Galaxy (NGC 300)"
+kind = "galaxy"
+ra = 13.723
+dec = -37.684
+mag = 9.0
+size = 21.9
+fact = "A spiral about 6 million light years away and 94,000 light years across, much like the Triangulum Galaxy."
+more = ["James Dunlop discovered it on 5 August 1826.", "The brightest of five main spirals in the direction of the Sculptor Group."]
+
+[[showpiece]]
+id = "ngc3918"
+name = "Blue Planetary (NGC 3918)"
+kind = "nebula"
+ra = 177.574
+dec = -57.183
+mag = 8.5
+size = 0.17
+fact = "The brightest planetary nebula of the far southern sky, about 4,900 light years away."
+more = ["Its rich blue looks much like Voyager 2's pictures of Neptune.", "John Herschel discovered it in March 1834."]
+
+[[showpiece]]
+id = "ngc2808"
+name = "NGC 2808"
+kind = "cluster"
+ra = 138.013
+dec = -64.864
+mag = 6.2
+size = 14.2
+fact = "One of the Milky Way's most massive clusters, with more than a million stars, about 31,000 light years away."
+more = ["Hubble found three generations of stars in it, all born within 200 million years.", "About 12.5 billion years old, it trails a long tail of stars pulled out by the galaxy."]
+
+[[showpiece]]
+id = "ngc3201"
+name = "NGC 3201"
+kind = "cluster"
+ra = 154.403
+dec = -46.412
+mag = 6.9
+size = 20.0
+fact = "About 16,300 light years away; its speed along our line of sight, 490 kilometres a second, is higher than any other known cluster's."
+more = ["Its core seems to hide a swarm of black holes, perhaps nearly a hundred of them.", "About 10.2 billion years old, with its stars unusually loosely packed."]
+
+[[showpiece]]
+id = "ic2944"
+name = "Running Chicken Nebula (IC 2944)"
+kind = "nebula"
+ra = 174.583
+dec = -63.373
+mag = 4.5
+size = 75.0
+fact = "A star cluster and glowing cloud about 6,500 light years away, named for a group of stars shaped like a running chicken."
+more = ["Dark knots of dust inside it, Thackeray's Globules, were found by David Thackeray in 1950.", "It lies right beside the star lambda Centauri."]
+
+[[showpiece]]
+id = "ngc1851"
+name = "NGC 1851"
+kind = "cluster"
+ra = 78.528
+dec = -40.047
+mag = 7.3
+size = 11.0
+fact = "About 39,500 light years away, one of the most tightly concentrated globular clusters known."
+more = ["Some 9.2 billion years old, it weighs about 551,000 Suns.", "One of its pulsars orbits an object too heavy for any known neutron star and too light for any known black hole."]
+
+[[showpiece]]
+id = "ngc6744"
+name = "NGC 6744"
+kind = "galaxy"
+ra = 287.442
+dec = -63.857
+mag = 9.14
+size = 20.0
+fact = "One of the largest spiral galaxies in our part of the universe, often called a mimic of the Milky Way."
+more = ["It has a distorted companion galaxy that looks rather like one of the Magellanic Clouds.", "James Dunlop discovered it on 30 June 1826, from Parramatta in Australia."]
+
+[[showpiece]]
+id = "ngc1365"
+name = "Great Barred Spiral (NGC 1365)"
+kind = "galaxy"
+ra = 53.402
+dec = -36.141
+mag = 10.3
+size = 11.2
+fact = "A great barred spiral in the Fornax Cluster, about 56 million light years away and some 300,000 light years across."
+more = ["A smaller bar turns inside its main bar.", "The outer parts of its bar take about 350 million years to go round once."]
+
+[[showpiece]]
+id = "ngc2451"
+name = "NGC 2451"
+kind = "cluster"
+ra = 116.350
+dec = -37.967
+mag = 2.8
+size = 50.0
+fact = "Two open clusters on the same line of sight: one about 600 light years away, the other about 1,200."
+more = ["That it was really two clusters was suggested in 1994 and confirmed in 1996.", "Probably first seen by Giovanni Battista Hodierna, before 1654."]
