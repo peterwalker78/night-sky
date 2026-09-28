@@ -186,6 +186,31 @@ file_of!(CourseFile, course, Course);
 file_of!(AskedFile, asked, Asked);
 file_of!(DrawingFile, drawing, Drawing);
 
+/// The record files, beside the logbook pages and the settings.
+const KEPT: [&str; 7] = [
+    "found.toml",
+    "weights.toml",
+    "people.toml",
+    "plans.toml",
+    "courses.toml",
+    "asked.toml",
+    "drawings.toml",
+];
+
+#[derive(Serialize, Deserialize)]
+struct BackupFile {
+    path: String,
+    text: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct Backup {
+    night_sky_backup: u32,
+    made: String,
+    #[serde(default)]
+    file: Vec<BackupFile>,
+}
+
 pub struct Journal {
     dir: PathBuf,
     pub found: Vec<Found>,
@@ -473,15 +498,7 @@ impl Journal {
 
     /// Clears everything. The folder itself stays.
     pub fn forget_everything(&mut self) -> io::Result<()> {
-        for name in [
-            "found.toml",
-            "weights.toml",
-            "people.toml",
-            "plans.toml",
-            "courses.toml",
-            "asked.toml",
-            "drawings.toml",
-        ] {
+        for name in KEPT {
             let _ = fs::remove_file(self.dir.join(name));
         }
         let _ = fs::remove_dir_all(self.dir.join("logbook"));
@@ -489,6 +506,195 @@ impl Journal {
         *self = Journal::open(&self.dir);
         self.settings = settings;
         Ok(())
+    }
+
+    /// Rewrites every night's page through `change`, saving the ones it
+    /// changed.
+    fn each_night(&self, mut change: impl FnMut(&mut Night) -> bool) -> io::Result<()> {
+        for key in self.nights() {
+            if let Some(mut night) = self.night(&key)
+                && change(&mut night)
+            {
+                self.save_night(&night)?;
+            }
+        }
+        Ok(())
+    }
+
+    /// Removes a night's page, and everything that belongs only to that
+    /// night: what was found, the questions asked, the shapes drawn. A
+    /// weight or a name that also came up on another night stays.
+    pub fn delete_night(&mut self, key: &str) -> io::Result<()> {
+        let _ = fs::remove_file(self.night_path(key));
+        self.found.retain(|f| f.night != key);
+        self.asked.retain(|a| a.night != key);
+        self.drawings.retain(|d| d.night != key);
+        for w in &mut self.weights {
+            w.nights.retain(|n| n != key);
+            w.looks.retain(|k| k.night != key);
+        }
+        let gone: Vec<u32> = self
+            .weights
+            .iter()
+            .filter(|w| w.nights.is_empty())
+            .map(|w| w.id)
+            .collect();
+        self.weights.retain(|w| !w.nights.is_empty());
+        self.courses.retain(|c| !gone.contains(&c.weight));
+        for p in &mut self.people {
+            p.mentions.retain(|m| m.night != key);
+        }
+        self.people
+            .retain(|p| !p.mentions.is_empty() || !p.stars.is_empty());
+        self.save_all()
+    }
+
+    /// Removes a weight from every night it was set down on, with any
+    /// course charted for it.
+    pub fn delete_weight(&mut self, id: u32) -> io::Result<()> {
+        self.weights.retain(|w| w.id != id);
+        self.courses.retain(|c| c.weight != id);
+        self.each_night(|n| {
+            let before = n.weights.len();
+            n.weights.retain(|w| w.weight != id);
+            n.weights.len() != before
+        })?;
+        self.save_all()
+    }
+
+    /// Forgets a name: the person, their star, and the answers that named them.
+    pub fn delete_person(&mut self, name: &str) -> io::Result<()> {
+        let same = |n: &str| n.eq_ignore_ascii_case(name);
+        self.people.retain(|p| !same(&p.name));
+        for plan in &mut self.plans {
+            if plan.who.as_deref().is_some_and(same) {
+                plan.who = None;
+            }
+        }
+        self.each_night(|n| {
+            let before = n.answers.len();
+            n.answers.retain(|a| !a.person.as_deref().is_some_and(same));
+            n.answers.len() != before
+        })?;
+        self.save_all()
+    }
+
+    /// Removes one answer from a night's page; a name it gave stays only if
+    /// it came up somewhere else too.
+    pub fn delete_answer(&mut self, night: &str, question: &str) -> io::Result<()> {
+        if let Some(mut page) = self.night(night) {
+            page.answers.retain(|a| a.question != question);
+            self.save_night(&page)?;
+        }
+        for p in &mut self.people {
+            p.mentions
+                .retain(|m| !(m.night == night && m.question == question));
+        }
+        self.people
+            .retain(|p| !p.mentions.is_empty() || !p.stars.is_empty());
+        self.save_all()
+    }
+
+    pub fn delete_plan(&mut self, id: u32) -> io::Result<()> {
+        self.plans.retain(|p| p.id != id);
+        self.each_night(|n| {
+            let before = n.plans.len();
+            n.plans.retain(|p| *p != id);
+            n.plans.len() != before
+        })?;
+        self.save_all()
+    }
+
+    pub fn delete_course(&mut self, id: u32) -> io::Result<()> {
+        self.courses.retain(|c| c.id != id);
+        self.save_all()
+    }
+
+    /// Removes a shape drawn on a night, from the sky and from its page.
+    pub fn delete_drawing(&mut self, name: &str, night: &str) -> io::Result<()> {
+        self.drawings
+            .retain(|d| !(d.name == name && d.night == night));
+        if let Some(mut page) = self.night(night) {
+            page.drawings.retain(|d| !d.starts_with(name));
+            self.save_night(&page)?;
+        }
+        self.save_all()
+    }
+
+    fn save_all(&self) -> io::Result<()> {
+        self.save_found()?;
+        self.save_weights()?;
+        self.save_people()?;
+        self.save_plans()?;
+        self.save_courses()?;
+        self.save_asked()?;
+        self.save_drawings()
+    }
+
+    /// Everything kept, as one plain-text file to put somewhere safe.
+    pub fn backup(&self, made: &str) -> String {
+        let mut files = Vec::new();
+        for name in KEPT.iter().chain(["settings.toml"].iter()) {
+            if let Ok(text) = fs::read_to_string(self.dir.join(name)) {
+                files.push(BackupFile {
+                    path: (*name).to_owned(),
+                    text,
+                });
+            }
+        }
+        for key in self.nights() {
+            if let Ok(text) = fs::read_to_string(self.night_path(&key)) {
+                files.push(BackupFile {
+                    path: format!("logbook/{key}.md"),
+                    text,
+                });
+            }
+        }
+        let backup = Backup {
+            night_sky_backup: 1,
+            made: made.to_owned(),
+            file: files,
+        };
+        format!(
+            "# A copy of everything Night Sky keeps. Restore it from the menu.\n\n{}",
+            toml::to_string(&backup).unwrap_or_default()
+        )
+    }
+
+    /// When a backup was made, if the text is one.
+    pub fn backup_date(text: &str) -> Option<String> {
+        toml::from_str::<Backup>(text).ok().map(|b| b.made)
+    }
+
+    /// Replaces everything kept with a backup's contents. Nothing is touched
+    /// unless the whole backup reads cleanly.
+    pub fn restore(&mut self, text: &str) -> io::Result<usize> {
+        let backup: Backup = toml::from_str(text).map_err(io::Error::other)?;
+        let safe = |path: &str| {
+            KEPT.contains(&path)
+                || path == "settings.toml"
+                || path
+                    .strip_prefix("logbook/")
+                    .and_then(|p| p.strip_suffix(".md"))
+                    .is_some_and(|k| {
+                        k.len() == 10 && k.chars().all(|c| c.is_ascii_digit() || c == '-')
+                    })
+        };
+        if let Some(bad) = backup.file.iter().find(|f| !safe(&f.path)) {
+            return Err(io::Error::other(format!(
+                "it holds a file it shouldn't: {}",
+                bad.path
+            )));
+        }
+        for name in KEPT.iter().chain(["settings.toml"].iter()) {
+            let _ = fs::remove_file(self.dir.join(name));
+        }
+        let _ = fs::remove_dir_all(self.dir.join("logbook"));
+        for f in &backup.file {
+            write_atomic(&self.dir.join(&f.path), &f.text)?;
+        }
+        *self = Journal::open(&self.dir);
+        Ok(backup.file.len())
     }
 
     /// The human half of a night's page.
@@ -654,5 +860,107 @@ mod tests {
         assert_eq!(j.names_like("sa"), ["Sam"]);
         assert!(j.names_like("s").is_empty());
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    fn two_nights(dir: &Path) -> Journal {
+        let mut j = Journal::open(dir);
+        let w = j.add_weight("The boiler", "2026-09-20");
+        j.add_weight("The boiler", "2026-09-21");
+        let only = j.add_weight("Tax", "2026-09-21");
+        for (key, weights) in [("2026-09-20", vec![w]), ("2026-09-21", vec![w, only])] {
+            j.mark_found("moon", key).unwrap();
+            j.person_mut("Sam").mentions.push(Mention {
+                night: key.into(),
+                question: "q".into(),
+            });
+            j.save_night(&Night {
+                key: key.into(),
+                weights: weights
+                    .into_iter()
+                    .map(|weight| NightWeight {
+                        weight,
+                        ra: 0.0,
+                        dec: 0.0,
+                    })
+                    .collect(),
+                answers: vec![Answer {
+                    question: "q".into(),
+                    prompt: "Who?".into(),
+                    text: "Sam".into(),
+                    person: Some("Sam".into()),
+                    star: None,
+                }],
+                ..Night::default()
+            })
+            .unwrap();
+        }
+        j.courses.push(Course {
+            id: 1,
+            weight: only,
+            ..Course::default()
+        });
+        j.save_all().unwrap();
+        j
+    }
+
+    #[test]
+    fn deleting_a_night_keeps_what_other_nights_share() {
+        let dir = scratch("delete-night");
+        let mut j = two_nights(&dir);
+        j.delete_night("2026-09-21").unwrap();
+        let j = Journal::open(&dir);
+        assert_eq!(j.nights(), ["2026-09-20"]);
+        assert_eq!(j.weights.len(), 1, "the boiler stays, tax goes");
+        assert!(j.courses.is_empty(), "tax's course goes with it");
+        assert_eq!(j.people[0].mentions.len(), 1);
+        assert_eq!(j.found.len(), 1);
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn deleting_a_weight_or_a_name_reaches_every_page() {
+        let dir = scratch("delete-things");
+        let mut j = two_nights(&dir);
+        let boiler = j.weights[0].id;
+        j.delete_weight(boiler).unwrap();
+        j.delete_answer("2026-09-20", "q").unwrap();
+        assert!(j.night("2026-09-20").unwrap().answers.is_empty());
+        assert_eq!(
+            j.people[0].mentions.len(),
+            1,
+            "Sam still came up on the 21st"
+        );
+        j.delete_person("sam").unwrap();
+        let j = Journal::open(&dir);
+        assert!(j.weights.iter().all(|w| w.id != boiler));
+        assert!(j.people.is_empty());
+        for key in j.nights() {
+            let n = j.night(&key).unwrap();
+            assert!(n.weights.iter().all(|w| w.weight != boiler));
+            assert!(n.answers.is_empty());
+        }
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_backup_restores_exactly_and_refuses_strange_paths() {
+        let dir = scratch("backup");
+        let j = two_nights(&dir);
+        let text = j.backup("2026-09-28");
+        assert_eq!(Journal::backup_date(&text).as_deref(), Some("2026-09-28"));
+        let other = scratch("restore");
+        let mut fresh = Journal::open(&other);
+        fresh.add_weight("Something else", "2026-09-27");
+        fresh.save_weights().unwrap();
+        fresh.restore(&text).unwrap();
+        assert_eq!(fresh.nights(), j.nights());
+        assert_eq!(fresh.weights, j.weights);
+        assert_eq!(fresh.people, j.people);
+        let evil = text.replace("path = \"weights.toml\"", "path = \"../evil.toml\"");
+        assert!(fresh.restore(&evil).is_err());
+        assert_eq!(fresh.weights, j.weights, "a bad backup changes nothing");
+        assert!(fresh.restore("not a backup").is_err());
+        let _ = fs::remove_dir_all(&dir);
+        let _ = fs::remove_dir_all(&other);
     }
 }

@@ -3,7 +3,7 @@
 
 use crate::game::Game;
 use crate::talk::{Go, Request};
-use crate::ui::{clear, label};
+use crate::ui::{clear, confirm, label, trash};
 use gtk::prelude::*;
 use gtk::{gdk, glib};
 use night_sky_core::journal::{Journal, long_date, short_date};
@@ -173,6 +173,52 @@ impl Book {
         }
     }
 
+    /// A bin button that asks first, then deletes and redraws the logbook.
+    fn delete_button(
+        &self,
+        tooltip: &str,
+        message: String,
+        detail: String,
+        yes: &'static str,
+        delete: impl Fn(&mut Game) -> std::io::Result<()> + 'static,
+    ) -> gtk::Button {
+        let button = trash(tooltip);
+        let me = self.me.borrow().clone();
+        let game = self.game.clone();
+        let delete = Rc::new(delete);
+        button.connect_clicked(move |b| {
+            let (me, game, delete) = (me.clone(), game.clone(), delete.clone());
+            confirm(b, &message, &detail, yes, move || {
+                let r = {
+                    let mut g = game.borrow_mut();
+                    let r = delete(&mut g);
+                    g.refresh();
+                    r
+                };
+                if let Err(e) = r {
+                    eprintln!("night-sky: couldn't delete it: {e}");
+                }
+                if let Some(book) = me.upgrade() {
+                    let key = book
+                        .list
+                        .selected_row()
+                        .and_then(|row| book.keys.borrow().get(row.index() as usize).cloned());
+                    book.open(key.as_deref());
+                }
+            });
+        });
+        button
+    }
+
+    /// A line of words with a bin beside it.
+    fn with_trash(&self, words: &impl IsA<gtk::Widget>, bin: &gtk::Button) -> gtk::Box {
+        let row = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+        words.set_hexpand(true);
+        row.append(words);
+        row.append(bin);
+        row
+    }
+
     fn heading(&self, text: &str) {
         self.content.append(&label(text, "book-heading"));
     }
@@ -184,7 +230,20 @@ impl Book {
     }
 
     fn night(&self, journal: &Journal, key: &str) {
-        self.title(&long_date(key));
+        let date = long_date(key);
+        let title = label(&date, "book-title");
+        let owned = key.to_owned();
+        let bin = self.delete_button(
+            "Delete this night",
+            format!("Delete the page for {date}?"),
+            "This removes that night from the logbook: what you found, what the sky asked and what you answered, and any shapes you drew. Weights and names that also came up on other nights stay.\n\nIt can't be undone.".into(),
+            "Delete the night",
+            move |g| g.journal_mut().delete_night(&owned),
+        );
+        bin.set_valign(gtk::Align::Center);
+        let row = self.with_trash(&title, &bin);
+        row.set_margin_top(18);
+        self.content.append(&row);
         let Some(night) = journal.night(key) else {
             return;
         };
@@ -208,16 +267,49 @@ impl Book {
         if !night.answers.is_empty() {
             self.heading("THE SKY ASKED");
             for a in &night.answers {
-                let asked = label(&a.prompt, "book-asked");
-                asked.set_margin_top(8);
-                self.content.append(&asked);
-                self.content.append(&label(&a.text, "book-body"));
+                let words = gtk::Box::new(gtk::Orientation::Vertical, 2);
+                words.append(&label(&a.prompt, "book-asked"));
+                words.append(&label(&a.text, "book-body"));
+                let (key, question) = (key.to_owned(), a.question.clone());
+                let bin = self.delete_button(
+                    "Delete this answer",
+                    "Delete this answer?".into(),
+                    format!(
+                        "“{}” goes from this night's page{}.\n\nIt can't be undone.",
+                        a.text,
+                        if a.person.is_some() {
+                            ". The name stays only if it came up on another night too"
+                        } else {
+                            ""
+                        }
+                    ),
+                    "Delete it",
+                    move |g| g.journal_mut().delete_answer(&key, &question),
+                );
+                let row = self.with_trash(&words, &bin);
+                row.set_margin_top(8);
+                self.content.append(&row);
             }
         }
-        if !night.drawings.is_empty() {
+        let drawn: Vec<_> = journal.drawings.iter().filter(|d| d.night == key).collect();
+        if !drawn.is_empty() {
             self.heading("DRAWN");
-            self.content
-                .append(&label(&night.drawings.join(" · "), "book-body"));
+            for d in drawn {
+                let words = match &d.reveals {
+                    Some(r) => format!("{}, part of {r}", d.name),
+                    None => d.name.clone(),
+                };
+                let (name, night) = (d.name.clone(), d.night.clone());
+                let bin = self.delete_button(
+                    "Delete this drawing",
+                    format!("Delete “{}”?", d.name),
+                    "The shape goes from the sky and from this night's page.\n\nIt can't be undone.".into(),
+                    "Delete it",
+                    move |g| g.journal_mut().delete_drawing(&name, &night),
+                );
+                self.content
+                    .append(&self.with_trash(&label(&words, "book-body"), &bin));
+            }
         }
         let plans: Vec<_> = journal
             .plans
@@ -232,10 +324,12 @@ impl Book {
                     .as_deref()
                     .map(|w| format!(", with {w}"))
                     .unwrap_or_default();
-                self.content.append(&label(
+                let words = label(
                     &format!("{}{who} · {}, {}", p.what, p.event, short_date(&p.date)),
                     "book-body",
-                ));
+                );
+                let bin = self.plan_bin(p);
+                self.content.append(&self.with_trash(&words, &bin));
             }
         }
     }
@@ -254,6 +348,20 @@ impl Book {
             &format!("Looking back: {}", later.join(" · ")),
             "book-quiet",
         ));
+    }
+
+    fn plan_bin(&self, p: &night_sky_core::journal::Plan) -> gtk::Button {
+        let id = p.id;
+        self.delete_button(
+            "Delete this plan",
+            "Delete this plan?".into(),
+            format!(
+                "“{}” goes from Coming up and from the night it was made, and the sky won't mention it again.\n\nIt can't be undone.",
+                p.what
+            ),
+            "Delete the plan",
+            move |g| g.journal_mut().delete_plan(id),
+        )
     }
 
     fn weight_row(&self, id: u32, text: &str, sorted: bool) {
@@ -275,6 +383,29 @@ impl Book {
         course.add_css_class("quiet");
         row.append(&sort);
         row.append(&course);
+        let charted = self
+            .game
+            .borrow()
+            .journal()
+            .courses
+            .iter()
+            .any(|c| c.weight == id);
+        let bin = self.delete_button(
+            "Delete this weight",
+            format!("Delete “{text}”?"),
+            format!(
+                "This removes it from every night it was set down on{}. The nights themselves stay.\n\nIt can't be undone.",
+                if charted {
+                    ", along with the course charted for it"
+                } else {
+                    ""
+                }
+            ),
+            "Delete the weight",
+            move |g| g.journal_mut().delete_weight(id),
+        );
+        bin.set_valign(gtk::Align::Center);
+        row.append(&bin);
         self.content.append(&row);
         let me = self.me.borrow().clone();
         let game = self.game.clone();
@@ -322,7 +453,18 @@ impl Book {
             let card = gtk::Box::new(gtk::Orientation::Vertical, 6);
             card.add_css_class("book-card");
             card.set_margin_top(12);
-            card.append(&label(&p.name, "book-big"));
+            let name = p.name.clone();
+            let bin = self.delete_button(
+                "Forget this name",
+                format!("Forget {}?", p.name),
+                format!(
+                    "This removes {} from the logbook: their star, and the answers that named them, on every page. Plans with them stay, without their name.\n\nIt can't be undone.",
+                    p.name
+                ),
+                "Forget them",
+                move |g| g.journal_mut().delete_person(&name),
+            );
+            card.append(&self.with_trash(&label(&p.name, "book-big"), &bin));
             if !p.stars.is_empty() {
                 let names: Vec<String> = p
                     .stars
@@ -398,7 +540,10 @@ impl Book {
                 let card = gtk::Box::new(gtk::Orientation::Vertical, 2);
                 card.add_css_class("book-card");
                 card.set_margin_top(8);
-                card.append(&label(&format!("{}{who}", p.what), "book-body"));
+                let bin = self.plan_bin(p);
+                card.append(
+                    &self.with_trash(&label(&format!("{}{who}", p.what), "book-body"), &bin),
+                );
                 card.append(&label(
                     &format!("{} · {}", long_date(&p.date), p.event),
                     "book-quiet",
@@ -422,7 +567,10 @@ impl Book {
                 let card = gtk::Box::new(gtk::Orientation::Vertical, 2);
                 card.add_css_class("book-card");
                 card.set_margin_top(8);
-                card.append(&label(&format!("{}{who}", p.what), "book-body"));
+                let bin = self.plan_bin(p);
+                card.append(
+                    &self.with_trash(&label(&format!("{}{who}", p.what), "book-body"), &bin),
+                );
                 card.append(&label(
                     &format!("{} · {}", short_date(&p.date), p.event),
                     "book-quiet",
@@ -478,6 +626,19 @@ impl Book {
             let weight = journal.weight(c.weight).map(|w| w.text.as_str());
             let card = crate::course::course_card(c, weight);
             card.set_margin_top(12);
+            let id = c.id;
+            let bin = self.delete_button(
+                "Delete this course",
+                "Delete this course?".into(),
+                format!(
+                    "The course{} goes. The weight itself stays, and you can chart another any time.\n\nIt can't be undone.",
+                    weight.map(|w| format!(" for “{w}”")).unwrap_or_default()
+                ),
+                "Delete the course",
+                move |g| g.journal_mut().delete_course(id),
+            );
+            bin.set_halign(gtk::Align::End);
+            card.prepend(&bin);
             if c.draft {
                 card.prepend(&label("STILL BEING CHARTED", "course-step"));
             }

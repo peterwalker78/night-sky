@@ -3,12 +3,11 @@
 
 use crate::game::Game;
 use crate::talk::{Go, Request};
-use crate::ui::{clear, label};
+use crate::ui::{clear, confirm, label};
 use gtk::prelude::*;
 use gtk::{gdk, gio, glib};
-use night_sky_core::journal::Ask;
-use std::cell::{Cell, RefCell};
-use std::path::Path;
+use night_sky_core::journal::{Ask, Journal, long_date};
+use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 pub struct Settings {
@@ -17,7 +16,6 @@ pub struct Settings {
     body: gtk::Box,
     game: Rc<RefCell<Game>>,
     me: RefCell<Weak<Settings>>,
-    forget_armed: Cell<bool>,
     pub on_request: Go,
 }
 
@@ -99,26 +97,6 @@ fn group(body: &gtk::Box, heading: &str, rows: &[gtk::Box]) {
     body.append(&card);
 }
 
-fn copy_tree(from: &Path, to: &Path) -> std::io::Result<usize> {
-    std::fs::create_dir_all(to)?;
-    let mut n = 0;
-    for entry in std::fs::read_dir(from)? {
-        let entry = entry?;
-        let target = to.join(entry.file_name());
-        if entry.file_type()?.is_dir() {
-            n += copy_tree(&entry.path(), &target)?;
-        } else if entry
-            .path()
-            .extension()
-            .is_some_and(|e| e == "md" || e == "toml")
-        {
-            std::fs::copy(entry.path(), target)?;
-            n += 1;
-        }
-    }
-    Ok(n)
-}
-
 impl Settings {
     pub fn new(game: &Rc<RefCell<Game>>) -> Rc<Settings> {
         let root = gtk::Box::new(gtk::Orientation::Horizontal, 0);
@@ -170,7 +148,6 @@ impl Settings {
             body,
             game: game.clone(),
             me: RefCell::new(Weak::new()),
-            forget_armed: Cell::new(false),
             on_request: RefCell::new(None),
         });
         *settings.me.borrow_mut() = Rc::downgrade(&settings);
@@ -214,7 +191,6 @@ impl Settings {
 
     /// Opens the menu at its first page.
     pub fn open(&self) {
-        self.forget_armed.set(false);
         match self.list.row_at_index(0) {
             Some(row) if self.list.selected_row().as_ref() != Some(&row) => {
                 self.list.select_row(Some(&row));
@@ -490,9 +466,8 @@ impl Settings {
     }
 
     fn page_logbook(&self) {
-        let dir = self.game.borrow().journal().dir().to_owned();
         self.body.append(&label(
-            "A page for each night, and pages that gather what keeps coming back. It's all plain text in one folder, yours to read, copy or delete.",
+            "A page for each night, and pages that gather what keeps coming back. Anything in it can be deleted on its own with the bin beside it.",
             "book-body",
         ));
         let open_book = gtk::Button::with_label("Open");
@@ -505,69 +480,133 @@ impl Settings {
                 }
             });
         }
-        let export = gtk::Button::with_label("Save a copy…");
-        export.add_css_class("quiet");
-        let forget = gtk::Button::with_label("Forget everything");
-        forget.add_css_class("quiet");
         let said = label("", "book-quiet");
-        {
-            let said = said.clone();
-            let dir = dir.clone();
-            export.connect_clicked(move |b| {
-                let dialog = gtk::FileDialog::builder()
-                    .title("Choose where to put a copy")
-                    .build();
-                let window = b.root().and_downcast::<gtk::Window>();
-                let said = said.clone();
-                let dir = dir.clone();
-                dialog.select_folder(window.as_ref(), gio::Cancellable::NONE, move |r| {
-                    if let Ok(folder) = r
-                        && let Some(path) = folder.path()
-                    {
-                        let target = path.join("Night Sky logbook");
-                        match copy_tree(&dir, &target) {
-                            Ok(n) => {
-                                said.set_text(&format!("Copied {n} files to {}.", target.display()))
-                            }
-                            Err(e) => said.set_text(&format!("That didn't work: {e}.")),
-                        }
-                    }
-                });
-            });
-        }
+        said.set_margin_top(6);
+
+        let backup = gtk::Button::with_label("Back up");
+        backup.add_css_class("quiet");
         {
             let game = self.game.clone();
-            let me = self.me.borrow().clone();
             let said = said.clone();
-            forget.connect_clicked(move |b| {
-                let Some(s) = me.upgrade() else { return };
-                if !s.forget_armed.get() {
-                    s.forget_armed.set(true);
-                    b.set_label("Press again to forget");
-                    return;
+            backup.connect_clicked(move |_| {
+                let (text, today) = {
+                    let g = game.borrow();
+                    (g.journal().backup(g.night()), g.night().to_owned())
+                };
+                let folder = glib::user_special_dir(glib::UserDirectory::Downloads)
+                    .unwrap_or_else(|| glib::home_dir().join("Downloads"));
+                let _ = std::fs::create_dir_all(&folder);
+                let mut path = folder.join(format!("Night Sky backup {today}.toml"));
+                let mut n = 2;
+                while path.exists() {
+                    path = folder.join(format!("Night Sky backup {today} ({n}).toml"));
+                    n += 1;
                 }
-                let r = game.borrow_mut().forget_everything();
-                s.forget_armed.set(false);
-                b.set_label("Forget everything");
-                said.set_text(match r {
-                    Ok(()) => "Forgotten. The logbook is empty.",
-                    Err(_) => "Some files couldn't be removed.",
+                match std::fs::write(&path, text) {
+                    Ok(()) => said.set_text(&format!(
+                        "Saved in your Downloads folder as “{}”.",
+                        path.file_name()
+                            .and_then(|f| f.to_str())
+                            .unwrap_or_default()
+                    )),
+                    Err(e) => said.set_text(&format!("That didn't work: {e}.")),
+                }
+            });
+        }
+
+        let restore = gtk::Button::with_label("Restore…");
+        restore.add_css_class("quiet");
+        {
+            let game = self.game.clone();
+            let said = said.clone();
+            restore.connect_clicked(move |b| {
+                let filter = gtk::FileFilter::new();
+                filter.set_name(Some("Night Sky backups"));
+                filter.add_pattern("*.toml");
+                let filters = gio::ListStore::new::<gtk::FileFilter>();
+                filters.append(&filter);
+                let mut dialog = gtk::FileDialog::builder()
+                    .title("Choose a Night Sky backup")
+                    .filters(&filters);
+                if let Some(downloads) = glib::user_special_dir(glib::UserDirectory::Downloads) {
+                    dialog = dialog.initial_folder(&gio::File::for_path(downloads));
+                }
+                let dialog = dialog.build();
+                let window = b.root().and_downcast::<gtk::Window>();
+                let (game, said, button) = (game.clone(), said.clone(), b.clone());
+                dialog.open(window.as_ref(), gio::Cancellable::NONE, move |r| {
+                    let Ok(file) = r else { return };
+                    let text = file
+                        .path()
+                        .and_then(|p| std::fs::read_to_string(p).ok())
+                        .unwrap_or_default();
+                    let Some(made) = Journal::backup_date(&text) else {
+                        said.set_text("That file isn't a Night Sky backup.");
+                        return;
+                    };
+                    let when = long_date(&made);
+                    let (game, said) = (game.clone(), said.clone());
+                    confirm(
+                        &button,
+                        &format!("Restore the backup from {when}?"),
+                        "Everything Night Sky keeps now will be replaced by what's in the backup: every logbook page, weight, name, plan, course and drawing, and your settings. Anything added since the backup was made will be lost.\n\nIf you might want what's here now, cancel and back it up first.",
+                        "Replace with the backup",
+                        move || {
+                            let r = game.borrow_mut().restore(&text);
+                            said.set_text(&match r {
+                                Ok(_) => format!("Restored. The logbook is as it was on {when}."),
+                                Err(e) => format!("That backup couldn't be restored ({e}). Nothing was changed."),
+                            });
+                        },
+                    );
                 });
             });
         }
+
+        let forget = gtk::Button::with_label("Start again…");
+        forget.add_css_class("quiet");
+        {
+            let game = self.game.clone();
+            let said = said.clone();
+            forget.connect_clicked(move |b| {
+                let (game, said) = (game.clone(), said.clone());
+                confirm(
+                    b,
+                    "Forget everything and start again?",
+                    "This deletes every logbook page, weight, name, plan, course and drawing, and the record of what you've found, so Night Sky starts again as if new. Your settings stay.\n\nIt can't be undone. If you might want any of it, cancel and back up first.",
+                    "Forget everything",
+                    move || {
+                        said.set_text(match game.borrow_mut().forget_everything() {
+                            Ok(()) => "Forgotten. The logbook is empty.",
+                            Err(_) => "Some files couldn't be removed.",
+                        });
+                    },
+                );
+            });
+        }
+
         group(
             &self.body,
             "LOGBOOK",
+            &[row("Read it", "L opens it from the sky, too.", &open_book)],
+        );
+        group(
+            &self.body,
+            "KEEPING IT SAFE",
             &[
-                row("Read it", "L opens it from the sky, too.", &open_book),
                 row(
-                    "Keep a copy",
-                    &format!("It lives in {}.", dir.display()),
-                    &export,
+                    "Back up",
+                    "Puts a copy of everything in your Downloads folder, as one file.",
+                    &backup,
+                ),
+                row(
+                    "Restore",
+                    "Brings back a backup, in place of what's kept now.",
+                    &restore,
                 ),
                 row(
                     "Start again",
-                    "Removes every page and record. It can't be undone.",
+                    "Forgets everything the logbook holds.",
                     &forget,
                 ),
             ],

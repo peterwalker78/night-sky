@@ -11,6 +11,36 @@ use std::rc::Rc;
 pub const CSS: &str = r#"
 window, .page { background: #070913; color: #dfe3ee; }
 .veil { background: rgba(3, 4, 10, 0.7); }
+.confirm-shade { background: rgba(2, 3, 8, 0.5); }
+.confirm {
+  background: rgba(16, 18, 32, 0.99);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 22px 26px 18px 26px;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.6);
+}
+.confirm-title { font-size: 19px; color: #f3ecd9; }
+button.danger {
+  background: rgba(255, 128, 104, 0.16);
+  color: #ffd8cc;
+  border: none;
+  box-shadow: none;
+  border-radius: 8px;
+  padding: 3px 12px;
+  font-size: 13px;
+}
+button.danger:hover { background: rgba(255, 128, 104, 0.3); }
+button.trash {
+  background: none;
+  border: none;
+  box-shadow: none;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 2px;
+  color: rgba(220, 225, 240, 0.32);
+  border-radius: 7px;
+}
+button.trash:hover { color: rgba(255, 190, 170, 0.95); background: rgba(255, 150, 130, 0.1); }
 .sheet {
   background: rgba(10, 12, 24, 0.97);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -124,6 +154,116 @@ button.find-row.found { opacity: 0.5; }
   font-size: 16px;
 }
 "#;
+
+thread_local! {
+    /// Where "are you sure?" cards are shown: the window's top overlay.
+    static CONFIRM_HOST: RefCell<Option<gtk::Overlay>> = const { RefCell::new(None) };
+}
+
+pub fn set_confirm_host(host: &gtk::Overlay) {
+    CONFIRM_HOST.with(|h| *h.borrow_mut() = Some(host.clone()));
+}
+
+/// Asks before doing something that can't be undone, on a small card over
+/// everything else. The detail says plainly what will happen; `then` runs
+/// only if the second button is pressed. Esc, Cancel or a click outside
+/// the card lets it go.
+pub fn confirm(
+    from: &impl IsA<gtk::Widget>,
+    message: &str,
+    detail: &str,
+    yes: &str,
+    then: impl Fn() + 'static,
+) {
+    let Some(host) = CONFIRM_HOST.with(|h| h.borrow().clone()) else {
+        return;
+    };
+    let shade = gtk::Box::new(gtk::Orientation::Vertical, 0);
+    shade.add_css_class("confirm-shade");
+    let card = gtk::Box::new(gtk::Orientation::Vertical, 10);
+    card.add_css_class("confirm");
+    card.set_halign(gtk::Align::Center);
+    card.set_valign(gtk::Align::Center);
+    card.set_vexpand(true);
+    card.set_width_request(460);
+    let title = label(message, "confirm-title");
+    title.set_max_width_chars(40);
+    card.append(&title);
+    for para in detail.split("\n\n") {
+        let l = label(para, "book-body");
+        l.set_max_width_chars(48);
+        card.append(&l);
+    }
+    let buttons = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+    buttons.set_halign(gtk::Align::End);
+    buttons.set_margin_top(8);
+    let cancel = gtk::Button::with_label("Cancel");
+    cancel.add_css_class("quiet");
+    let go = gtk::Button::with_label(yes);
+    go.add_css_class("danger");
+    buttons.append(&cancel);
+    buttons.append(&go);
+    card.append(&buttons);
+    shade.append(&card);
+    host.add_overlay(&shade);
+
+    let from = from.clone().upcast::<gtk::Widget>();
+    let close: Rc<dyn Fn()> = {
+        let (host, shade, from) = (host.clone(), shade.clone(), from.clone());
+        Rc::new(move || {
+            host.remove_overlay(&shade);
+            from.grab_focus();
+        })
+    };
+    {
+        let close = close.clone();
+        cancel.connect_clicked(move |_| close());
+    }
+    {
+        let close = close.clone();
+        go.connect_clicked(move |_| {
+            close();
+            then();
+        });
+    }
+    {
+        let close = close.clone();
+        let keys = gtk::EventControllerKey::new();
+        keys.set_propagation_phase(gtk::PropagationPhase::Capture);
+        keys.connect_key_pressed(move |_, key, _, _| {
+            if key == gdk::Key::Escape {
+                close();
+                return glib::Propagation::Stop;
+            }
+            glib::Propagation::Proceed
+        });
+        shade.add_controller(keys);
+    }
+    {
+        let close = close.clone();
+        let shade_ = shade.clone();
+        let click = gtk::GestureClick::new();
+        click.connect_released(move |_, _, x, y| {
+            if shade_.pick(x, y, gtk::PickFlags::DEFAULT).as_ref() == Some(shade_.upcast_ref()) {
+                close();
+            }
+        });
+        shade.add_controller(click);
+    }
+    glib::idle_add_local_once(move || {
+        cancel.grab_focus();
+    });
+}
+
+/// A small bin button, for deleting one thing.
+pub fn trash(tooltip: &str) -> gtk::Button {
+    let b = gtk::Button::from_icon_name("user-trash-symbolic");
+    b.add_css_class("trash");
+    b.set_tooltip_text(Some(tooltip));
+    b.set_valign(gtk::Align::Start);
+    b.set_focus_on_click(false);
+    b
+}
 
 pub fn install_css() {
     let provider = gtk::CssProvider::new();

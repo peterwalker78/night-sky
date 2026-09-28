@@ -124,7 +124,9 @@ journal, not therapy or a crisis service.
   closer.
 - The logbook is **plain files**: a Markdown page per night and a few small
   TOML files, in `~/.var/app/io.github.peterwalker78.NightSky/data/night-sky/`.
-  Settings can save a copy anywhere, or forget everything.
+  Anything in it can be deleted on its own with the bin beside it. The menu
+  can back everything up to one file in your Downloads folder (the only
+  folder the Flatpak can reach), restore a backup, or forget everything.
 
 ## Get it
 

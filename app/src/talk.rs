@@ -157,11 +157,31 @@ impl Game {
     /// Clears the journal and tonight's page with it.
     pub fn forget_everything(&mut self) -> std::io::Result<()> {
         self.journal.forget_everything()?;
-        self.page = night_sky_core::journal::Night {
-            key: self.night.clone(),
-            ..Default::default()
-        };
+        self.refresh();
         Ok(())
+    }
+
+    /// Picks up the journal again after something in it was deleted or
+    /// restored: tonight's page, and what's been found tonight.
+    pub fn refresh(&mut self) {
+        self.page =
+            self.journal
+                .night(&self.night)
+                .unwrap_or_else(|| night_sky_core::journal::Night {
+                    key: self.night.clone(),
+                    ..Default::default()
+                });
+        let night = self.night.clone();
+        for (i, f) in self.finds.iter().enumerate() {
+            self.caught[i] = self.journal.found_on(&f.id, &night);
+        }
+    }
+
+    /// Replaces everything kept with a backup.
+    pub fn restore(&mut self, text: &str) -> std::io::Result<usize> {
+        let n = self.journal.restore(text)?;
+        self.refresh();
+        Ok(n)
     }
 
     /// A star's everyday name, if it has one.

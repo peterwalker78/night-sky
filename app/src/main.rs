@@ -202,6 +202,7 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
     sheet.set_child(Some(&over));
     sheet.set_can_target(false);
     sky_page.add_overlay(&sheet);
+    ui::set_confirm_host(&sky_page);
     window.set_child(Some(&sky_page));
 
     // Going from page to page. The pages ask for this with a Request.
