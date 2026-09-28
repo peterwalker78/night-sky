@@ -1,7 +1,7 @@
 //! Where the view is looking, and the stereographic projection from the sky
 //! onto the window. Horizon vectors are `[north, east, up]`.
 
-use night_sky_core::coords::{Vec3, from_alt_az};
+use westering_core::coords::{Vec3, from_alt_az};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Camera {

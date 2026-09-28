@@ -2,7 +2,9 @@
 # moves round the stars involved. A story is offered only when its `anchor`
 # star (HR number) is well up. Each line may point at a star (`hr`) or a
 # showpiece (`showpiece`) by id. `mirror` is the thought it leaves you with,
-# turned from the sky back to the everyday.
+# turned from the sky back to the everyday. `figure` gives the lines to draw
+# when the story's shape isn't simply its anchor's constellation, and
+# `pattern = false` draws none.
 
 [[story]]
 id = "hunter-scorpion"
@@ -43,6 +45,8 @@ lines = [
 id = "many-ploughs"
 title = "One shape, many names"
 anchor = 4905
+# The Plough alone: the seven stars the story is about.
+figure = [[4301, 4295], [4295, 4554], [4554, 4660], [4660, 4301], [4660, 4905], [4905, 5054], [5054, 5191]]
 mirror = "Seven stars, and every people who looked up saw something of their own. What a day looks like depends a lot on what we look for in it."
 lines = [
   { hr = 4295, say = "In Britain these seven stars are the Plough; in North America they're the Big Dipper." },
@@ -54,6 +58,8 @@ lines = [
 id = "weaver-cowherd"
 title = "The weaver and the cowherd"
 anchor = 7001
+# The Summer Triangle: Vega, Altair and Deneb.
+figure = [[7001, 7557], [7557, 7924], [7924, 7001]]
 mirror = "One night a year, and they make it count. Is there someone you only see now and then, who'd be glad to hear from you?"
 lines = [
   { hr = 7001, say = "In a story told across China, Korea and Japan, Vega is a weaver girl who fell in love with a cowherd, Altair." },
@@ -109,6 +115,7 @@ lines = [
 id = "seven-sisters"
 title = "The Seven Sisters"
 anchor = 1165
+pattern = false
 mirror = "Most people see six; the seventh only shows once your eyes have settled. Some good things are like that: they need you to slow down first."
 lines = [
   { showpiece = "pleiades", say = "Almost every people on Earth has a story for the Pleiades. To the Greeks they were seven sisters, daughters of Atlas." },
@@ -175,6 +182,7 @@ lines = [
 id = "magellanic"
 title = "Two small galaxies"
 anchor = 472
+pattern = false
 mirror = "Two small galaxies keep ours company the whole way round. Company makes a long road shorter."
 lines = [
   { showpiece = "lmc", say = "The Magellanic Clouds are named after Magellan's voyage of 1519, but people of the southern hemisphere knew them long before, and the Persian astronomer al-Sufi wrote of the larger one in 964." },
@@ -238,6 +246,7 @@ lines = [
 id = "milky-way"
 title = "Why it's called the Milky Way"
 anchor = 7796
+pattern = false
 mirror = "Too many suns to count, and today was one day under them. It's good to look at something that big now and then; it puts the day in its place."
 lines = [
   { hr = 7796, say = "The Greeks said the Milky Way was milk spilt across the sky by the goddess Hera; our word galaxy comes from the Greek for milk." },

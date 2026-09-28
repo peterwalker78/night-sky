@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Westering
+GenericName=Stargazing
+Comment=A few quiet minutes under tonight's real sky
+Exec=westering
+Icon=io.github.peterwalker78.Westering
+Terminal=false
+Categories=Education;Science;Astronomy;
+Keywords=stars;sky;astronomy;planets;moon;journal;calm;wind down;night sky;
+StartupNotify=true
+StartupWMClass=io.github.peterwalker78.Westering
+X-Flatpak-RenamedFrom=io.github.peterwalker78.NightSky.desktop;

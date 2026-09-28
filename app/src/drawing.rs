@@ -8,10 +8,10 @@ use crate::game::{Game, Look, Timed, hills};
 use crate::talk::{Flow, Pending, Prompt};
 use crate::view::{Line, Text};
 use gtk::gdk;
-use night_sky_core::coords::{Mat3, Vec3, alt_az, apply, unit};
-use night_sky_core::finds::Target;
-use night_sky_core::journal::Drawing as Drawn;
-use night_sky_core::time::UnixMs;
+use westering_core::coords::{Mat3, Vec3, alt_az, apply, unit};
+use westering_core::finds::Target;
+use westering_core::journal::Drawing as Drawn;
+use westering_core::time::UnixMs;
 
 /// The constellation being drawn.
 pub struct Drawing {
@@ -60,7 +60,7 @@ impl Game {
 
     pub(crate) fn start_drawing(&mut self, real: UnixMs) {
         let now = self.clock.sky(real);
-        let hz = night_sky_core::coords::horizon(self.observer, now);
+        let hz = westering_core::coords::horizon(self.observer, now);
         let (cx, cy) = (self.camera.width / 2.0, self.camera.height / 2.0);
         let reach = self.camera.width.min(self.camera.height) * 0.3;
         let nearest = self
@@ -102,7 +102,7 @@ impl Game {
 
     fn step(&mut self, dir: (f64, f64), real: UnixMs) {
         let now = self.clock.sky(real);
-        let hz = night_sky_core::coords::horizon(self.observer, now);
+        let hz = westering_core::coords::horizon(self.observer, now);
         let Some(current) = self.drawing.as_ref().and_then(|d| d.current) else {
             return;
         };
@@ -230,7 +230,7 @@ impl Game {
             reveals: reveals.clone(),
         });
         if let Err(e) = self.journal.save_drawings() {
-            eprintln!("night-sky: couldn't save the drawing: {e}");
+            eprintln!("westering: couldn't save the drawing: {e}");
         }
         self.page.drawings.push(match &reveals {
             Some(f) => format!("{name}, part of {f}"),
@@ -363,22 +363,32 @@ impl Game {
     /// The star pattern to show now: the real constellation a drawing turned
     /// out to be part of, one just caught or still being looked at, or the
     /// one tonight's story is told in.
-    fn wanted_pattern(&self) -> Option<usize> {
+    fn wanted_pattern(&self) -> Option<Vec<(u16, u16)>> {
         if let Some((f, _)) = self.reveal {
-            return Some(f);
+            return Some(self.sky.figures[f].edges.clone());
         }
         if let Some(tour) = &self.tour
             && let Target::Story(s) = self.finds[tour.find].target
         {
-            let anchor = self.sky.tours.stories[s].anchor;
+            let story = &self.sky.tours.stories[s];
+            if !story.pattern {
+                return None;
+            }
+            if !story.figure.is_empty() {
+                return Some(story.figure.iter().map(|&[a, b]| (a, b)).collect());
+            }
+            let anchor = story.anchor;
             return self
                 .sky
                 .figures
                 .iter()
-                .position(|f| f.edges.iter().any(|&(a, b)| a == anchor || b == anchor));
+                .find(|f| f.edges.iter().any(|&(a, b)| a == anchor || b == anchor))
+                .map(|f| f.edges.clone());
         }
         match self.track.map(|i| (i, &self.finds[i].target)) {
-            Some((i, Target::Figure(f))) if self.caught[i] => Some(*f),
+            Some((i, Target::Figure(f))) if self.caught[i] => {
+                Some(self.sky.figures[*f].edges.clone())
+            }
             _ => None,
         }
     }
@@ -387,7 +397,7 @@ impl Game {
     pub(crate) fn pattern_lines(&mut self, real: UnixMs, hz: &Mat3, dt: f64) -> Vec<Line> {
         let want = self.wanted_pattern();
         if want != self.pattern && self.pattern_alpha < 0.03 {
-            self.pattern = want;
+            self.pattern = want.clone();
         }
         let target = if want.is_some() && want == self.pattern {
             1.0
@@ -395,7 +405,7 @@ impl Game {
             0.0
         };
         self.pattern_alpha += (target - self.pattern_alpha) * (1.0 - (-dt / 0.9).exp());
-        let Some(f) = self.pattern else {
+        let Some(edges) = self.pattern.clone() else {
             return Vec::new();
         };
         // About one breath every six and a half seconds.
@@ -408,7 +418,7 @@ impl Game {
             return Vec::new();
         }
         let mut out = Vec::new();
-        for (a, b) in self.sky.figures[f].edges.clone() {
+        for (a, b) in edges {
             if let (Some(p), Some(q)) = (self.star_screen(a, hz), self.star_screen(b, hz)) {
                 // Stop short of the stars, so they stand clear of the lines.
                 let (dx, dy) = (q.0 - p.0, q.1 - p.1);

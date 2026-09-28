@@ -11,11 +11,11 @@ use crate::game::{Game, envelope};
 use crate::sprite::{FLYING, NOOK, SIZE, render_flying, render_moss};
 use crate::talk::Flow;
 use crate::view::{Bubble, Point, Sprite};
-use night_sky_core::coords::{apply, unit};
-use night_sky_core::finds::{Target, stable_hash};
-use night_sky_core::session::Phase;
-use night_sky_core::time::UnixMs;
-use night_sky_core::wisp::{Mode, Trend, Wisp};
+use westering_core::coords::{apply, unit};
+use westering_core::finds::{Target, stable_hash};
+use westering_core::session::Phase;
+use westering_core::time::UnixMs;
+use westering_core::wisp::{Mode, Trend, Wisp};
 
 /// A place on the screen, in pixels.
 type Spot = (f64, f64);
@@ -129,7 +129,7 @@ impl Game {
         if !self.seen(key) {
             self.journal.settings.seen.push(key.to_owned());
             if let Err(e) = self.journal.save_settings() {
-                eprintln!("night-sky: couldn't save settings: {e}");
+                eprintln!("westering: couldn't save settings: {e}");
             }
         }
     }
@@ -375,7 +375,7 @@ impl Game {
         let (plan, name) = match &self.talk.flow {
             Some(Flow::Question { chosen, .. }) => (
                 chosen.question.thread == "plans",
-                chosen.question.answer == night_sky_core::questions::AnswerKind::Name,
+                chosen.question.answer == westering_core::questions::AnswerKind::Name,
             ),
             _ => (false, false),
         };
@@ -609,8 +609,8 @@ impl Game {
             }
             Aim::Find(i) => {
                 let now = self.sky_now(self.last_real);
-                let hz = night_sky_core::coords::horizon(self.observer, now);
-                let prec = night_sky_core::coords::precession(now);
+                let hz = westering_core::coords::horizon(self.observer, now);
+                let prec = westering_core::coords::precession(now);
                 match self
                     .find_dir(i, now, &hz, &prec)
                     .and_then(|v| self.camera.project(v))
@@ -623,8 +623,8 @@ impl Game {
             }
             Aim::Sky(ra, dec) => {
                 let now = self.sky_now(self.last_real);
-                let hz = night_sky_core::coords::horizon(self.observer, now);
-                let prec = night_sky_core::coords::precession(now);
+                let hz = westering_core::coords::horizon(self.observer, now);
+                let prec = westering_core::coords::precession(now);
                 match self.camera.project(apply(&hz, apply(&prec, unit(ra, dec)))) {
                     // Above it, clear of a card beside the middle.
                     Some((x, y)) if self.camera.on_screen(x, y, -40.0) => (
@@ -650,7 +650,7 @@ impl Game {
             },
             Aim::Weights => {
                 let now = self.sky_now(self.last_real);
-                let hz = night_sky_core::coords::horizon(self.observer, now);
+                let hz = westering_core::coords::horizon(self.observer, now);
                 let spot = self
                     .page
                     .weights
@@ -674,7 +674,7 @@ impl Game {
         self.guide.last_frame = real;
         let (nx, ny, nw, nh) = self.nook();
         let alpha = if matches!(self.session.phase(), Phase::LightsOut | Phase::Over) {
-            brightness / night_sky_core::session::DIM
+            brightness / westering_core::session::DIM
         } else {
             brightness.max(0.6)
         };

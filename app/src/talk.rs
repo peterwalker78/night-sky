@@ -3,17 +3,17 @@
 //! hands the answers back here.
 
 use crate::game::{Game, Look};
-use night_sky_core::care::Care;
-use night_sky_core::coords::{angles, apply, from_alt_az, horizon};
-use night_sky_core::events::{Kind as EventKind, SkyEvent, upcoming};
-use night_sky_core::finds::Target;
-use night_sky_core::journal::{Answer, Asked, Check, Journal, Mention, NightWeight, Plan};
-use night_sky_core::questions::{
+use std::cell::RefCell;
+use westering_core::care::Care;
+use westering_core::coords::{angles, apply, from_alt_az, horizon};
+use westering_core::events::{Kind as EventKind, SkyEvent, upcoming};
+use westering_core::finds::Target;
+use westering_core::journal::{Answer, Asked, Check, Journal, Mention, NightWeight, Plan};
+use westering_core::questions::{
     self, AnswerKind, Chosen, Context, Question, course_to_check, days_between, key_of,
     plan_nearby, plan_to_ask_about, weight_to_look_back,
 };
-use night_sky_core::time::UnixMs;
-use std::cell::RefCell;
+use westering_core::time::UnixMs;
 
 /// What the window shows at the foot of the sky.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -126,7 +126,7 @@ impl Talk {
 }
 
 /// The sky's calendar for the next two months.
-pub fn calendar(showers: &[night_sky_core::catalogues::Shower], now: UnixMs) -> Vec<SkyEvent> {
+pub fn calendar(showers: &[westering_core::catalogues::Shower], now: UnixMs) -> Vec<SkyEvent> {
     upcoming(showers, now, 60)
 }
 
@@ -169,7 +169,7 @@ impl Game {
         self.page =
             self.journal
                 .night(&self.night)
-                .unwrap_or_else(|| night_sky_core::journal::Night {
+                .unwrap_or_else(|| westering_core::journal::Night {
                     key: self.night.clone(),
                     ..Default::default()
                 });
@@ -353,7 +353,7 @@ impl Game {
     pub(crate) fn after_catch(&mut self, i: usize, real: UnixMs) {
         let today = self.night.clone();
         if !self.talk.checked_back
-            && self.journal.settings.ask != night_sky_core::journal::Ask::Never
+            && self.journal.settings.ask != westering_core::journal::Ask::Never
         {
             self.talk.checked_back = true;
             let recently = |journal: &Journal, id: &str| {
@@ -397,7 +397,7 @@ impl Game {
     }
 
     pub(crate) fn choose(&self, triggers: &[&str]) -> Option<Chosen> {
-        let people: Vec<&night_sky_core::journal::Person> = self
+        let people: Vec<&westering_core::journal::Person> = self
             .journal
             .people
             .iter()
@@ -472,7 +472,7 @@ impl Game {
                     let (_, m, d) = (p.next(), p.next().unwrap_or(1), p.next().unwrap_or(1));
                     format!(
                         "{d} {}",
-                        night_sky_core::time::MONTHS[(m.clamp(1, 12) - 1) as usize]
+                        westering_core::time::MONTHS[(m.clamp(1, 12) - 1) as usize]
                     )
                 };
                 let found = page
@@ -531,7 +531,7 @@ impl Game {
             night: self.night.clone(),
         });
         if let Err(e) = self.journal.save_asked() {
-            eprintln!("night-sky: couldn't save what was asked: {e}");
+            eprintln!("westering: couldn't save what was asked: {e}");
         }
     }
 
@@ -603,7 +603,7 @@ impl Game {
             self.save_people_now();
         }
         if let Err(e) = self.journal.save_plans() {
-            eprintln!("night-sky: couldn't save the plan: {e}");
+            eprintln!("westering: couldn't save the plan: {e}");
         }
         self.save_page_now();
         id
@@ -620,7 +620,7 @@ impl Game {
         });
         self.save_people_now();
         if let Err(e) = self.journal.save_plans() {
-            eprintln!("night-sky: couldn't save the plan: {e}");
+            eprintln!("westering: couldn't save the plan: {e}");
         }
         self.save_page_now();
     }
@@ -847,7 +847,7 @@ impl Game {
         let up = self.journal.fixed_stars().into_iter().find_map(|p| {
             let hr = *p.stars.first()?;
             let idx = self.sky.stars.index_of(hr)?;
-            let alt = night_sky_core::coords::alt_az(apply(&hz, self.star_dirs[idx])).0;
+            let alt = westering_core::coords::alt_az(apply(&hz, self.star_dirs[idx])).0;
             (alt > 10.0).then(|| p.name.clone())
         })?;
         let id = format!("star-up:{up}");
@@ -864,19 +864,19 @@ impl Game {
 
     pub(crate) fn save_page_now(&self) {
         if let Err(e) = self.journal.save_night(&self.page) {
-            eprintln!("night-sky: couldn't save tonight's page: {e}");
+            eprintln!("westering: couldn't save tonight's page: {e}");
         }
     }
 
     fn save_weights_now(&self) {
         if let Err(e) = self.journal.save_weights() {
-            eprintln!("night-sky: couldn't save the weights: {e}");
+            eprintln!("westering: couldn't save the weights: {e}");
         }
     }
 
     fn save_people_now(&self) {
         if let Err(e) = self.journal.save_people() {
-            eprintln!("night-sky: couldn't save names: {e}");
+            eprintln!("westering: couldn't save names: {e}");
         }
     }
 }

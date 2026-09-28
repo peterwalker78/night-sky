@@ -1,4 +1,4 @@
-//! Night Sky's core: the real sky over the user, the shape of a visit, and
+//! Westering's core: the real sky over the user, the shape of a visit, and
 //! the logbook, with no user interface and no clock of its own. Everything
 //! that depends on time takes the time as an argument.
 

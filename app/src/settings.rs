@@ -1,4 +1,4 @@
-//! The menu, in a few short pages: how the sky behaves, what Night Sky is
+//! The menu, in a few short pages: how the sky behaves, what Westering is
 //! for, what's kept and why, the logbook, and credits.
 
 use crate::game::Game;
@@ -6,9 +6,9 @@ use crate::talk::{Go, Request};
 use crate::ui::{clear, confirm, label};
 use gtk::prelude::*;
 use gtk::{gdk, gio, glib};
-use night_sky_core::journal::{Ask, Journal, long_date};
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
+use westering_core::journal::{Ask, Journal, long_date};
 
 pub struct Settings {
     pub root: gtk::Box,
@@ -28,7 +28,7 @@ const PAGES: [&str; 5] = [
     "Credits",
 ];
 
-/// What Night Sky is for: a line, then the four things underneath it.
+/// What Westering is for: a line, then the four things underneath it.
 const LEAD: &str =
     "A few quiet minutes at the end of the day, to wind down and come back to what matters to you.";
 
@@ -56,7 +56,7 @@ const WHY_THE_SKY: &str = "The stars are the way in. Every story ends on a thoug
 const OVER_TIME: &str = "Over weeks, the logbook becomes a quiet record of your evenings: what you saw, what was on your mind and how it turned out, and the people and plans that keep coming up.";
 
 const CREDITS: [&str; 9] = [
-    "Night Sky is free software under the GNU GPL, version 3 or later.",
+    "Westering is free software under the GNU GPL, version 3 or later.",
     "Stars from the Yale Bright Star Catalogue (Hoffleit and Warren), through the CDS in Strasbourg.",
     "Constellation figures from d3-celestial by Olaf Frohn (BSD licence).",
     "Positions of the Sun, Moon and planets after Paul Schlyter's method.",
@@ -496,10 +496,10 @@ impl Settings {
                 let folder = glib::user_special_dir(glib::UserDirectory::Downloads)
                     .unwrap_or_else(|| glib::home_dir().join("Downloads"));
                 let _ = std::fs::create_dir_all(&folder);
-                let mut path = folder.join(format!("Night Sky backup {today}.toml"));
+                let mut path = folder.join(format!("Westering backup {today}.toml"));
                 let mut n = 2;
                 while path.exists() {
-                    path = folder.join(format!("Night Sky backup {today} ({n}).toml"));
+                    path = folder.join(format!("Westering backup {today} ({n}).toml"));
                     n += 1;
                 }
                 match std::fs::write(&path, text) {
@@ -521,12 +521,12 @@ impl Settings {
             let said = said.clone();
             restore.connect_clicked(move |b| {
                 let filter = gtk::FileFilter::new();
-                filter.set_name(Some("Night Sky backups"));
+                filter.set_name(Some("Westering backups"));
                 filter.add_pattern("*.toml");
                 let filters = gio::ListStore::new::<gtk::FileFilter>();
                 filters.append(&filter);
                 let mut dialog = gtk::FileDialog::builder()
-                    .title("Choose a Night Sky backup")
+                    .title("Choose a Westering backup")
                     .filters(&filters);
                 if let Some(downloads) = glib::user_special_dir(glib::UserDirectory::Downloads) {
                     dialog = dialog.initial_folder(&gio::File::for_path(downloads));
@@ -541,7 +541,7 @@ impl Settings {
                         .and_then(|p| std::fs::read_to_string(p).ok())
                         .unwrap_or_default();
                     let Some(made) = Journal::backup_date(&text) else {
-                        said.set_text("That file isn't a Night Sky backup.");
+                        said.set_text("That file isn't a Westering backup.");
                         return;
                     };
                     let when = long_date(&made);
@@ -549,7 +549,7 @@ impl Settings {
                     confirm(
                         &button,
                         &format!("Restore the backup from {when}?"),
-                        "Everything Night Sky keeps now will be replaced by what's in the backup: every logbook page, weight, name, plan, course and drawing, and your settings. Anything added since the backup was made will be lost.\n\nIf you might want what's here now, cancel and back it up first.",
+                        "Everything Westering keeps now will be replaced by what's in the backup: every logbook page, weight, name, plan, course and drawing, and your settings. Anything added since the backup was made will be lost.\n\nIf you might want what's here now, cancel and back it up first.",
                         "Replace with the backup",
                         move || {
                             let r = game.borrow_mut().restore(&text);
@@ -573,7 +573,7 @@ impl Settings {
                 confirm(
                     b,
                     "Forget everything and start again?",
-                    "This deletes every logbook page, weight, name, plan, course and drawing, and the record of what you've found, so Night Sky starts again as if new. Your settings stay.\n\nIt can't be undone. If you might want any of it, cancel and back up first.",
+                    "This deletes every logbook page, weight, name, plan, course and drawing, and the record of what you've found, so Westering starts again as if new. Your settings stay.\n\nIt can't be undone. If you might want any of it, cancel and back up first.",
                     "Forget everything",
                     move || {
                         said.set_text(match game.borrow_mut().forget_everything() {

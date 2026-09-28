@@ -205,7 +205,9 @@ struct BackupFile {
 
 #[derive(Serialize, Deserialize)]
 struct Backup {
-    night_sky_backup: u32,
+    /// Backups made before the name changed call it night_sky_backup.
+    #[serde(alias = "night_sky_backup")]
+    westering_backup: u32,
     made: String,
     #[serde(default)]
     file: Vec<BackupFile>,
@@ -227,7 +229,7 @@ fn read<T: DeserializeOwned + Default>(path: &Path) -> T {
     match fs::read_to_string(path) {
         Ok(text) => toml::from_str(&text).unwrap_or_else(|e| {
             eprintln!(
-                "night-sky: {} could not be read ({e}); starting it afresh",
+                "westering: {} could not be read ({e}); starting it afresh",
                 path.display()
             );
             T::default()
@@ -265,6 +267,33 @@ impl Journal {
             drawings: read::<DrawingFile>(&at("drawings.toml")).drawing,
             settings: read(&at("settings.toml")),
         }
+    }
+
+    /// Takes in a logbook kept under an earlier name, the first time: when
+    /// `to` holds nothing yet and `from` has a logbook, copies it across.
+    /// Says whether it did.
+    pub fn adopt(from: &Path, to: &Path) -> io::Result<bool> {
+        let empty = fs::read_dir(to).map_or(true, |mut d| d.next().is_none());
+        let there =
+            from.join("logbook").is_dir() || KEPT.iter().any(|name| from.join(name).is_file());
+        if !empty || !there {
+            return Ok(false);
+        }
+        fn copy(from: &Path, to: &Path) -> io::Result<()> {
+            fs::create_dir_all(to)?;
+            for entry in fs::read_dir(from)? {
+                let entry = entry?;
+                let target = to.join(entry.file_name());
+                if entry.file_type()?.is_dir() {
+                    copy(&entry.path(), &target)?;
+                } else {
+                    fs::copy(entry.path(), target)?;
+                }
+            }
+            Ok(())
+        }
+        copy(from, to)?;
+        Ok(true)
     }
 
     pub fn dir(&self) -> &Path {
@@ -651,12 +680,12 @@ impl Journal {
             }
         }
         let backup = Backup {
-            night_sky_backup: 1,
+            westering_backup: 1,
             made: made.to_owned(),
             file: files,
         };
         format!(
-            "# A copy of everything Night Sky keeps. Restore it from the menu.\n\n{}",
+            "# A copy of everything Westering keeps. Restore it from the menu.\n\n{}",
             toml::to_string(&backup).unwrap_or_default()
         )
     }
@@ -790,7 +819,7 @@ mod tests {
 
     fn scratch(name: &str) -> PathBuf {
         let dir =
-            std::env::temp_dir().join(format!("night-sky-test-{name}-{}", std::process::id()));
+            std::env::temp_dir().join(format!("westering-test-{name}-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         dir
     }
@@ -962,5 +991,27 @@ mod tests {
         assert!(fresh.restore("not a backup").is_err());
         let _ = fs::remove_dir_all(&dir);
         let _ = fs::remove_dir_all(&other);
+    }
+
+    #[test]
+    fn a_logbook_kept_under_the_old_name_comes_across_once() {
+        let old = scratch("adopt-old");
+        let new = scratch("adopt-new");
+        let j = two_nights(&old);
+        assert!(Journal::adopt(&old, &new).unwrap());
+        let moved = Journal::open(&new);
+        assert_eq!(moved.nights(), j.nights());
+        assert_eq!(moved.weights, j.weights);
+        // Once there's something here, it's left alone.
+        assert!(!Journal::adopt(&old, &new).unwrap());
+        let nowhere = scratch("adopt-none");
+        assert!(!Journal::adopt(&nowhere, &scratch("adopt-empty")).unwrap());
+        let old_backup = j
+            .backup("2026-09-28")
+            .replace("westering_backup", "night_sky_backup");
+        assert!(Journal::backup_date(&old_backup).is_some());
+        for d in [old, new] {
+            let _ = fs::remove_dir_all(&d);
+        }
     }
 }

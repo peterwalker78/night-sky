@@ -7,17 +7,17 @@ use crate::field::{Field, Rgb, noise3};
 use crate::view::{Frame, Text};
 use gtk::gdk;
 use gtk::gdk::prelude::TextureExt;
-use night_sky_core::catalogues::Kind;
-use night_sky_core::coords::{
+use westering_core::catalogues::Kind;
+use westering_core::coords::{
     Mat3, Observer, Vec3, alt_az, apply, from_alt_az, horizon, precession, refraction, unit,
 };
-use night_sky_core::ephem::{Body, moon_age, moon_phase_name};
-use night_sky_core::finale::{Handoff, handoff};
-use night_sky_core::finds::{Find, Target, night_key, night_of, tonight};
-use night_sky_core::journal::{Journal, Night};
-use night_sky_core::session::{Phase, Session, Timings};
-use night_sky_core::sky::{Sky, limiting_magnitude, see};
-use night_sky_core::time::{MONTHS, UnixMs, civil_date, weekday};
+use westering_core::ephem::{Body, moon_age, moon_phase_name};
+use westering_core::finale::{Handoff, handoff};
+use westering_core::finds::{Find, Target, night_key, night_of, tonight};
+use westering_core::journal::{Journal, Night};
+use westering_core::session::{Phase, Session, Timings};
+use westering_core::sky::{Sky, limiting_magnitude, see};
+use westering_core::time::{MONTHS, UnixMs, civil_date, weekday};
 
 /// One line of the Tonight list.
 #[derive(Clone, Debug, PartialEq)]
@@ -188,7 +188,7 @@ pub struct Game {
     /// Points drawn over the photographs.
     pub(crate) marks: Vec<crate::view::Point>,
     /// The star pattern being shown, and how far it has faded in.
-    pub(crate) pattern: Option<usize>,
+    pub(crate) pattern: Option<Vec<(u16, u16)>>,
     pub(crate) pattern_alpha: f64,
 }
 
@@ -315,14 +315,14 @@ impl Game {
                 dir,
                 mag: s.mag as f64,
                 light: light(s.mag as f64),
-                tint: night_sky_core::stars::tint(s.bv),
+                tint: westering_core::stars::tint(s.bv),
                 rate: 0.9 + (s.hr % 7) as f64 * 0.23,
                 phase: s.hr as f64,
             })
             .collect();
-        let moon_stops = night_sky_core::tours::moon_stops(
+        let moon_stops = westering_core::tours::moon_stops(
             &sky.tours.moon,
-            moon_age(now) * night_sky_core::tours::SYNODIC_DAYS,
+            moon_age(now) * westering_core::tours::SYNODIC_DAYS,
             night_of(now, offset_s),
             &|name| journal.found_before(&format!("moon:{name}"), &night),
         );
@@ -771,7 +771,7 @@ impl Game {
                 let quiet = !self.journal.settings.quiet;
                 self.journal.settings.quiet = quiet;
                 if let Err(e) = self.journal.save_settings() {
-                    eprintln!("night-sky: couldn't save settings: {e}");
+                    eprintln!("westering: couldn't save settings: {e}");
                 }
                 self.say(
                     if quiet {
@@ -1030,7 +1030,7 @@ impl Game {
                     Target::Meteor(_) => "anywhere, any moment".to_owned(),
                     _ => match self.find_dir(i, now, &hz, &prec).map(alt_az) {
                         Some((alt, _)) if alt < 0.0 => "below the horizon now".to_owned(),
-                        Some((alt, az)) => night_sky_core::finale::whereabouts(alt, az),
+                        Some((alt, az)) => westering_core::finale::whereabouts(alt, az),
                         None => String::new(),
                     },
                 };
@@ -1226,7 +1226,7 @@ impl Game {
         self.session.found_one(real);
         let find = self.finds[i].clone();
         if let Err(e) = self.journal.mark_found(&find.id, &self.night) {
-            eprintln!("night-sky: couldn't save what was found: {e}");
+            eprintln!("westering: couldn't save what was found: {e}");
         }
         if !self.page.finds.contains(&find.name) {
             self.page.finds.push(find.name.clone());
@@ -1241,13 +1241,13 @@ impl Game {
         let mut body = find.fact;
         if matches!(self.finds[i].target, Target::Hop(_))
             && (!self.journal.settings.seen.iter().any(|k| k == "hop-done")
-                || night_sky_core::finds::stable_hash((0, 0, 0), &self.night).is_multiple_of(3))
+                || westering_core::finds::stable_hash((0, 0, 0), &self.night).is_multiple_of(3))
         {
             body = format!("{body}\n\n{}", self.sky.tours.hop_closing);
             if !self.journal.settings.seen.iter().any(|k| k == "hop-done") {
                 self.journal.settings.seen.push("hop-done".into());
                 if let Err(e) = self.journal.save_settings() {
-                    eprintln!("night-sky: couldn't save settings: {e}");
+                    eprintln!("westering: couldn't save settings: {e}");
                 }
             }
         }
@@ -1267,7 +1267,7 @@ impl Game {
 
     fn save_page(&self) {
         if let Err(e) = self.journal.save_night(&self.page) {
-            eprintln!("night-sky: couldn't save tonight's page: {e}");
+            eprintln!("westering: couldn't save tonight's page: {e}");
         }
     }
 
@@ -1757,7 +1757,7 @@ impl Game {
         let low_sin = 14f64.to_radians().sin();
         let algol = self
             .algol
-            .map(|k| (k, night_sky_core::tours::algol_magnitude(now)));
+            .map(|k| (k, westering_core::tours::algol_magnitude(now)));
         for (k, star) in self.prepared.iter().enumerate() {
             if star.mag > shown {
                 break;
@@ -2001,7 +2001,7 @@ impl Game {
                 };
                 let ra = jup.ra.to_radians();
                 let east = apply(hz, [-ra.sin(), ra.cos(), 0.0]);
-                let pole = apply(hz, apply(prec, night_sky_core::jupiter::pole()));
+                let pole = apply(hz, apply(prec, westering_core::jupiter::pole()));
                 if let (Some(e), Some(p)) = (toward(east), toward(pole)) {
                     // Along Jupiter's equator, the way that points to the sky's west.
                     let mut q = (-p.1, p.0);
@@ -2010,7 +2010,7 @@ impl Game {
                     }
                     let r = jup.position.diameter / 7200.0 * ppd;
                     let a = smoothstep((1.5 - cam.fov) / 1.0) as f32;
-                    for (k, m) in night_sky_core::jupiter::moons(now).iter().enumerate() {
+                    for (k, m) in westering_core::jupiter::moons(now).iter().enumerate() {
                         if m.behind && m.x.abs() < 1.0 {
                             continue;
                         }
@@ -2024,7 +2024,7 @@ impl Game {
                         dot.radius = dot.radius.min(2.2);
                         self.points.push(dot);
                         self.moon_labels
-                            .push((mx, my, night_sky_core::jupiter::NAMES[k], a));
+                            .push((mx, my, westering_core::jupiter::NAMES[k], a));
                     }
                 }
             }
@@ -2375,7 +2375,7 @@ impl Game {
         let text_light = brightness.max(0.55);
         if self.talk.caring {
             out.push(
-                Text::new(w - 400.0, h - 130.0, night_sky_core::care::NOTE, 13.0, 0.75)
+                Text::new(w - 400.0, h - 130.0, westering_core::care::NOTE, 13.0, 0.75)
                     .wrap(360.0)
                     .color([1.0, 0.9, 0.8]),
             );
@@ -2425,7 +2425,7 @@ impl Game {
     /// down as the sky dims and goes with the lights.
     pub fn music_level(&self, real: UnixMs) -> f64 {
         let b = self.session.brightness(real);
-        let dim = night_sky_core::session::DIM;
+        let dim = westering_core::session::DIM;
         match self.session.phase() {
             Phase::LightsOut | Phase::Over => 0.6 * b / dim,
             _ => 0.6 + 0.4 * ((b - dim) / (1.0 - dim)).max(0.0),

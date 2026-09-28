@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Build a single-file Flatpak bundle for release: dist/night-sky-x86_64.flatpak
+# Build a single-file Flatpak bundle for release: dist/westering-x86_64.flatpak
 # and its .sha256. Runs on the host, like scripts/flatpak. The names don't carry
-# the version, so releases/latest/download/night-sky-x86_64.flatpak stays put.
+# the version, so releases/latest/download/westering-x86_64.flatpak stays put.
 source "$(dirname "$0")/lib.sh"
 require_host
 cd "$ROOT"
@@ -25,7 +25,7 @@ systemd-run --user --scope --quiet --collect \
 mkdir -p "$DIST"
 flatpak build-bundle \
   --runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo \
-  "$REPO" "$DIST/night-sky-x86_64.flatpak.part" "$APP_ID"
-mv -f "$DIST/night-sky-x86_64.flatpak.part" "$DIST/night-sky-x86_64.flatpak"
-(cd "$DIST" && sha256sum night-sky-x86_64.flatpak > night-sky-x86_64.flatpak.sha256)
-echo "Built $DIST/night-sky-x86_64.flatpak ($(cut -d ' ' -f 1 "$DIST/night-sky-x86_64.flatpak.sha256"))"
+  "$REPO" "$DIST/westering-x86_64.flatpak.part" "$APP_ID"
+mv -f "$DIST/westering-x86_64.flatpak.part" "$DIST/westering-x86_64.flatpak"
+(cd "$DIST" && sha256sum westering-x86_64.flatpak > westering-x86_64.flatpak.sha256)
+echo "Built $DIST/westering-x86_64.flatpak ($(cut -d ' ' -f 1 "$DIST/westering-x86_64.flatpak.sha256"))"

@@ -3,7 +3,7 @@
 //! bob while it hovers, and a trail of embers behind it.
 
 use crate::view::Point;
-use night_sky_core::time::UnixMs;
+use westering_core::time::UnixMs;
 
 struct Ember {
     x: f64,

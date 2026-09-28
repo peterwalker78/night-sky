@@ -491,7 +491,7 @@ mod imp {
 
     #[glib::object_subclass]
     impl ObjectSubclass for SkyView {
-        const NAME: &'static str = "NightSkyView";
+        const NAME: &'static str = "WesteringView";
         type Type = super::SkyView;
         type ParentType = gtk::Widget;
     }

@@ -8,9 +8,9 @@ use crate::talk::{Go, Request};
 use crate::ui::{clear, detach, label};
 use gtk::prelude::*;
 use gtk::{gdk, glib};
-use night_sky_core::journal::{Course as Record, Journal};
 use std::cell::{Cell, RefCell};
 use std::rc::{Rc, Weak};
+use westering_core::journal::{Course as Record, Journal};
 
 const STEPS: [(&str, &str, &str); 4] = [
     (
@@ -424,7 +424,7 @@ impl Course {
             }
         }
         if let Err(e) = journal.save_courses() {
-            eprintln!("night-sky: couldn't save the course: {e}");
+            eprintln!("westering: couldn't save the course: {e}");
         }
     }
 
@@ -576,8 +576,8 @@ fn add_days(key: &str, days: i64) -> String {
         p.next().unwrap_or(1),
         p.next().unwrap_or(1),
     );
-    let at = night_sky_core::time::midnight_utc(y as i32, m as u32, d as u32)
-        + days * night_sky_core::time::DAY
-        + night_sky_core::time::HOUR;
-    night_sky_core::questions::key_of(at, 0)
+    let at = westering_core::time::midnight_utc(y as i32, m as u32, d as u32)
+        + days * westering_core::time::DAY
+        + westering_core::time::HOUR;
+    westering_core::questions::key_of(at, 0)
 }

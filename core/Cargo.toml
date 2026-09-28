@@ -1,5 +1,5 @@
 [package]
-name = "night-sky-core"
+name = "westering-core"
 description = "The sky, the session and the logbook, with no user interface"
 version.workspace = true
 edition.workspace = true

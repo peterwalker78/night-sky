@@ -1,4 +1,4 @@
-//! Night Sky: the real sky over you tonight, a few quiet questions, and then
+//! Westering: the real sky over you tonight, a few quiet questions, and then
 //! the real sky outside.
 
 mod book;
@@ -24,11 +24,6 @@ use course::Course;
 use game::{Clock, Game, Options};
 use gtk::prelude::*;
 use gtk::{gdk, gio, glib};
-use night_sky_core::coords::Observer;
-use night_sky_core::journal::Journal;
-use night_sky_core::place;
-use night_sky_core::session::Timings;
-use night_sky_core::time::UnixMs;
 use settings::Settings;
 use std::cell::RefCell;
 use std::path::PathBuf;
@@ -36,8 +31,13 @@ use std::rc::Rc;
 use talk::Request;
 use ui::PromptBar;
 use view::SkyView;
+use westering_core::coords::Observer;
+use westering_core::journal::Journal;
+use westering_core::place;
+use westering_core::session::Timings;
+use westering_core::time::UnixMs;
 
-const APP_ID: &str = "io.github.peterwalker78.NightSky";
+const APP_ID: &str = "io.github.peterwalker78.Westering";
 
 /// Options for trying the app out: `--at=2026-12-14T21:00` starts the sky at
 /// another moment, `--speed=N` runs it N times faster, `--quick=N` shortens
@@ -70,7 +70,7 @@ fn parse_args() -> Args {
                     .split_once(',')
                     .and_then(|(a, b)| Some((a.trim().parse().ok()?, b.trim().parse().ok()?)))
             }
-            _ => eprintln!("night-sky: ignoring {arg}"),
+            _ => eprintln!("westering: ignoring {arg}"),
         }
     }
     args
@@ -99,9 +99,29 @@ fn parse_moment(text: &str) -> Option<UnixMs> {
 }
 
 fn data_dir(args: &Args) -> PathBuf {
-    args.data
-        .clone()
-        .unwrap_or_else(|| glib::user_data_dir().join("night-sky"))
+    if let Some(dir) = &args.data {
+        return dir.clone();
+    }
+    let dir = glib::user_data_dir().join("westering");
+    // Westering was called Night Sky: bring its logbook across the first time.
+    let earlier = [
+        glib::home_dir().join(".var/app/io.github.peterwalker78.NightSky/data/night-sky"),
+        glib::home_dir().join(".local/share/night-sky"),
+    ];
+    for old in earlier {
+        match Journal::adopt(&old, &dir) {
+            Ok(true) => {
+                eprintln!(
+                    "westering: brought the logbook across from {}",
+                    old.display()
+                );
+                break;
+            }
+            Ok(false) => {}
+            Err(e) => eprintln!("westering: couldn't bring the old logbook across: {e}"),
+        }
+    }
+    dir
 }
 
 fn build(app: &gtk::Application, args: &Rc<Args>) {
@@ -143,7 +163,7 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
     ui::install_css();
     let window = gtk::ApplicationWindow::builder()
         .application(app)
-        .title("Night Sky")
+        .title("Westering")
         .default_width(1280)
         .default_height(800)
         .decorated(false)
@@ -378,7 +398,7 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
                     let sum = sum + began.elapsed().as_secs_f64() * 1000.0;
                     if real - since > 5_000 {
                         eprintln!(
-                            "night-sky: {:.2} ms a frame, {:.1} frames a second",
+                            "westering: {:.2} ms a frame, {:.1} frames a second",
                             sum / (n + 1) as f64,
                             (n + 1) as f64 / ((real - since) as f64 / 1000.0)
                         );

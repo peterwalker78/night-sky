@@ -3,8 +3,8 @@
 //! because its parallax moves it by up to a degree. The truncated lunar
 //! series leaves up to about four arcminutes, a seventh of the Moon's width.
 
-use night_sky_core::coords::{Observer, separation, topocentric};
-use night_sky_core::ephem::{Body, position};
+use westering_core::coords::{Observer, separation, topocentric};
+use westering_core::ephem::{Body, position};
 
 /// (unix ms, body, right ascension, declination), apparent, equinox of date,
 /// from https://ssd.jpl.nasa.gov/api/horizons.api (tools/horizons-fixtures.py).

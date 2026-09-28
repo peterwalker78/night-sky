@@ -5,12 +5,12 @@
 
 use crate::game::{Card, Game, Look, dot3};
 use crate::guide::Aim;
-use night_sky_core::coords::{Mat3, Vec3, alt_az, angles, apply, from_alt_az, unit};
-use night_sky_core::ephem::Body;
-use night_sky_core::finds::Target;
-use night_sky_core::sky::see;
-use night_sky_core::time::UnixMs;
-use night_sky_core::tours::Stop;
+use westering_core::coords::{Mat3, Vec3, alt_az, angles, apply, from_alt_az, unit};
+use westering_core::ephem::Body;
+use westering_core::finds::Target;
+use westering_core::sky::see;
+use westering_core::time::UnixMs;
+use westering_core::tours::Stop;
 
 /// What a card of a tour looks at.
 #[derive(Clone, Debug)]
@@ -107,7 +107,7 @@ impl Game {
         let cam = self.camera;
         let (x, y) = cam.project(v)?;
         // Which way celestial north points on the screen.
-        let hz = night_sky_core::coords::horizon(self.observer, now);
+        let hz = westering_core::coords::horizon(self.observer, now);
         let pole = apply(&hz, [0.0, 0.0, 1.0]);
         let along = dot3(pole, v);
         let t = [
@@ -126,7 +126,7 @@ impl Game {
             .map_or((0.0, -1.0), |(a, b)| (a - x, b - y));
         let north = nx.atan2(-ny);
         let radius = seen.position.diameter / 7200.0 * cam.px_per_degree();
-        let (fx, fy) = night_sky_core::tours::on_disc(&self.sky.tours.moon[feature]);
+        let (fx, fy) = westering_core::tours::on_disc(&self.sky.tours.moon[feature]);
         // On a north-up picture Crisium is to the right; turn with the sky.
         let (px, py) = (fx * radius, -fy * radius);
         let (s, c) = north.sin_cos();
@@ -267,8 +267,8 @@ impl Game {
         match focus {
             Focus::Sky(stop) => {
                 let now = self.sky_now(real);
-                let hz = night_sky_core::coords::horizon(self.observer, now);
-                let prec = night_sky_core::coords::precession(now);
+                let hz = westering_core::coords::horizon(self.observer, now);
+                let prec = westering_core::coords::precession(now);
                 if let Some(v) = self.stop_dir(&stop, &hz, &prec) {
                     let (alt, az) = alt_az(v);
                     if alt > 2.0 {
@@ -334,7 +334,7 @@ impl Game {
                     .collect();
                 for id in visited {
                     if let Err(e) = self.journal.mark_found(&id, &self.night) {
-                        eprintln!("night-sky: couldn't save what was found: {e}");
+                        eprintln!("westering: couldn't save what was found: {e}");
                     }
                 }
                 // Back out to see the Moon in its sky.

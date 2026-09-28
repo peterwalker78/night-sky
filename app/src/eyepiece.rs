@@ -55,11 +55,11 @@ pub struct Photos {
 }
 
 fn folder() -> Option<PathBuf> {
-    let mut places = vec![PathBuf::from("/app/share/night-sky/images")];
+    let mut places = vec![PathBuf::from("/app/share/westering/images")];
     if let Ok(exe) = std::env::current_exe()
         && let Some(prefix) = exe.parent().and_then(|p| p.parent())
     {
-        places.push(prefix.join("share/night-sky/images"));
+        places.push(prefix.join("share/westering/images"));
     }
     places.push(PathBuf::from(concat!(
         env!("CARGO_MANIFEST_DIR"),

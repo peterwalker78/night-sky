@@ -2,8 +2,8 @@
 //! view as a small texture.
 
 use gtk::{cairo, gdk, glib, prelude::*};
-use night_sky_core::canvas::{Canvas, Paint, Stop};
-use night_sky_core::wisp::Wisp;
+use westering_core::canvas::{Canvas, Paint, Stop};
+use westering_core::wisp::Wisp;
 
 /// The wisp's nook, in its own units; it is drawn this many times larger.
 pub const NOOK: (f64, f64) = (152.0, 56.0);

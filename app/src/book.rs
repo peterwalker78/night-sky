@@ -6,10 +6,10 @@ use crate::talk::{Go, Request};
 use crate::ui::{clear, confirm, label, trash};
 use gtk::prelude::*;
 use gtk::{gdk, glib};
-use night_sky_core::journal::{Journal, long_date, short_date};
-use night_sky_core::questions::days_between;
 use std::cell::RefCell;
 use std::rc::Rc;
+use westering_core::journal::{Journal, long_date, short_date};
+use westering_core::questions::days_between;
 
 pub struct Book {
     pub root: gtk::Box,
@@ -196,7 +196,7 @@ impl Book {
                     r
                 };
                 if let Err(e) = r {
-                    eprintln!("night-sky: couldn't delete it: {e}");
+                    eprintln!("westering: couldn't delete it: {e}");
                 }
                 if let Some(book) = me.upgrade() {
                     let key = book
@@ -335,7 +335,7 @@ impl Book {
     }
 
     /// How a weight sat when it was looked back at, later.
-    fn looks(&self, weight: &night_sky_core::journal::Weight) {
+    fn looks(&self, weight: &westering_core::journal::Weight) {
         if weight.looks.is_empty() {
             return;
         }
@@ -350,7 +350,7 @@ impl Book {
         ));
     }
 
-    fn plan_bin(&self, p: &night_sky_core::journal::Plan) -> gtk::Button {
+    fn plan_bin(&self, p: &westering_core::journal::Plan) -> gtk::Button {
         let id = p.id;
         self.delete_button(
             "Delete this plan",
@@ -608,7 +608,7 @@ impl Book {
 
     fn courses(&self, journal: &Journal) {
         self.title("Courses");
-        let started = |c: &&night_sky_core::journal::Course| {
+        let started = |c: &&westering_core::journal::Course| {
             !c.wish.is_empty() || !c.outcome.is_empty() || !c.obstacle.is_empty()
         };
         let courses: Vec<_> = journal.courses.iter().filter(started).collect();

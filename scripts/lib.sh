@@ -2,13 +2,13 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BOX=${NIGHT_SKY_BOX:-night-sky}
-APP_ID=io.github.peterwalker78.NightSky
+BOX=${WESTERING_BOX:-westering}
+APP_ID=io.github.peterwalker78.Westering
 
 inside_box() { [[ -e /run/.containerenv ]]; }
 
 # On an immutable desktop the toolchain lives in a container. If a distrobox
-# named `night-sky` exists (or the one NIGHT_SKY_BOX names), re-run the calling
+# named `westering` exists (or the one WESTERING_BOX names), re-run the calling
 # script inside it; otherwise build right here.
 require_box() {
   if ! inside_box && command -v distrobox >/dev/null \
@@ -28,9 +28,9 @@ require_host() {
 # once. Holds a lock on it until the calling script exits.
 lock_builder() {
   mkdir -p "$ROOT/.flatpak-builder"
-  exec 9>"$ROOT/.flatpak-builder/night-sky-build.lock"
+  exec 9>"$ROOT/.flatpak-builder/westering-build.lock"
   if ! flock -n 9; then
-    echo "Waiting for another Flatpak build of Night Sky to finish..." >&2
+    echo "Waiting for another Flatpak build of Westering to finish..." >&2
     flock 9
   fi
 }

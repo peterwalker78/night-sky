@@ -1,10 +1,12 @@
 <div align="center">
 
-<img src="data/io.github.peterwalker78.NightSky.svg" width="112" alt="A crescent Moon and a few stars, drawn in dots">
+<img src="data/io.github.peterwalker78.Westering.svg" width="112" alt="A warm star low over a mossy horizon, at the end of its dotted path across a dotted sky">
 
-# Night Sky
+# Westering
 
 ### Tonight's real sky, and then the real sky outside.
+
+*Westering: going west, as the Sun and stars do when they go down.*
 
 A small stargazing game that is designed to let you go.<br>
 Nothing you write ever leaves your computer.
@@ -15,7 +17,7 @@ Nothing you write ever leaves your computer.
 
 ## What it is
 
-Night Sky is a few quiet minutes at the end of the day, to wind down and come
+Westering is a few quiet minutes at the end of the day, to wind down and come
 back to what matters to you: the people who are there for you, something to
 look forward to, and setting down what's weighing on you so it's lighter in the
 morning. The sky is the way in, and its stories are about us as much as about
@@ -123,19 +125,19 @@ journal, not therapy or a crisis service.
   sky by a few degrees; Settings takes a latitude and longitude if you want it
   closer.
 - The logbook is **plain files**: a Markdown page per night and a few small
-  TOML files, in `~/.var/app/io.github.peterwalker78.NightSky/data/night-sky/`.
+  TOML files, in `~/.var/app/io.github.peterwalker78.Westering/data/westering/`.
   Anything in it can be deleted on its own with the bin beside it. The menu
   can back everything up to one file in your Downloads folder (the only
   folder the Flatpak can reach), restore a backup, or forget everything.
 
 ## Get it
 
-Download `night-sky-x86_64.flatpak` from the
-[latest release](https://github.com/peterwalker78/night-sky/releases/latest)
+Download `westering-x86_64.flatpak` from the
+[latest release](https://github.com/peterwalker78/westering/releases/latest)
 and install it:
 
 ```sh
-flatpak install --user night-sky-x86_64.flatpak
+flatpak install --user westering-x86_64.flatpak
 ```
 
 It uses the GNOME 50 runtime from Flathub, which Flatpak fetches if it isn't
@@ -206,4 +208,4 @@ or on.
 GPL-3.0-or-later. The packed star and constellation data carry their own
 credits above.
 
-AI coding tools are used in writing Night Sky's code.
+AI coding tools are used in writing Westering's code.

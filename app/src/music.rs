@@ -6,11 +6,11 @@ use std::path::PathBuf;
 
 /// Where the tracks are: beside the installed app, or in the source tree.
 fn folder() -> Option<PathBuf> {
-    let mut places = vec![PathBuf::from("/app/share/night-sky/music")];
+    let mut places = vec![PathBuf::from("/app/share/westering/music")];
     if let Ok(exe) = std::env::current_exe()
         && let Some(prefix) = exe.parent().and_then(|p| p.parent())
     {
-        places.push(prefix.join("share/night-sky/music"));
+        places.push(prefix.join("share/westering/music"));
     }
     places.push(PathBuf::from(concat!(
         env!("CARGO_MANIFEST_DIR"),
@@ -88,7 +88,7 @@ impl Music {
         match &self.stream {
             Some(s) if s.is_ended() || s.error().is_some() => {
                 if let Some(e) = s.error() {
-                    eprintln!("night-sky: a track wouldn't play: {e}");
+                    eprintln!("westering: a track wouldn't play: {e}");
                 }
                 self.start_next()
             }

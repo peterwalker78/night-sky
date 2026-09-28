@@ -31,6 +31,19 @@ pub struct Story {
     /// The thought it leaves you with.
     pub mirror: String,
     pub lines: Vec<Stop>,
+    /// The lines to draw while it's told, when the story is about a shape
+    /// within a constellation (the Plough, not all of the Great Bear) or
+    /// across several (the Summer Triangle). Empty: the constellation its
+    /// anchor belongs to.
+    #[serde(default)]
+    pub figure: Vec<[u16; 2]>,
+    /// False for a story with no shape to draw: a cluster, a galaxy.
+    #[serde(default = "yes")]
+    pub pattern: bool,
+}
+
+fn yes() -> bool {
+    true
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -240,6 +253,15 @@ mod tests {
             assert!(sky.stars.get(story.anchor).is_some(), "{}", story.id);
             assert!(story.lines.iter().all(real), "{}", story.id);
             assert!(!story.mirror.is_empty());
+            assert!(
+                story
+                    .figure
+                    .iter()
+                    .flatten()
+                    .all(|hr| sky.stars.get(*hr).is_some()),
+                "{}",
+                story.id
+            );
         }
     }
 
