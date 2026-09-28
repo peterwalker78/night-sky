@@ -6,6 +6,7 @@ use crate::camera::Camera;
 use crate::field::{Field, Rgb, noise3};
 use crate::view::{Frame, Text};
 use gtk::gdk;
+use gtk::gdk::prelude::TextureExt;
 use night_sky_core::catalogues::Kind;
 use night_sky_core::coords::{
     Mat3, Observer, Vec3, alt_az, apply, from_alt_az, horizon, precession, refraction, unit,
@@ -565,7 +566,13 @@ impl Game {
                 };
                 (d / share).clamp(crate::camera::FOV_NARROWEST, 2.4)
             }
-            Target::Showpiece(p) => (self.photo_degrees(p) * 2.6).clamp(0.4, 40.0),
+            Target::Showpiece(p) => {
+                let id = &self.sky.lists.showpieces[p].id;
+                match self.photos.credit(id).and_then(|c| c.view) {
+                    Some(view) => view,
+                    None => (self.photo_degrees(p) * 2.6).clamp(0.4, 40.0),
+                }
+            }
             Target::Star(_) => 8.0,
             Target::Meteor(_) => self.camera.fov,
             Target::Figure(f) => self.sky.figures[f]
@@ -591,6 +598,9 @@ impl Game {
     /// How wide a showpiece's photograph is on the sky, in degrees.
     fn photo_degrees(&self, p: usize) -> f64 {
         let piece = &self.sky.lists.showpieces[p];
+        if let Some(d) = self.photos.credit(&piece.id).and_then(|c| c.degrees) {
+            return d;
+        }
         match piece.kind {
             // Pairs and single stars are pictured at a small telescope's scale.
             Kind::Double | Kind::Star => 0.3,
@@ -1167,11 +1177,23 @@ impl Game {
             _ => None,
         };
         let texture = self.photos.texture(&id, phase)?;
+        let radius = self.photo_half(i, cam.fov);
+        let aspect = texture.height() as f64 / texture.width().max(1) as f64;
+        // The picture's middle, from the object, turned as the picture is.
+        let [cx, cy] = credit.centre.unwrap_or([0.5, 0.5]);
+        let (dx, dy) = (
+            (0.5 - cx) * 2.0 * radius,
+            (0.5 - cy) * 2.0 * radius * aspect,
+        );
+        let (s, c) = rotation.to_radians().sin_cos();
+        let offset = (dx * c - dy * s, dx * s + dy * c);
         Some(crate::view::Eyepiece {
             texture,
             x,
             y,
-            radius: self.photo_half(i, cam.fov),
+            radius,
+            aspect,
+            offset,
             rotation,
             // Saturn's rings reach past a disc, so it's laid over the sky instead.
             disc: matches!(self.finds[i].target, Target::Body(b) if b != Body::Saturn),

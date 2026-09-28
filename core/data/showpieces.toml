@@ -265,7 +265,7 @@ dec = -2.978
 mag = 3.5
 size = 0.0
 fact = "Swells and fades over about 332 days, from around magnitude 3.5 at peak to far below naked-eye visibility."
-more = ["David Fabricius saw it brighten in August 1596, then fade from view by October.", "Johannes Hevelius named it in 1662: Mira is Latin for 'wonderful'."]
+more = ["In 2007 an ultraviolet telescope found a tail streaming behind it, 13 light years long: gas it has shed over 30,000 years as it ploughs through space.", "David Fabricius saw it brighten in August 1596, then fade from view by October.", "Johannes Hevelius named it in 1662: Mira is Latin for 'wonderful'."]
 
 [[showpiece]]
 id = "lagoon"

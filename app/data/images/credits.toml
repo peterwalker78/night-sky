@@ -332,3 +332,14 @@ title = "Herschel's Garnet Star (Mu Cephei)"
 credit = "Rudy Kokich"
 licence = "Public domain (Public Domain Mark)"
 source = "https://commons.wikimedia.org/wiki/File:The_Garnet_Star_(HD_206936,_HR_8316,_HIP_107259,_SAO_33693),_Cepheus.jpg"
+
+[[image]]
+id = "mira"
+title = "Mira's tail in ultraviolet, from GALEX"
+credit = "NASA/JPL-Caltech/C. Martin (Caltech)/M. Seibert (OCIW)"
+licence = "Public domain (NASA)"
+source = "https://www.galex.caltech.edu/media/glx2007-04r_img01.html"
+north = 270.0
+degrees = 2.5
+centre = [0.93, 0.583]
+view = 4.6

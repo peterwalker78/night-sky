@@ -17,6 +17,17 @@ pub struct Credit {
     /// Degrees north is turned clockwise from straight up in the file.
     #[serde(default)]
     pub north: Option<f64>,
+    /// How wide the picture is on the sky, degrees, when it isn't simply
+    /// the object's own size.
+    #[serde(default)]
+    pub degrees: Option<f64>,
+    /// Where the object sits in the picture, as shares of its width and
+    /// height, when it isn't in the middle.
+    #[serde(default)]
+    pub centre: Option<[f64; 2]>,
+    /// How wide a view shows it best, degrees.
+    #[serde(default)]
+    pub view: Option<f64>,
 }
 
 #[derive(Deserialize)]

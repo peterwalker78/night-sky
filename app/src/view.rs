@@ -103,6 +103,10 @@ pub struct Eyepiece {
     pub disc: bool,
     pub credit: String,
     pub alpha: f64,
+    /// Height over width.
+    pub aspect: f64,
+    /// Where the picture's middle is from the object, on the screen.
+    pub offset: (f64, f64),
 }
 
 /// The strip along the top that says which way the view faces.
@@ -344,13 +348,18 @@ fn draw_point(snapshot: &gtk::Snapshot, p: &Point) {
 
 fn draw_eyepiece(_widget: &gtk::Widget, snapshot: &gtk::Snapshot, e: &Eyepiece) {
     let a = e.alpha as f32;
-    let (x, y, r) = (e.x as f32, e.y as f32, e.radius as f32);
+    let (x, y, r) = (
+        (e.x + e.offset.0) as f32,
+        (e.y + e.offset.1) as f32,
+        e.radius as f32,
+    );
+    let rh = r * e.aspect as f32;
     let bounds = graphene::Rect::new(x - r, y - r, 2.0 * r, 2.0 * r);
     let picture = |snapshot: &gtk::Snapshot| {
         snapshot.save();
         snapshot.translate(&graphene::Point::new(x, y));
         snapshot.rotate(e.rotation as f32);
-        snapshot.append_texture(&e.texture, &graphene::Rect::new(-r, -r, 2.0 * r, 2.0 * r));
+        snapshot.append_texture(&e.texture, &graphene::Rect::new(-r, -rh, 2.0 * r, 2.0 * rh));
         snapshot.restore();
     };
     let white = |alpha: f32| gdk::RGBA::new(1.0, 1.0, 1.0, alpha);
@@ -383,16 +392,21 @@ fn draw_eyepiece(_widget: &gtk::Widget, snapshot: &gtk::Snapshot, e: &Eyepiece) 
             gsk::ColorStop::new(0.55, white(a)),
             gsk::ColorStop::new(0.98, white(0.0)),
         ];
+        // The fade follows the picture's shape, turned with it.
         snapshot.push_mask(gsk::MaskMode::Alpha);
+        snapshot.save();
+        snapshot.translate(&graphene::Point::new(x, y));
+        snapshot.rotate(e.rotation as f32);
         snapshot.append_radial_gradient(
-            &bounds,
-            &graphene::Point::new(x, y),
+            &graphene::Rect::new(-r, -rh, 2.0 * r, 2.0 * rh),
+            &graphene::Point::new(0.0, 0.0),
             r,
-            r,
+            rh,
             0.0,
             1.0,
             &edge,
         );
+        snapshot.restore();
         snapshot.pop();
         snapshot.push_mask(gsk::MaskMode::Luminance);
         picture(snapshot);
