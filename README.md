@@ -83,6 +83,7 @@ journal, not therapy or a crisis service.
 | `C` | Draw a constellation: arrows step between stars, `Enter` joins, `C` finishes |
 | `L` | The logbook |
 | `?`, or click the wisp | What the keys do |
+| `M` | Music off or on |
 | `Esc` twice | End tonight's sky |
 | `Ctrl` `,` | Settings |
 | `F11` | Full screen |
@@ -142,6 +143,15 @@ shortens the visit itself, `--place=LAT,LON` stands somewhere else, and
   the ground.
 - **Meteor showers:** the International Meteor Organization's working list of
   visual meteor showers.
+
+## The music
+
+Six slow lo-fi tracks, all dedicated to the public domain under CC0: "Ease
+into Night", "Moon Unit", "Into The Mist" and "Calm Currents" by HoliznaCC0,
+and "Chill lofi inspired" and "Lofi Hip Hop Loop" by omfgdude. Sources are in
+[`app/data/music/CREDITS.md`](app/data/music/CREDITS.md). The music arrives
+with the sky, eases down as it dims and goes with the lights; `M` turns it off
+or on.
 
 ## Licence
 

@@ -24,7 +24,9 @@ const CREDITS: &str = "Night Sky is free software under the GNU GPL, version 3 o
 Stars from the Yale Bright Star Catalogue (Hoffleit and Warren), through the CDS in Strasbourg. \
 Constellation figures from d3-celestial by Olaf Frohn (BSD licence). \
 Positions of the Sun, Moon and planets after Paul Schlyter's method. \
-Meteor showers from the International Meteor Organization's working list.";
+Meteor showers from the International Meteor Organization's working list. \
+Music, all dedicated to the public domain (CC0): \"Ease into Night\", \"Moon Unit\", \"Into The Mist\" and \"Calm Currents\" by HoliznaCC0; \
+\"Chill lofi inspired\" and \"Lofi Hip Hop Loop\" by omfgdude.";
 
 fn copy_tree(from: &Path, to: &Path) -> std::io::Result<usize> {
     std::fs::create_dir_all(to)?;
@@ -136,6 +138,19 @@ impl Settings {
             let _ = j.save_settings();
         });
         self.body.append(&ask);
+
+        self.body.append(&label("MUSIC", "book-heading"));
+        let music =
+            gtk::CheckButton::with_label("Play quiet music under the sky (M turns it off or on)");
+        music.set_active(!settings.quiet);
+        let game = self.game.clone();
+        music.connect_toggled(move |b| {
+            let mut g = game.borrow_mut();
+            let j = g.journal_mut();
+            j.settings.quiet = !b.is_active();
+            let _ = j.save_settings();
+        });
+        self.body.append(&music);
 
         self.body.append(&label("WHERE YOU ARE", "book-heading"));
         let now = match (settings.lat, settings.lon) {
