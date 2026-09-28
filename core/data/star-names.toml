@@ -1,14 +1,15 @@
 # Proper names of bright stars, keyed by Yale Bright Star Catalogue (HR) number.
 # HR numbers from SIMBAD identifiers, cross-checked against the IAU Catalog of Star
-# Names. Light-travel facts use SIMBAD parallaxes (distance = 3261.56 / parallax in mas,
-# year = 2026 - distance); facts for Betelgeuse, Rigel, Deneb, Acrux and Navi come
-# from their Wikipedia pages. Stars with poorly known distances get no year.
+# Names. light_years uses SIMBAD parallaxes (distance = 3261.56 / parallax in mas); the
+# app works out when the light left from it. Facts for Betelgeuse, Rigel, Deneb, Acrux
+# and Navi come from their Wikipedia pages. Stars with poorly known distances get none.
 
 [[star]]
 hr = 424
 name = "Polaris"
 bayer = "alpha Ursae Minoris"
-fact = "The North Star; its light left around 1590."
+fact = "The North Star."
+light_years = 436
 
 [[star]]
 hr = 5563
@@ -24,7 +25,7 @@ bayer = "gamma Ursae Minoris"
 hr = 4301
 name = "Dubhe"
 bayer = "alpha Ursae Majoris"
-fact = "Its light left around 1903."
+light_years = 123
 
 [[star]]
 hr = 4295
@@ -45,7 +46,7 @@ bayer = "delta Ursae Majoris"
 hr = 4905
 name = "Alioth"
 bayer = "epsilon Ursae Majoris"
-fact = "Its light left around 1943."
+light_years = 83
 
 [[star]]
 hr = 5054
@@ -62,7 +63,7 @@ bayer = "g Ursae Majoris"
 hr = 5191
 name = "Alkaid"
 bayer = "eta Ursae Majoris"
-fact = "Its light left around 1922."
+light_years = 104
 
 [[star]]
 hr = 168
@@ -100,13 +101,14 @@ fact = "Somewhere around 400 to 550 light years away, so its light left between 
 hr = 1713
 name = "Rigel"
 bayer = "beta Orionis"
-fact = "About 850 light years away; its light left around 1180."
+fact = "About 850 light years away."
+light_years = 846
 
 [[star]]
 hr = 1790
 name = "Bellatrix"
 bayer = "gamma Orionis"
-fact = "Its light left around 1770."
+light_years = 256
 
 [[star]]
 hr = 1852
@@ -137,7 +139,7 @@ bayer = "lambda Orionis"
 hr = 7001
 name = "Vega"
 bayer = "alpha Lyrae"
-fact = "Its light left around 2001."
+light_years = 25
 
 [[star]]
 hr = 7924
@@ -149,7 +151,7 @@ fact = "So remote that its distance is still disputed: somewhere between about 1
 hr = 7557
 name = "Altair"
 bayer = "alpha Aquilae"
-fact = "Its light left around 2009."
+light_years = 17
 
 [[star]]
 hr = 7417
@@ -170,13 +172,13 @@ bayer = "epsilon Cygni"
 hr = 3982
 name = "Regulus"
 bayer = "alpha Leonis"
-fact = "Its light left around 1947."
+light_years = 79
 
 [[star]]
 hr = 4534
 name = "Denebola"
 bayer = "beta Leonis"
-fact = "Its light left around 1990."
+light_years = 36
 
 [[star]]
 hr = 4057
@@ -238,7 +240,8 @@ bayer = "upsilon Scorpii"
 hr = 2491
 name = "Sirius"
 bayer = "alpha Canis Majoris"
-fact = "The brightest star in the night sky; its light left 8.6 years ago."
+fact = "The brightest star in the night sky."
+light_years = 8.6
 
 [[star]]
 hr = 2294
@@ -249,7 +252,7 @@ bayer = "beta Canis Majoris"
 hr = 2618
 name = "Adhara"
 bayer = "epsilon Canis Majoris"
-fact = "Its light left around 1620."
+light_years = 406
 
 [[star]]
 hr = 2693
@@ -265,19 +268,19 @@ bayer = "eta Canis Majoris"
 hr = 2943
 name = "Procyon"
 bayer = "alpha Canis Minoris"
-fact = "Its light left about 11 and a half years ago."
+light_years = 11.5
 
 [[star]]
 hr = 2891
 name = "Castor"
 bayer = "alpha Geminorum"
-fact = "Its light left around 1975."
+light_years = 51
 
 [[star]]
 hr = 2990
 name = "Pollux"
 bayer = "beta Geminorum"
-fact = "Its light left around 1992."
+light_years = 34
 
 [[star]]
 hr = 2421
@@ -288,7 +291,7 @@ bayer = "gamma Geminorum"
 hr = 1708
 name = "Capella"
 bayer = "alpha Aurigae"
-fact = "Its light left around 1983."
+light_years = 43
 
 [[star]]
 hr = 2088
@@ -299,13 +302,13 @@ bayer = "beta Aurigae"
 hr = 1457
 name = "Aldebaran"
 bayer = "alpha Tauri"
-fact = "Its light left around 1959."
+light_years = 67
 
 [[star]]
 hr = 1791
 name = "Elnath"
 bayer = "beta Tauri"
-fact = "Its light left around 1890."
+light_years = 136
 
 [[star]]
 hr = 1165
@@ -316,13 +319,13 @@ bayer = "eta Tauri"
 hr = 5340
 name = "Arcturus"
 bayer = "alpha Bootis"
-fact = "Its light left around 1989."
+light_years = 37
 
 [[star]]
 hr = 5056
 name = "Spica"
 bayer = "alpha Virginis"
-fact = "Its light left around 1780."
+light_years = 246
 
 [[star]]
 hr = 4825
@@ -333,7 +336,7 @@ bayer = "gamma Virginis"
 hr = 1017
 name = "Mirfak"
 bayer = "alpha Persei"
-fact = "Its light left around 1520."
+light_years = 506
 
 [[star]]
 hr = 936
@@ -429,7 +432,7 @@ bayer = "beta Ceti"
 hr = 8728
 name = "Fomalhaut"
 bayer = "alpha Piscis Austrini"
-fact = "Its light left around 2001."
+light_years = 25
 
 [[star]]
 hr = 3748
@@ -450,7 +453,7 @@ bayer = "beta Librae"
 hr = 6879
 name = "Kaus Australis"
 bayer = "epsilon Sagittarii"
-fact = "Its light left around 1880."
+light_years = 146
 
 [[star]]
 hr = 7121
@@ -466,13 +469,14 @@ bayer = "zeta Sagittarii"
 hr = 2326
 name = "Canopus"
 bayer = "alpha Carinae"
-fact = "The second-brightest star in the night sky; its light left around 1720."
+fact = "The second-brightest star in the night sky."
+light_years = 306
 
 [[star]]
 hr = 3685
 name = "Miaplacidus"
 bayer = "beta Carinae"
-fact = "Its light left around 1913."
+light_years = 113
 
 [[star]]
 hr = 3307
@@ -483,25 +487,25 @@ bayer = "epsilon Carinae"
 hr = 472
 name = "Achernar"
 bayer = "alpha Eridani"
-fact = "Its light left around 1890."
+light_years = 136
 
 [[star]]
 hr = 4730
 name = "Acrux"
 bayer = "alpha Crucis"
-fact = "Its light left around 1680."
+light_years = 346
 
 [[star]]
 hr = 4853
 name = "Mimosa"
 bayer = "beta Crucis"
-fact = "Its light left around 1750."
+light_years = 276
 
 [[star]]
 hr = 4763
 name = "Gacrux"
 bayer = "gamma Crucis"
-fact = "Its light left around 1937."
+light_years = 89
 
 [[star]]
 hr = 4656
@@ -512,13 +516,14 @@ bayer = "delta Crucis"
 hr = 5459
 name = "Rigil Kentaurus"
 bayer = "alpha Centauri A"
-fact = "Part of the nearest star system to the Sun; its light left a little over four years ago."
+fact = "Part of the nearest star system to the Sun."
+light_years = 4.37
 
 [[star]]
 hr = 5267
 name = "Hadar"
 bayer = "beta Centauri"
-fact = "Its light left around 1630."
+light_years = 396
 
 [[star]]
 hr = 5288
@@ -534,13 +539,13 @@ bayer = "alpha Pavonis"
 hr = 8425
 name = "Alnair"
 bayer = "alpha Gruis"
-fact = "Its light left around 1925."
+light_years = 101
 
 [[star]]
 hr = 6217
 name = "Atria"
 bayer = "alpha Trianguli Australis"
-fact = "Its light left around 1635."
+light_years = 391
 
 [[star]]
 hr = 99

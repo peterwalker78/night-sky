@@ -40,6 +40,66 @@ pub struct NamedStar {
     pub bayer: String,
     #[serde(default)]
     pub fact: Option<String>,
+    /// How far away, when it's known well enough to say.
+    #[serde(default)]
+    pub light_years: Option<f64>,
+}
+
+/// A distance rounded down to a number that reads easily: 104 is "100",
+/// 436 is "430", 1,180 is "1,100".
+fn round_down(n: f64) -> String {
+    let n = n.floor() as u64;
+    let digits = n.to_string().len() as u32;
+    let unit = if digits <= 2 {
+        10
+    } else {
+        10u64.pow(digits - 2)
+    };
+    let r = (n / unit * unit).max(1);
+    crate::finds::thousands(r)
+}
+
+/// How long starlight takes to arrive, and when what you see tonight left.
+pub fn light_words(light_years: f64, this_year: i32) -> String {
+    let left = this_year as f64 - light_years;
+    if light_years < 20.0 {
+        let years = if light_years.fract() >= 0.25 && light_years < 10.0 {
+            format!("{light_years:.1}")
+        } else {
+            format!("{}", light_years.round())
+        };
+        return format!(
+            "It's one of our nearest stars, yet its light still takes {years} years to get here: the light you see from it now set off in {}.",
+            left.round()
+        );
+    }
+    let year = if light_years > 300.0 {
+        format!("around {}", (left / 10.0).round() * 10.0)
+    } else {
+        format!("in {}", left.round())
+    };
+    let over = if light_years.fract() > 0.0 || !(light_years.floor() as u64).is_multiple_of(10) {
+        "over"
+    } else {
+        "about"
+    };
+    format!(
+        "It's so far away that its light takes {over} {} years to get here: the light you see from it now left {year}.",
+        round_down(light_years)
+    )
+}
+
+impl NamedStar {
+    /// Its line for the card, the light's journey worked out for `this_year`.
+    pub fn describe(&self, this_year: i32) -> Option<String> {
+        let light = self.light_years.map(|ly| light_words(ly, this_year));
+        match (&self.fact, light) {
+            (Some(f), Some(l)) => Some(format!("{f} {l}")),
+            (Some(f), None) => Some(f.clone()),
+            (None, Some(l)) => Some(l),
+            (None, None) => None,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -140,6 +200,20 @@ mod tests {
             .find(|s| s.name == "Polaris")
             .expect("Polaris");
         assert_eq!(polaris.hr, 424);
+    }
+
+    #[test]
+    fn starlight_is_explained_in_plain_words() {
+        assert_eq!(
+            light_words(104.0, 2026),
+            "It's so far away that its light takes over 100 years to get here: the light you see from it now left in 1922."
+        );
+        assert_eq!(
+            light_words(436.0, 2026),
+            "It's so far away that its light takes over 430 years to get here: the light you see from it now left around 1590."
+        );
+        assert!(light_words(8.6, 2026).contains("8.6 years"));
+        assert!(light_words(8.6, 2026).contains("set off in 2017"));
     }
 
     #[test]

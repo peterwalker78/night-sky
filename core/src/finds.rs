@@ -169,7 +169,7 @@ pub fn tonight(
         .lists
         .stars
         .iter()
-        .filter(|s| s.fact.is_some())
+        .filter(|s| s.fact.is_some() || s.light_years.is_some())
         .filter_map(|s| {
             let star = sky.stars.get(s.hr)?;
             let (alt, _) = alt_az(apply(&horizon, apply(&prec, star.dir)));
@@ -192,7 +192,7 @@ pub fn tonight(
             id,
             target: Target::Star(hr),
             name: s.name.clone(),
-            fact: s.fact.clone().unwrap_or_default(),
+            fact: s.describe(civil_date(at, offset_s).0).unwrap_or_default(),
         });
     }
 
