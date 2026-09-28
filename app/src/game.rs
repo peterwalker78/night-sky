@@ -1063,6 +1063,7 @@ impl Game {
                 let (x, y) = ((bc as f64 + 1.0) * pitch, (br as f64 + 1.0) * pitch);
                 let v = cam.unproject(x, y);
                 let (alt, az) = alt_az(v);
+                let mut milky_here = 0f32;
                 let cell: Rgb = if alt < hills(az) {
                     let ground = 0.018 + 0.03 * twilight;
                     [ground * 0.9, ground * 0.85, ground * 0.8]
@@ -1093,6 +1094,7 @@ impl Game {
                         }
                     }
                     let m = m as f32;
+                    milky_here = m;
                     let lattice = 0.024f32;
                     let air = (0.03 * (-(alt / 9.0)).exp()) as f32;
                     let sunward = ((dot3(v, sun) + 1.0) / 2.0).powi(3) as f32;
@@ -1106,6 +1108,30 @@ impl Game {
                 for r in br..(br + 2).min(rows) {
                     for c in bc..(bc + 2).min(cols) {
                         base[r * cols + c] = cell;
+                    }
+                }
+                // The Milky Way as a dust of faint dots rather than a fog: each
+                // dot takes a share by where it points on the sky, so the dust
+                // stays put as the view moves.
+                if milky_here > 0.002 {
+                    for r in br..(br + 2).min(rows) {
+                        for c in bc..(bc + 2).min(cols) {
+                            let v =
+                                cam.unproject((c as f64 + 0.5) * pitch, (r as f64 + 0.5) * pitch);
+                            let eq = apply(&to_eq, v);
+                            let cell_of = |x: f64, prime: i64| (x * 420.0).floor() as i64 * prime;
+                            let k = cell_of(eq[0], 73_856_093)
+                                ^ cell_of(eq[1], 19_349_663)
+                                ^ cell_of(eq[2], 83_492_791);
+                            let h = ((k as u64).wrapping_mul(0x9e37_79b9_7f4a_7c15) >> 40) as f32
+                                / (1u64 << 24) as f32;
+                            let share = (0.15 + 2.2 * h * h * h) / 0.7 - 1.0;
+                            let add = milky_here * share;
+                            let cell = &mut base[r * cols + c];
+                            cell[0] = (cell[0] + add * 0.82).max(0.0);
+                            cell[1] = (cell[1] + add * 0.87).max(0.0);
+                            cell[2] = (cell[2] + add).max(0.0);
+                        }
                     }
                 }
             }
