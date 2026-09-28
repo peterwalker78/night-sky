@@ -17,6 +17,57 @@ impl Figure {
     }
 }
 
+/// A true line about a constellation worth finding by its shape.
+#[derive(Clone, Debug, serde::Deserialize)]
+pub struct Note {
+    pub abbrev: String,
+    pub fact: String,
+}
+
+#[derive(serde::Deserialize)]
+struct Notes {
+    note: Vec<Note>,
+}
+
+pub fn notes() -> Vec<Note> {
+    toml::from_str::<Notes>(include_str!("../data/constellation-notes.toml"))
+        .expect("constellation-notes.toml")
+        .note
+}
+
+impl Figure {
+    /// The middle of the figure and how far its stars reach from it (degrees),
+    /// for the equinox the catalogue directions are given in.
+    pub fn centre(&self, cat: &crate::stars::Catalogue) -> Option<(crate::coords::Vec3, f64)> {
+        let dirs: Vec<crate::coords::Vec3> = self
+            .stars()
+            .iter()
+            .filter_map(|hr| cat.get(*hr).map(|s| s.dir))
+            .collect();
+        if dirs.is_empty() {
+            return None;
+        }
+        let mut c = [0.0; 3];
+        for d in &dirs {
+            for k in 0..3 {
+                c[k] += d[k];
+            }
+        }
+        let n = (c[0] * c[0] + c[1] * c[1] + c[2] * c[2]).sqrt().max(1e-12);
+        let c = [c[0] / n, c[1] / n, c[2] / n];
+        let reach = dirs
+            .iter()
+            .map(|d| {
+                (d[0] * c[0] + d[1] * c[1] + d[2] * c[2])
+                    .clamp(-1.0, 1.0)
+                    .acos()
+                    .to_degrees()
+            })
+            .fold(0.0, f64::max);
+        Some((c, reach))
+    }
+}
+
 pub fn bundled() -> Vec<Figure> {
     parse(include_str!("../data/constellations.txt"))
 }

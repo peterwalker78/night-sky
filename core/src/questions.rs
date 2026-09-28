@@ -80,6 +80,8 @@ pub fn triggers(find: &Find, sky: &Sky) -> Vec<&'static str> {
             }
         }
         Target::Meteor(_) => vec!["meteor"],
+        Target::Figure(i) if sky.figures[i].abbrev == "Ori" => vec!["orion"],
+        Target::Figure(_) => vec![],
     };
     out.push("any");
     out

@@ -11,6 +11,7 @@ use crate::time::{MINUTE, UnixMs};
 pub struct Sky {
     pub stars: Catalogue,
     pub figures: Vec<Figure>,
+    pub notes: Vec<figures::Note>,
     pub lists: Catalogues,
 }
 
@@ -19,6 +20,7 @@ impl Sky {
         Sky {
             stars: Catalogue::bundled(),
             figures: figures::bundled(),
+            notes: figures::notes(),
             lists: Catalogues::bundled(),
         }
     }

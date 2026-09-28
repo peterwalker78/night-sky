@@ -17,6 +17,8 @@ pub enum Target {
     Star(u16),
     /// Index into the shower list.
     Meteor(usize),
+    /// A constellation found by its shape: index into the figures.
+    Figure(usize),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -27,7 +29,7 @@ pub struct Find {
     pub fact: String,
 }
 
-pub const MOST: usize = 7;
+pub const MOST: usize = 12;
 
 /// The night a moment belongs to: until noon, it is still last night.
 pub fn night_of(at: UnixMs, offset_s: i32) -> (i32, u32, u32) {
@@ -152,7 +154,7 @@ pub fn tonight(
         .map(|(i, p)| (i, format!("showpiece:{}", p.id)))
         .collect();
     pieces.sort_by_key(|(_, id)| order(id));
-    let room = if out.len() >= 4 { 1 } else { 2 };
+    let room = if out.len() >= 4 { 2 } else { 3 };
     for (i, id) in pieces.into_iter().take(room) {
         let p = &sky.lists.showpieces[i];
         out.push(Find {
@@ -184,7 +186,7 @@ pub fn tonight(
         let p = named.remove(i);
         named.insert(0, p);
     }
-    if let Some((hr, id)) = named.into_iter().next() {
+    for (hr, id) in named.into_iter().take(2) {
         let s = sky.lists.star_name(hr).expect("listed star");
         out.push(Find {
             id,
@@ -192,6 +194,45 @@ pub fn tonight(
             name: s.name.clone(),
             fact: s.fact.clone().unwrap_or_default(),
         });
+    }
+
+    // Constellations to find by their shape: well up, whole, and small
+    // enough to take in at a glance.
+    if limit >= 2.5 {
+        let mut shapes: Vec<(usize, String)> = sky
+            .notes
+            .iter()
+            .filter_map(|note| {
+                let i = sky.figures.iter().position(|f| f.abbrev == note.abbrev)?;
+                let figure = &sky.figures[i];
+                let (centre, reach) = figure.centre(&sky.stars)?;
+                let centre_alt = alt_az(apply(&horizon, apply(&prec, centre))).0;
+                let lowest = figure
+                    .stars()
+                    .iter()
+                    .filter_map(|hr| sky.stars.get(*hr))
+                    .map(|s| alt_az(apply(&horizon, apply(&prec, s.dir))).0)
+                    .fold(90.0, f64::min);
+                (centre_alt > 22.0 && lowest > 3.0 && reach < 30.0)
+                    .then(|| (i, format!("figure:{}", figure.abbrev)))
+            })
+            .collect();
+        shapes.sort_by_key(|(_, id)| order(id));
+        for (i, id) in shapes.into_iter().take(3) {
+            let figure = &sky.figures[i];
+            let fact = sky
+                .notes
+                .iter()
+                .find(|n| n.abbrev == figure.abbrev)
+                .map(|n| n.fact.clone())
+                .unwrap_or_default();
+            out.push(Find {
+                id,
+                target: Target::Figure(i),
+                name: figure.name.clone(),
+                fact,
+            });
+        }
     }
 
     let (_, month, day) = civil_date(at, offset_s);
@@ -219,7 +260,10 @@ pub fn tonight(
         match out
             .iter()
             .rposition(|f| matches!(f.target, Target::Showpiece(_)))
-        {
+            .or_else(|| {
+                out.iter()
+                    .rposition(|f| matches!(f.target, Target::Figure(_)))
+            }) {
             Some(i) => {
                 out.remove(i);
             }
@@ -247,7 +291,11 @@ mod tests {
         let at = midnight_utc(2026, 12, 14) + 21 * HOUR;
         let never = |_: &str| false;
         let finds = tonight(&sky, LONDON, at, 0, &never);
-        assert!((4..=MOST).contains(&finds.len()), "{finds:#?}");
+        assert!((8..=MOST).contains(&finds.len()), "{finds:#?}");
+        assert!(
+            finds.iter().any(|f| matches!(f.target, Target::Figure(_))),
+            "{finds:#?}"
+        );
         assert!(
             finds.iter().any(|f| f.id == "meteor:geminids"),
             "Geminids night: {finds:#?}"
