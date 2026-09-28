@@ -9,6 +9,7 @@ north = 0.0
 [[image]]
 id = "mercury"
 title = "Mercury in enhanced colour, from MESSENGER"
+caption = "The colours are exaggerated to tell different rocks apart. To the eye Mercury is grey, like the Moon."
 credit = "NASA/Johns Hopkins University Applied Physics Laboratory/Carnegie Institution of Washington"
 licence = "Public domain (NASA)"
 source = "https://photojournal.jpl.nasa.gov/catalog/PIA16853"
@@ -16,6 +17,7 @@ source = "https://photojournal.jpl.nasa.gov/catalog/PIA16853"
 [[image]]
 id = "venus"
 title = "Venus from Mariner 10"
+caption = "Only ever cloud: the ground beneath has been mapped by radar. Shown at tonight's phase."
 credit = "NASA/JPL-Caltech"
 licence = "Public domain (NASA)"
 source = "https://photojournal.jpl.nasa.gov/catalog/PIA23791"
@@ -23,6 +25,7 @@ source = "https://photojournal.jpl.nasa.gov/catalog/PIA23791"
 [[image]]
 id = "mars"
 title = "Mars at opposition, 2016"
+caption = "From the Hubble Space Telescope. Through a small telescope Mars is a small orange disc, with an ice cap on a good night."
 credit = "NASA, ESA, the Hubble Heritage Team (STScI/AURA), J. Bell (ASU), and M. Wolff (Space Science Institute)"
 licence = "CC BY 4.0"
 source = "https://esahubble.org/images/heic1609a/"
@@ -30,6 +33,7 @@ source = "https://esahubble.org/images/heic1609a/"
 [[image]]
 id = "jupiter"
 title = "Jupiter, 2019"
+caption = "From the Hubble Space Telescope. A small telescope shows its two dark belts and four big moons."
 credit = "NASA, ESA, A. Simon (Goddard Space Flight Center), and M.H. Wong (University of California, Berkeley)"
 licence = "CC BY 4.0"
 source = "https://esahubble.org/images/heic1914a/"
@@ -37,6 +41,7 @@ source = "https://esahubble.org/images/heic1914a/"
 [[image]]
 id = "saturn"
 title = "Saturn, 2019"
+caption = "From the Hubble Space Telescope. Even a small telescope shows the rings."
 credit = "NASA, ESA, A. Simon (Goddard Space Flight Center), and M.H. Wong (University of California, Berkeley)"
 licence = "CC BY 4.0"
 source = "https://esahubble.org/images/heic1917a/"
@@ -44,6 +49,7 @@ source = "https://esahubble.org/images/heic1917a/"
 [[image]]
 id = "pleiades"
 title = "The Pleiades (M45)"
+caption = "The blue haze is a cloud of dust the cluster is passing through, lit by its stars. It only shows in long exposures."
 credit = "NOIRLab/NSF/AURA/T.A. Rector (University of Alaska Anchorage), R. Cool (University of Arizona) and WIYN"
 licence = "CC BY 4.0"
 source = "https://noirlab.edu/public/images/noao-m45/"
@@ -60,6 +66,7 @@ north = 0.4
 [[image]]
 id = "andromeda"
 title = "The Andromeda Galaxy"
+caption = "A long exposure. By eye it's a faint oval smudge: the spiral's dust lanes only show in photographs."
 credit = "Bill Schoening, Vanessa Harvey/REU program/NOIRLab/NSF/AURA"
 licence = "CC BY 4.0"
 source = "https://noirlab.edu/public/images/noao0001a/"
@@ -68,6 +75,7 @@ north = 0.0
 [[image]]
 id = "triangulum"
 title = "The Triangulum Galaxy (M33)"
+caption = "A long exposure. By eye, under a very dark sky, it's the faintest of smudges."
 credit = "T.A.Rector (NRAO/AUI/NSF and NOIRLab/NSF/AURA) and M.Hanna (NOIRLab/NSF/AURA)"
 licence = "CC BY 4.0"
 source = "https://noirlab.edu/public/images/noao-m33_opt/"
@@ -76,6 +84,7 @@ north = 0.2
 [[image]]
 id = "bodes-galaxy"
 title = "Bode's Galaxy (M81)"
+caption = "A long exposure. Through a small telescope it's a soft oval glow; the arms only show in photographs."
 credit = "NASA, ESA and the Hubble Heritage Team (STScI/AURA). Acknowledgment: A. Zezas and J. Huchra (Harvard-Smithsonian Center for Astrophysics)"
 licence = "CC BY 4.0"
 source = "https://esahubble.org/images/heic0710a/"
@@ -84,6 +93,7 @@ north = -114.0
 [[image]]
 id = "orion-nebula"
 title = "The Orion Nebula"
+caption = "A long exposure. Through a telescope your eye sees a grey-green glow: the colours are real, just too faint for us."
 credit = "ESO/Igor Chekalin"
 licence = "CC BY 4.0"
 source = "https://www.eso.org/public/images/eso1103a/"
@@ -184,6 +194,7 @@ north = 0.0
 [[image]]
 id = "lagoon"
 title = "The Lagoon Nebula (M8)"
+caption = "A long exposure. The pink is glowing hydrogen, real but too faint for the eye, which sees a grey glow."
 credit = "ESO/VPHAS+ team"
 licence = "CC BY 4.0"
 source = "https://www.eso.org/public/images/eso1403a/"
@@ -269,6 +280,7 @@ source = "https://commons.wikimedia.org/wiki/File:The_Southern_Pleiades_(IC_2602
 [[image]]
 id = "lmc"
 title = "The Large Magellanic Cloud"
+caption = "A long exposure. By eye it looks like a piece broken off the Milky Way."
 credit = "CTIO/NOIRLab/NSF/AURA/SMASH/D. Nidever (Montana State University). Acknowledgment: Image processing: Travis Rector (University of Alaska Anchorage), Mahdi Zamani & Davide de Martin"
 licence = "CC BY 4.0"
 source = "https://noirlab.edu/public/images/noirlab2030a/"
@@ -277,6 +289,7 @@ north = 16.9
 [[image]]
 id = "smc"
 title = "The Small Magellanic Cloud"
+caption = "A long exposure. By eye it looks like a small piece broken off the Milky Way."
 credit = "CTIO/NOIRLab/NSF/AURA/SMASH/D. Nidever (Montana State University). Acknowledgment: Image processing: Travis Rector (University of Alaska Anchorage), Mahdi Zamani & Davide de Martin"
 licence = "CC BY 4.0"
 source = "https://noirlab.edu/public/images/noirlab2030b/"
@@ -285,6 +298,7 @@ north = -30.1
 [[image]]
 id = "carina-nebula"
 title = "The Carina Nebula"
+caption = "A long exposure. The pink is glowing hydrogen, real but too faint for the eye, which sees a grey glow."
 credit = "ESO"
 licence = "CC BY 4.0"
 source = "https://www.eso.org/public/images/eso0905a/"
@@ -293,6 +307,7 @@ north = -0.2
 [[image]]
 id = "eta-carinae"
 title = "Eta Carinae and the Homunculus Nebula"
+caption = "The two billowing lobes are gas thrown off in a great eruption seen from Earth in the 1840s."
 credit = "ESA/Hubble & NASA"
 licence = "CC BY 4.0"
 source = "https://esahubble.org/images/potw1208a/"
@@ -308,6 +323,7 @@ source = "https://commons.wikimedia.org/wiki/File:Albireo_through_Celestron_C8.j
 [[image]]
 id = "mizar-alcor"
 title = "Mizar and Alcor"
+caption = "The long spikes are made by the telescope, not by the stars."
 credit = "Chuck Ayoub"
 licence = "CC0 1.0"
 source = "https://commons.wikimedia.org/wiki/File:Mizar_and_Alcor.png"
@@ -322,6 +338,7 @@ source = "https://commons.wikimedia.org/wiki/File:Double_Double_June_9_2025.png"
 [[image]]
 id = "almach"
 title = "Almach"
+caption = "The rings round each star are made by the telescope, not the stars. The blue companion is itself more than one star."
 credit = "Damian Peach"
 licence = "CC BY-SA 4.0"
 source = "https://commons.wikimedia.org/wiki/File:Almach_dpeach_crop.jpg"
@@ -336,6 +353,7 @@ source = "https://commons.wikimedia.org/wiki/File:The_Garnet_Star_(HD_206936,_HR
 [[image]]
 id = "mira"
 title = "Mira's tail in ultraviolet, from GALEX"
+caption = "Seen in ultraviolet by the GALEX telescope: not a comet, but gas Mira has shed over 30,000 years as it ploughs south through space, a tail 13 light years long. No eye or ordinary telescope can see it."
 credit = "NASA/JPL-Caltech/C. Martin (Caltech)/M. Seibert (OCIW)"
 licence = "Public domain (NASA)"
 source = "https://www.galex.caltech.edu/media/glx2007-04r_img01.html"

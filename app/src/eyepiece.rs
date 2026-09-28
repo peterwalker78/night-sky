@@ -28,6 +28,10 @@ pub struct Credit {
     /// How wide a view shows it best, degrees.
     #[serde(default)]
     pub view: Option<f64>,
+    /// What the picture shows that the eye wouldn't: false colour, a long
+    /// exposure, light we can't see, marks the telescope makes.
+    #[serde(default)]
+    pub caption: Option<String>,
 }
 
 #[derive(Deserialize)]

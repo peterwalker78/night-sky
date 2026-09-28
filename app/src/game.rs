@@ -1134,8 +1134,8 @@ impl Game {
         let credit = self.photos.credit(&id).cloned()?;
         let rotation = north - credit.north.unwrap_or(0.0);
         let phase = match self.finds[i].target {
-            // Venus's picture already shows a part-lit disc, so only these two take tonight's phase.
-            Target::Body(body @ (Body::Moon | Body::Mercury)) => {
+            // The Moon and the inner planets wear tonight's phase.
+            Target::Body(body @ (Body::Moon | Body::Mercury | Body::Venus)) => {
                 let seen = see(body, self.observer, now);
                 let sun = see(Body::Sun, self.observer, now);
                 let sv = from_alt_az(sun.alt, sun.az);
@@ -2096,16 +2096,29 @@ impl Game {
                 .photo_id(i)
                 .and_then(|id| self.photos.credit(&id).cloned())
         {
+            // Laid out from the bottom up: the credit, and above it what the
+            // picture shows that an eye wouldn't.
+            let credit = format!("Photograph: {}", c.credit);
+            let lines = |text: &str, per_line: f64| (text.chars().count() as f64 / per_line).ceil();
+            let credit_y = cam.height - 30.0 - lines(&credit, 62.0) * 15.0;
             texts.push(
                 Text::new(
                     cam.width - 420.0,
-                    cam.height - 46.0,
-                    format!("Photograph: {}", c.credit),
+                    credit_y,
+                    credit,
                     11.5,
                     0.45 * self.eye_alpha,
                 )
                 .wrap(400.0),
             );
+            if let Some(caption) = c.caption {
+                let y = credit_y - 10.0 - lines(&caption, 50.0) * 20.0;
+                texts.push(
+                    Text::new(cam.width - 420.0, y, caption, 14.5, 0.8 * self.eye_alpha)
+                        .wrap(400.0)
+                        .color([0.95, 0.92, 0.85]),
+                );
+            }
         }
         self.marks.extend(embers);
         let eyepiece = self.eyepiece(now, hz, prec);
