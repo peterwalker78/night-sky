@@ -1,21 +1,54 @@
-//! The wisp as a guide. On the first night it shows the way: what the sky
-//! is, what to do with a weight, how to catch something, where the next one
-//! is. After that it mostly keeps quiet, speaking up if someone seems stuck
-//! or asks (? or a click on it). It brightens when something is caught and
-//! falls asleep when the lights go out.
+//! The wisp as a guide. It lives on a tuft of moss on the horizon, but it's
+//! free to fly: off to the list, the compass, the ring or whatever it's
+//! talking about, looping once round it to point it out, trailing embers.
+//! On the first night it shows the way and says what each part is for.
+//! After that it mostly keeps quiet, speaking up if someone seems stuck or
+//! asks (? or a click on it). It brightens when something is caught and
+//! goes home to sleep when the lights go out.
 
+use crate::flight::Flight;
 use crate::game::{Game, envelope};
-use crate::sprite::{NOOK, SIZE, render};
-use crate::view::{Bubble, Sprite};
+use crate::sprite::{FLYING, NOOK, SIZE, render, render_flying, render_moss};
+use crate::talk::Flow;
+use crate::view::{Bubble, Point, Sprite};
+use night_sky_core::coords::{apply, unit};
 use night_sky_core::finds::{Target, stable_hash};
 use night_sky_core::session::Phase;
 use night_sky_core::time::UnixMs;
 use night_sky_core::wisp::{Mode, Trend, Wisp};
 
+/// A place on the screen, in pixels.
+type Spot = (f64, f64);
+
+/// Where the wisp goes while it says something.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Aim {
+    /// Stay where it is.
+    Stay,
+    Home,
+    /// A spot on the screen, as fractions of its width and height.
+    Near(f64, f64),
+    /// The Tonight list.
+    List,
+    /// The strip at the top.
+    Compass,
+    /// The prompt at the foot of the sky.
+    Prompt,
+    /// The card for what was just caught.
+    Card,
+    /// The ring in the middle.
+    Ring,
+    /// One of tonight's finds, wherever it is on the screen.
+    Find(usize),
+    /// Tonight's weights, low in the west.
+    Weights,
+}
+
 struct Line {
     text: String,
     shown: UnixMs,
     hold: UnixMs,
+    aim: Aim,
 }
 
 pub struct Guide {
@@ -27,6 +60,16 @@ pub struct Guide {
     last_nudge: UnixMs,
     last_progress: UnixMs,
     pub(crate) scale: f64,
+    flight: Flight,
+    /// Where it's going, and until when it has something to do there.
+    aim: Aim,
+    busy_until: UnixMs,
+    /// A little flight of its own now and then, when nothing's going on.
+    next_wander: UnixMs,
+    wander: Option<(f64, f64, UnixMs)>,
+    /// When it arrived at what it's pointing at, for the glow round it.
+    pointing_since: Option<UnixMs>,
+    last_frame: UnixMs,
 }
 
 /// How long someone can look around without finding anything before the
@@ -35,6 +78,8 @@ const STUCK_MS: UnixMs = 35_000;
 /// Long enough to read a line before another replaces it.
 const READ_MS: UnixMs = 6_000;
 const NUDGE_EVERY_MS: UnixMs = 90_000;
+/// How long it lingers after speaking before it drifts home.
+const LINGER_MS: UnixMs = 5_000;
 
 fn number(n: usize) -> String {
     const WORDS: [&str; 13] = [
@@ -60,6 +105,13 @@ impl Guide {
             last_nudge: 0,
             last_progress: real,
             scale: 1.0,
+            flight: Flight::new(-100.0, -100.0),
+            aim: Aim::Home,
+            busy_until: 0,
+            next_wander: real + 40_000,
+            wander: None,
+            pointing_since: None,
+            last_frame: real,
         }
     }
 }
@@ -78,51 +130,72 @@ impl Game {
         }
     }
 
-    /// Says something. A line already showing gets a fair chance to be read
-    /// first (at least `READ_MS`), then gives way.
+    /// Says something where it is.
     pub(crate) fn say(&mut self, text: impl Into<String>, real: UnixMs, hold: UnixMs) {
+        self.say_at(Aim::Stay, text, real, hold);
+    }
+
+    /// Flies somewhere and says something. A line already showing gets a
+    /// fair chance to be read first (at least `READ_MS`), then gives way.
+    pub(crate) fn say_at(&mut self, aim: Aim, text: impl Into<String>, real: UnixMs, hold: UnixMs) {
         let line = Line {
             text: text.into(),
             shown: real,
             hold,
+            aim,
         };
-        match &mut self.guide.line {
-            Some(current)
-                if real - current.shown < READ_MS && current.shown + current.hold > real =>
-            {
-                // Cut the current one short once it has been read, and follow it.
-                current.hold = current.hold.min(READ_MS);
-                let start = current.shown + current.hold + 900;
+        let showing = self
+            .guide
+            .line
+            .as_ref()
+            .is_some_and(|c| c.shown + c.hold > real);
+        if showing {
+            // Follow whatever is showing or waiting, each read in turn.
+            let last = self.guide.queue.last_mut().or(self.guide.line.as_mut());
+            if let Some(last) = last {
+                last.hold = last.hold.min(READ_MS);
+                let start = last.shown + last.hold + 900;
                 self.guide.queue.retain(|l| l.text != line.text);
                 self.guide.queue.push(Line {
                     shown: start.max(real),
                     ..line
                 });
             }
-            _ => {
-                self.guide.queue.clear();
-                self.guide.line = Some(line);
-            }
+        } else {
+            self.guide.queue.clear();
+            self.guide.line = Some(line);
         }
     }
 
     /// Says something the first time only, ever.
-    fn say_once(&mut self, key: &str, text: impl Into<String>, real: UnixMs, hold: UnixMs) -> bool {
+    fn say_once(
+        &mut self,
+        key: &str,
+        aim: Aim,
+        text: impl Into<String>,
+        real: UnixMs,
+        hold: UnixMs,
+    ) -> bool {
         if self.seen(key) {
             return false;
         }
         self.mark_seen(key);
-        self.say(text, real, hold);
+        self.say_at(aim, text, real, hold);
         true
+    }
+
+    /// Flies somewhere without saying anything, and lingers a while.
+    pub(crate) fn fly(&mut self, aim: Aim, real: UnixMs, linger: UnixMs) {
+        if self.guide.aim != aim {
+            self.guide.aim = aim;
+            self.guide.pointing_since = None;
+        }
+        self.guide.busy_until = self.guide.busy_until.max(real + linger);
     }
 
     pub(crate) fn hush(&mut self) {
         self.guide.line = None;
         self.guide.queue.clear();
-    }
-
-    fn first_night(&self) -> bool {
-        !self.seen("hunt")
     }
 
     fn to_find(&self) -> usize {
@@ -138,7 +211,8 @@ impl Game {
         };
         if !self.seen("hello") {
             self.mark_seen("hello");
-            self.say(
+            self.say_at(
+                Aim::Near(0.36, 0.42),
                 "Hello. I'm the wisp. This is the real sky over you tonight, just as it is outside.",
                 real + 1_200,
                 7_000,
@@ -165,22 +239,23 @@ impl Game {
         } else {
             format!("{}{things}", greetings[pick])
         };
-        self.say(text, real + 1_200, 6_000);
+        self.say_at(Aim::Near(0.3, 0.5), text, real + 1_200, 6_000);
     }
 
     pub(crate) fn guide_weights(&mut self, real: UnixMs) {
         self.say_once(
             "weights",
-            "Before we look up: if something's weighing on you, tell me and I'll hang it in the west for you. Esc if not tonight.",
+            Aim::Prompt,
+            "Before we look up: anything heavy on your mind? Write it here and I'll hang it in the west for you. A worry written down is easier to put down. Esc if not tonight.",
             real,
             30_000,
         );
     }
 
     pub(crate) fn guide_placing(&mut self, real: UnixMs) {
-        let text = "Find it a spot low in the west with the arrows, then press Enter.";
-        if !self.say_once("placing", text, real, 60_000) {
-            self.say(text, real, 60_000);
+        let text = "Find it a spot low in the west with the arrows, then press Enter. We'll watch it set later.";
+        if !self.say_once("placing", Aim::Ring, text, real, 60_000) {
+            self.say_at(Aim::Ring, "Low in the west, then Enter.", real, 60_000);
         }
     }
 
@@ -191,31 +266,42 @@ impl Game {
     pub(crate) fn guide_hunt(&mut self, real: UnixMs) {
         self.guide.last_progress = real;
         let n = self.to_find();
-        if n == 0 {
+        if n == 0 || self.seen("hunt") {
             return;
         }
+        self.mark_seen("hunt");
         let what = if n == 1 {
-            "One thing is worth finding tonight. It's in the list at the top right, with where to look.".to_owned()
+            "One thing is worth finding tonight. It's listed here, with where to look. Click it and I'll turn you to it.".to_owned()
         } else {
             format!(
-                "{} things are worth finding tonight. They're in the list at the top right, with where to look.",
+                "{} things are worth finding tonight. They're listed here, with where to look for each. Click one and I'll turn you to it.",
                 number(n)
             )
         };
-        self.say_once(
-            "hunt",
-            format!("{what} Look around with the arrows, or drag the sky; the strip at the top shows which way you face."),
+        self.say_at(Aim::List, what, real + 500, 9_000);
+        self.say_at(
+            Aim::Compass,
+            "This strip shows which way you're facing. The arrows, or a drag, turn you round.",
             real + 500,
-            12_000,
+            7_000,
+        );
+        self.say_at(
+            Aim::Ring,
+            "When something's inside the ring, hold Space to catch it. Tab turns you to the next one.",
+            real + 500,
+            8_000,
         );
     }
 
     pub(crate) fn guide_caught(&mut self, real: UnixMs) {
         self.guide.cheer_until = real + 4_000;
         self.guide.last_progress = real;
+        // Over to the card, with a loop of delight.
+        self.fly(Aim::Card, real, 4_000);
         if self.say_once(
             "caught",
-            "Lovely. Press Space when you've read it, and Tab turns you towards the next one.",
+            Aim::Card,
+            "Lovely. Each one comes with something true about it. Space puts the card away, and Tab turns you to the next.",
             real + 600,
             9_000,
         ) {
@@ -225,16 +311,18 @@ impl Game {
         if caught >= 2 {
             self.say_once(
                 "draw",
-                "You can join stars into a shape of your own, too: press C.",
+                Aim::Ring,
+                "You can join bright stars into a shape of your own, too: press C. People have drawn the sky that way for thousands of years.",
                 real + 600,
-                8_000,
+                9_000,
             );
         }
     }
 
     pub(crate) fn guide_all_found(&mut self, real: UnixMs) {
         self.guide.cheer_until = real + 5_000;
-        self.say(
+        self.say_at(
+            Aim::Near(0.5, 0.35),
             "That's tonight's sky, all of it. Look around as long as you like, then Esc twice to finish.",
             real,
             9_000,
@@ -242,7 +330,8 @@ impl Game {
     }
 
     pub(crate) fn guide_meteor_left(&mut self, real: UnixMs) {
-        self.say(
+        self.say_at(
+            Aim::Near(0.5, 0.3),
             "The last one is a meteor. Keep watching, and press Space the moment one flies.",
             real,
             8_000,
@@ -250,16 +339,59 @@ impl Game {
     }
 
     pub(crate) fn guide_question(&mut self, real: UnixMs) {
+        let (plan, name) = match &self.talk.flow {
+            Some(Flow::Question { chosen, .. }) => (
+                chosen.question.thread == "plans",
+                chosen.question.answer == night_sky_core::questions::AnswerKind::Name,
+            ),
+            _ => (false, false),
+        };
+        if plan
+            && self.say_once(
+                "plans",
+                Aim::Prompt,
+                "Something to look forward to is worth having. If you make a plan, I'll mention it when its night comes near.",
+                real + 400,
+                11_000,
+            )
+        {
+            return;
+        }
+        if name
+            && self.seen("question")
+            && self.say_once(
+                "names",
+                Aim::Prompt,
+                "Just a first name will do. Only you will ever see it.",
+                real + 400,
+                8_000,
+            )
+        {
+            return;
+        }
         self.say_once(
             "question",
-            "Now and then the sky asks something. Answer if you like, or Esc to let it pass. It all goes in the logbook, which L opens.",
+            Aim::Prompt,
+            "Now and then the sky asks something small. There's no right answer, and only you will ever see what you write. Esc lets it pass.",
             real + 400,
             12_000,
         );
     }
 
+    /// After something's been written down, where it all goes.
+    pub(crate) fn guide_answered(&mut self, real: UnixMs) {
+        self.say_once(
+            "logbook",
+            Aim::Near(0.3, 0.55),
+            "It's kept in your logbook, which L opens. Anything that keeps coming up gathers on a page of its own, so over time you can see what matters.",
+            real + 800,
+            11_000,
+        );
+    }
+
     pub(crate) fn guide_drawing(&mut self, real: UnixMs) {
-        self.say(
+        self.say_at(
+            Aim::Ring,
             "Arrows step between bright stars, Enter joins them, Backspace takes one back. Press C when it's done.",
             real,
             600_000,
@@ -267,28 +399,40 @@ impl Game {
     }
 
     pub(crate) fn guide_help(&mut self, real: UnixMs) {
-        self.say(
-            "Arrows or a drag look around. Hold Space to catch whatever's in the ring. Tab turns you to the next find, C draws, L opens the logbook, M turns the music off or on, and Esc twice ends the night.",
+        self.say_at(
+            Aim::Near(0.32, 0.5),
+            "Arrows or a drag look around. Hold Space to catch whatever's in the ring. Tab, or a click on the list, turns you to the next find. C draws, L opens the logbook, M turns the music off or on, and Esc twice ends the night.",
             real,
-            14_000,
+            15_000,
         );
     }
 
     pub(crate) fn guide_phase(&mut self, phase: Phase, real: UnixMs) {
         match phase {
-            Phase::Dimming => self.say("Let's give your eyes a rest.", real + 600, 6_000),
+            Phase::Dimming => self.say_at(
+                Aim::Near(0.5, 0.3),
+                "Eyes need about twenty minutes to get used to the dark. Let's start yours off.",
+                real + 600,
+                7_000,
+            ),
             Phase::Finale => {
                 if self.page.weights.is_empty() {
-                    self.say("Watch the sky turn.", real + 800, 6_000);
+                    self.say_at(
+                        Aim::Near(0.4, 0.45),
+                        "Watch the sky turn.",
+                        real + 800,
+                        6_000,
+                    );
                 } else {
-                    self.say(
+                    self.say_at(
+                        Aim::Weights,
                         "Watch the west. The sky takes tonight's weights down with it.",
                         real + 800,
-                        8_000,
+                        9_000,
                     );
                 }
             }
-            Phase::LightsOut => self.say("Goodnight.", real, 5_000),
+            Phase::LightsOut => self.say_at(Aim::Home, "Goodnight.", real, 5_000),
             _ => {}
         }
     }
@@ -299,9 +443,10 @@ impl Game {
             && self.card.is_none()
             && self.talk.prompt.is_none()
             && self.drawing.is_none();
-        if hunting && self.catch.target.is_some() && self.first_night_ring_pending() {
+        if hunting && self.catch.target.is_some() {
             self.say_once(
                 "ring",
+                Aim::Ring,
                 "There's one, inside the ring. Hold Space.",
                 real,
                 8_000,
@@ -318,7 +463,8 @@ impl Game {
                 .filter(|&i| !self.caught[i])
                 .all(|i| matches!(self.finds[i].target, Target::Meteor(_)));
             if self.catch.target.is_some() {
-                self.say(
+                self.say_at(
+                    Aim::Ring,
                     "There's one in the ring. Hold Space to catch it.",
                     real,
                     8_000,
@@ -326,8 +472,9 @@ impl Game {
             } else if only_meteor {
                 self.guide_meteor_left(real);
             } else {
-                self.say(
-                    "Lost? Press Tab and I'll turn you towards the next one.",
+                self.say_at(
+                    Aim::List,
+                    "Lost? Pick one from the list, or press Tab, and I'll turn you to it.",
                     real,
                     8_000,
                 );
@@ -345,48 +492,118 @@ impl Game {
             .update(0.05, mode, Trend::Steady, false, true, false);
     }
 
-    fn first_night_ring_pending(&self) -> bool {
-        self.first_night() || !self.seen("ring")
-    }
-
     /// Where the wisp's nook sits: on the horizon, bottom left.
     pub(crate) fn nook(&self) -> (f64, f64, f64, f64) {
         let (w, h) = (NOOK.0 * SIZE, NOOK.1 * SIZE);
         (10.0, self.camera.height - h - 34.0, w, h)
     }
 
+    /// Where the wisp's body is when it sits on its moss.
+    fn home_spot(&self) -> (f64, f64) {
+        let (x, y, _, _) = self.nook();
+        (
+            x + NOOK.0 / 2.0 * SIZE,
+            y + (NOOK.1 - 7.0 - 8.0 - 13.5 * 1.15) * SIZE,
+        )
+    }
+
     pub(crate) fn on_wisp(&self, x: f64, y: f64) -> bool {
-        let (nx, ny, nw, nh) = self.nook();
-        x >= nx && x <= nx + nw && y >= ny - 10.0 && y <= ny + nh
+        let (wx, wy) = if self.guide.flight.home {
+            self.home_spot()
+        } else {
+            (self.guide.flight.x, self.guide.flight.y)
+        };
+        ((x - wx).powi(2) + (y - wy).powi(2)).sqrt() < 34.0
+    }
+
+    /// What an aim means on the screen now: where to hover, and the thing
+    /// being pointed at, if any.
+    fn resolve(&self, aim: Aim) -> Option<(Spot, Option<Spot>)> {
+        let (w, h) = (self.camera.width, self.camera.height);
+        let (cx, cy) = (w / 2.0, h / 2.0);
+        let beside = |px: f64, py: f64| {
+            // Hover off to the side nearer the middle of the screen.
+            let dx = if px > cx { -80.0 } else { 80.0 };
+            (
+                (px + dx).clamp(60.0, w - 60.0),
+                (py - 30.0).clamp(60.0, h - 80.0),
+            )
+        };
+        Some(match aim {
+            Aim::Stay => return None,
+            Aim::Home => (self.home_spot(), None),
+            Aim::Near(fx, fy) => ((w * fx, h * fy), None),
+            Aim::List => ((w - 330.0, 110.0), Some((w - 270.0, 70.0))),
+            Aim::Compass => ((cx - 350.0, 44.0), Some((cx - 250.0, 28.0))),
+            // Above the prompt's left end, so the words sit clear of it.
+            Aim::Prompt => ((cx - 330.0, h - 360.0), Some((cx - 250.0, h - 250.0))),
+            Aim::Card => {
+                let x = self.card.as_ref().map_or(cx + 100.0, |c| c.x);
+                let right = x + 440.0 < w - 40.0;
+                let hover = if right {
+                    (x + 440.0, cy - 110.0)
+                } else {
+                    (x - 50.0, cy - 110.0)
+                };
+                (hover, Some((x + 30.0, cy - 60.0)))
+            }
+            Aim::Ring => {
+                let r = self.reticle_radius();
+                ((cx - r - 70.0, cy - 50.0), Some((cx, cy)))
+            }
+            Aim::Find(i) => {
+                let now = self.sky_now(self.last_real);
+                let hz = night_sky_core::coords::horizon(self.observer, now);
+                let prec = night_sky_core::coords::precession(now);
+                match self
+                    .find_dir(i, now, &hz, &prec)
+                    .and_then(|v| self.camera.project(v))
+                {
+                    Some((x, y)) if self.camera.on_screen(x, y, -40.0) => {
+                        (beside(x, y), Some((x, y)))
+                    }
+                    _ => ((cx - 120.0, cy - 60.0), Some((cx, cy))),
+                }
+            }
+            Aim::Weights => {
+                let now = self.sky_now(self.last_real);
+                let hz = night_sky_core::coords::horizon(self.observer, now);
+                let spot = self
+                    .page
+                    .weights
+                    .iter()
+                    .filter_map(|wt| self.camera.project(apply(&hz, unit(wt.ra, wt.dec))))
+                    .find(|&(x, y)| self.camera.on_screen(x, y, -40.0));
+                match spot {
+                    Some((x, y)) => (beside(x, y), Some((x, y))),
+                    None => ((cx, cy - 80.0), None),
+                }
+            }
+        })
     }
 
     pub(crate) fn guide_frame(
         &mut self,
         real: UnixMs,
         brightness: f64,
-    ) -> (Option<Sprite>, Option<Bubble>) {
-        let (x, y, w, h) = self.nook();
+    ) -> (Vec<Sprite>, Option<Bubble>, Vec<Point>) {
+        let dt = ((real - self.guide.last_frame) as f64 / 1000.0).clamp(0.0, 0.1);
+        self.guide.last_frame = real;
+        let (nx, ny, nw, nh) = self.nook();
         let alpha = if matches!(self.session.phase(), Phase::LightsOut | Phase::Over) {
             brightness / night_sky_core::session::DIM
         } else {
             brightness.max(0.6)
         };
-        let sprite =
-            render(&mut self.guide.wisp, real as f64, self.guide.scale).map(|texture| Sprite {
-                texture,
-                x,
-                y,
-                width: w,
-                height: h,
-                alpha,
-            });
+
+        // The line to show, moving the queue along.
         let finished = self
             .guide
             .line
             .as_ref()
             .is_none_or(|l| real - l.shown > l.hold + 1_400);
         // A line that waited too long has probably stopped being true.
-        self.guide.queue.retain(|l| real - l.shown < 4_000);
+        self.guide.queue.retain(|l| real - l.shown < 8_000);
         if finished && !self.guide.queue.is_empty() {
             let next = self.guide.queue.remove(0);
             if next.shown <= real {
@@ -395,16 +612,170 @@ impl Game {
                 self.guide.queue.insert(0, next);
             }
         }
+        let speaking = self
+            .guide
+            .line
+            .as_ref()
+            .filter(|l| real >= l.shown && real - l.shown < l.hold + 900)
+            .map(|l| l.aim);
+        if let Some(aim) = speaking {
+            if aim != Aim::Stay && aim != self.guide.aim {
+                self.guide.aim = aim;
+                self.guide.pointing_since = None;
+            }
+            self.guide.busy_until = real + LINGER_MS;
+        }
+
+        // Nothing to say for a while: home, with a little flight now and then.
+        if real > self.guide.busy_until && self.guide.aim != Aim::Home {
+            self.guide.aim = Aim::Home;
+            self.guide.pointing_since = None;
+        }
+        if self.guide.aim == Aim::Home
+            && self.hunting()
+            && self.card.is_none()
+            && self.talk.prompt.is_none()
+            && real > self.guide.next_wander
+        {
+            let (w, h) = (self.camera.width, self.camera.height);
+            let pick = (real % 997) as f64 / 997.0;
+            self.guide.wander = Some((
+                w * (0.08 + 0.2 * pick),
+                h * (0.45 + 0.2 * (1.0 - pick)),
+                real + 3_500,
+            ));
+            self.guide.next_wander = real + 30_000 + (real % 20_000);
+        }
+        let wandering = self.guide.wander.filter(|&(_, _, until)| real < until);
+        if wandering.is_none() {
+            self.guide.wander = None;
+        }
+
+        let (goal, pointing) = match (self.resolve(self.guide.aim), wandering) {
+            (Some(_), Some((wx, wy, _))) if self.guide.aim == Aim::Home => ((wx, wy), None),
+            (Some(g), _) => g,
+            (None, _) => ((self.guide.flight.x, self.guide.flight.y), None),
+        };
+        let home = self.home_spot();
+        if self.guide.flight.x < -50.0 {
+            self.guide.flight.place(home.0, home.1);
+        }
+        let at_home_goal = (goal.0 - home.0).abs() < 1.0 && (goal.1 - home.1).abs() < 1.0;
+        self.guide
+            .flight
+            .step(real, dt, goal, pointing, !at_home_goal);
+        let settled = at_home_goal
+            && ((self.guide.flight.x - home.0).powi(2) + (self.guide.flight.y - home.1).powi(2))
+                .sqrt()
+                < 3.0
+            && self.guide.flight.speed() < 25.0;
+        if settled {
+            self.guide.flight.place(home.0, home.1);
+        }
+        self.guide.flight.home = settled;
+        let near_goal = ((self.guide.flight.x - goal.0).powi(2)
+            + (self.guide.flight.y - goal.1).powi(2))
+        .sqrt()
+            < 60.0;
+        if pointing.is_some() && near_goal && self.guide.pointing_since.is_none() {
+            self.guide.pointing_since = Some(real);
+        }
+
+        let (fx, fy) = (self.guide.flight.x, self.guide.flight.y);
+        let look = pointing.map(|(px, _)| ((px - fx) / 120.0).clamp(-1.0, 1.0));
+        let mut sprites = Vec::new();
+        let mut points = self.guide.flight.embers(real, alpha as f32);
+        if settled {
+            self.guide.wisp.resize(NOOK.0, NOOK.1);
+            self.guide.wisp.set_flight(false, 0.0, None);
+            if let Some(texture) = render(&mut self.guide.wisp, real as f64, self.guide.scale) {
+                sprites.push(Sprite {
+                    texture,
+                    x: nx,
+                    y: ny,
+                    width: nw,
+                    height: nh,
+                    alpha,
+                });
+            }
+        } else {
+            if let Some(texture) = render_moss(&self.guide.wisp, real as f64, self.guide.scale) {
+                sprites.push(Sprite {
+                    texture,
+                    x: nx,
+                    y: ny,
+                    width: nw,
+                    height: nh,
+                    alpha,
+                });
+            }
+            self.guide.wisp.resize(FLYING.0, FLYING.1);
+            let lean = self.guide.flight.lean();
+            self.guide
+                .wisp
+                .set_flight(true, lean, look.or(Some(lean * 0.8)));
+            if let Some(texture) =
+                render_flying(&mut self.guide.wisp, real as f64, self.guide.scale)
+            {
+                let (sw, sh) = (FLYING.0 * SIZE, FLYING.1 * SIZE);
+                sprites.push(Sprite {
+                    texture,
+                    x: fx - sw / 2.0,
+                    y: fy - sh / 2.0,
+                    width: sw,
+                    height: sh,
+                    alpha,
+                });
+            }
+        }
+
+        // A soft glow round what it's pointing at, for a moment.
+        if let (Some(since), Some((px, py))) = (self.guide.pointing_since, pointing) {
+            let age = (real - since) as f64;
+            if age < 2_600.0 {
+                let a = (1.0 - age / 2_600.0) as f32;
+                let r = 22.0 + 6.0 * (age / 400.0).sin();
+                for k in 0..16 {
+                    let t = k as f64 / 16.0 * std::f64::consts::TAU + age / 900.0;
+                    points.push(Point {
+                        x: px + r * t.cos(),
+                        y: py + r * t.sin(),
+                        radius: 1.4,
+                        color: [1.0, 0.82, 0.55],
+                        alpha: 0.7 * a * alpha as f32,
+                        halo: 0.6,
+                    });
+                }
+            }
+        }
+
         let bubble = self.guide.line.as_ref().and_then(|l| {
             let a = envelope(real - l.shown, 500, l.hold, 900);
-            (a > 0.0).then(|| Bubble {
-                x: x + 26.0,
-                bottom: y + 14.0,
+            if a <= 0.0 {
+                return None;
+            }
+            let width = 300.0;
+            let w = self.camera.width;
+            let (x, bottom, tail) = if settled {
+                (nx + 26.0, ny + 14.0, true)
+            } else {
+                let right = fx + 36.0 + width + 28.0 < w - 10.0;
+                let x = if right {
+                    fx + 36.0
+                } else {
+                    fx - 36.0 - width - 28.0
+                };
+                (x.max(10.0), (fy - 26.0).max(150.0), false)
+            };
+            Some(Bubble {
+                x,
+                bottom,
                 text: l.text.clone(),
-                width: 300.0,
+                width,
                 alpha: a * alpha.min(1.0),
+                tail,
             })
         });
-        (sprite, bubble)
+        (sprites, bubble, points)
     }
 }

@@ -190,6 +190,12 @@ pub struct Wisp {
     seed: u64,
     width: f64,
     height: f64,
+    /// Out of its nook: drawn in the middle of its canvas with no moss.
+    flying: bool,
+    /// Leaning into its flight, -1 to 1.
+    lean: f64,
+    /// Where it's looking when it has somewhere to look, -1 to 1.
+    look: Option<f64>,
 }
 
 impl Wisp {
@@ -228,7 +234,31 @@ impl Wisp {
             seed: 0x9e37_79b9_7f4a_7c15,
             width,
             height,
+            flying: false,
+            lean: 0.0,
+            look: None,
         }
+    }
+
+    /// Out of the nook and flying, leaning into it and looking somewhere.
+    pub fn set_flight(&mut self, flying: bool, lean: f64, look: Option<f64>) {
+        self.flying = flying;
+        self.lean = lean.clamp(-1.0, 1.0);
+        self.look = look.map(|l| l.clamp(-1.0, 1.0));
+    }
+
+    /// Just the moss, for when the wisp is away from it.
+    pub fn draw_moss_alone(&self, now: f64, canvas: &mut dyn Canvas) {
+        draw_moss(
+            canvas,
+            self.width,
+            self.height,
+            self.shown,
+            self.happy,
+            true,
+            now,
+            true,
+        );
     }
 
     /// The nook has been given a new size.
@@ -401,21 +431,27 @@ fn draw(wisp: &mut Wisp, now: f64, moving: bool, dark: bool, cr: &mut dyn Canvas
     // The sky is behind everything, then the moss the wisp rests on.
     let width = wisp.width;
     let home_x = width / 2.0;
-    draw_sky(
-        cr,
-        width,
-        height,
-        wisp.recovering * (1.0 - wisp.privacy),
-        wisp.wearing * (1.0 - wisp.privacy),
-        dark,
-    );
-    draw_moss(cr, width, height, dose, wisp.happy, dark, now, moving);
+    if !wisp.flying {
+        draw_sky(
+            cr,
+            width,
+            height,
+            wisp.recovering * (1.0 - wisp.privacy),
+            wisp.wearing * (1.0 - wisp.privacy),
+            dark,
+        );
+        draw_moss(cr, width, height, dose, wisp.happy, dark, now, moving);
+    }
 
     // --- Where and how big ---------------------------------------------------
     let mut radius =
         BODY_RADIUS * along(&[(0.0, 1.0), (0.5, 0.88), (0.75, 0.78), (1.0, 0.7)], dose);
     let mut x = home_x;
-    let mut y = height - MOSS_FLOOR - MOSS_HEIGHT - radius * 1.15;
+    let mut y = if wisp.flying {
+        height / 2.0
+    } else {
+        height - MOSS_FLOOR - MOSS_HEIGHT - radius * 1.15
+    };
     let mut brightness = (look.brightness * (1.0 + WELCOME_BRIGHTER * wisp.welcome_mix)).min(1.0);
     let mut sway = 0.0;
     let mut blink = 0.0;
@@ -434,7 +470,7 @@ fn draw(wisp: &mut Wisp, now: f64, moving: bool, dark: bool, cr: &mut dyn Canvas
         y -= ((now / 2400.0 * TAU).sin() * 0.5 + 0.5) * 2.0 * rested * awake;
         x += wander(now, 1.3) * ROAM_X * engaged * awake;
         y -= wander(now, 4.2).abs() * ROAM_Y * engaged * awake;
-        sway = wander(now * 1.7, 5.1) * radius * 0.22;
+        sway = wander(now * 1.7, 5.1) * radius * 0.22 + wisp.lean * radius * 0.6;
 
         // Clouded: an occasional flicker.
         let flick = (wander(now * 3.1, 7.7) - 0.55).max(0.0) * 1.6;
@@ -472,6 +508,9 @@ fn draw(wisp: &mut Wisp, now: f64, moving: bool, dark: bool, cr: &mut dyn Canvas
                 spawn(wisp, now, x, y - radius, ParticleKind::Mote);
             }
             wisp.last_mote = now;
+        }
+        if let Some(look) = wisp.look {
+            wisp.glance_target = look;
         }
         wisp.glance = ease_toward(wisp.glance, wisp.glance_target, dt, 250.0);
 

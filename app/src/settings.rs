@@ -272,6 +272,16 @@ impl Settings {
 
         self.body.append(&label("ABOUT", "book-heading"));
         self.body.append(&label(CREDITS, "book-quiet"));
+        let photos = crate::eyepiece::Photos::load();
+        if !photos.credits().is_empty() {
+            self.body.append(&label("PHOTOGRAPHS", "book-heading"));
+            for c in photos.credits() {
+                self.body.append(&label(
+                    &format!("{}: {}. {}. {}", c.title, c.credit, c.licence, c.source),
+                    "book-quiet",
+                ));
+            }
+        }
         back.grab_focus();
     }
 }

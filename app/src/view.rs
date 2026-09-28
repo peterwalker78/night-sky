@@ -83,6 +83,18 @@ pub struct CardView {
     pub alpha: f64,
 }
 
+/// A photograph of what's being looked at, in a round, soft-edged view.
+pub struct Eyepiece {
+    pub texture: gdk::Texture,
+    pub x: f64,
+    pub y: f64,
+    pub radius: f64,
+    /// Degrees clockwise, to sit the picture as the object sits in the sky.
+    pub rotation: f64,
+    pub credit: String,
+    pub alpha: f64,
+}
+
 /// The strip along the top that says which way the view faces.
 pub struct Compass {
     /// Azimuth the view faces, degrees from north through east.
@@ -107,14 +119,17 @@ pub struct Bubble {
     pub text: String,
     pub width: f64,
     pub alpha: f64,
+    /// A small tail down towards the wisp on its moss.
+    pub tail: bool,
 }
 
 #[derive(Default)]
 pub struct Frame {
     pub points: Vec<Point>,
+    pub eyepiece: Option<Eyepiece>,
     pub card: Option<CardView>,
     pub compass: Option<Compass>,
-    pub sprite: Option<Sprite>,
+    pub sprites: Vec<Sprite>,
     pub bubble: Option<Bubble>,
     pub texture: Option<gdk::Texture>,
     pub cols: usize,
@@ -271,6 +286,55 @@ fn draw_card(widget: &gtk::Widget, snapshot: &gtk::Snapshot, c: &CardView) {
     }
 }
 
+fn draw_eyepiece(widget: &gtk::Widget, snapshot: &gtk::Snapshot, e: &Eyepiece) {
+    let a = e.alpha as f32;
+    let (x, y, r) = (e.x as f32, e.y as f32, e.radius as f32);
+    let bounds = graphene::Rect::new(x - r, y - r, 2.0 * r, 2.0 * r);
+    // A dark well first, so the sky's dots don't show through the picture.
+    let well = [
+        gsk::ColorStop::new(0.0, gdk::RGBA::new(0.0, 0.0, 0.0, 0.92 * a)),
+        gsk::ColorStop::new(0.86, gdk::RGBA::new(0.0, 0.0, 0.0, 0.92 * a)),
+        gsk::ColorStop::new(1.0, gdk::RGBA::new(0.0, 0.0, 0.0, 0.0)),
+    ];
+    snapshot.append_radial_gradient(&bounds, &graphene::Point::new(x, y), r, r, 0.0, 1.0, &well);
+    // The picture, faded out towards the rim.
+    let rim = [
+        gsk::ColorStop::new(0.0, gdk::RGBA::new(1.0, 1.0, 1.0, a)),
+        gsk::ColorStop::new(0.8, gdk::RGBA::new(1.0, 1.0, 1.0, a)),
+        gsk::ColorStop::new(0.97, gdk::RGBA::new(1.0, 1.0, 1.0, 0.0)),
+    ];
+    snapshot.push_mask(gsk::MaskMode::Alpha);
+    snapshot.append_radial_gradient(&bounds, &graphene::Point::new(x, y), r, r, 0.0, 1.0, &rim);
+    snapshot.pop();
+    snapshot.save();
+    snapshot.translate(&graphene::Point::new(x, y));
+    snapshot.rotate(e.rotation as f32);
+    snapshot.append_texture(&e.texture, &graphene::Rect::new(-r, -r, 2.0 * r, 2.0 * r));
+    snapshot.restore();
+    snapshot.pop();
+    // A faint ring for the eyepiece's edge.
+    let ring = gsk::RoundedRect::from_rect(bounds, r);
+    let edge = [gdk::RGBA::new(0.9, 0.85, 0.75, 0.18 * a); 4];
+    snapshot.append_border(&ring, &[1.0; 4], &edge);
+    if !e.credit.is_empty() {
+        let l = layout(
+            widget,
+            &format!("Image: {}", e.credit),
+            11.0,
+            false,
+            Some(2.0 * e.radius),
+        );
+        l.set_alignment(pango::Alignment::Center);
+        text_at(
+            snapshot,
+            &l,
+            x - r,
+            y + r + 10.0,
+            gdk::RGBA::new(0.85, 0.87, 0.93, 0.5 * a),
+        );
+    }
+}
+
 fn draw_compass(widget: &gtk::Widget, snapshot: &gtk::Snapshot, width: f32, c: &Compass) {
     let a = c.alpha as f32;
     let (strip_w, strip_h, top) = (600.0f32.min(width - 40.0), 34.0f32, 12.0f32);
@@ -417,7 +481,7 @@ mod imp {
                 snapshot.append_color(&gdk::RGBA::new(r, g, b, p.alpha.min(1.0)), &rect);
                 snapshot.pop();
             }
-            if let Some(sprite) = &frame.sprite {
+            for sprite in &frame.sprites {
                 snapshot.push_opacity(sprite.alpha.clamp(0.0, 1.0));
                 snapshot.append_texture(
                     &sprite.texture,
@@ -457,18 +521,25 @@ mod imp {
                 // A small tail down towards the wisp.
                 let tail =
                     graphene::Rect::new(b.x as f32 + 34.0, b.bottom as f32 - 7.0, 12.0, 12.0);
-                snapshot.save();
-                snapshot.translate(&graphene::Point::new(tail.x() + 6.0, tail.y() + 6.0));
-                snapshot.rotate(45.0);
-                snapshot.append_color(
-                    &gdk::RGBA::new(0.05, 0.06, 0.11, 0.86 * a),
-                    &graphene::Rect::new(-6.0, -6.0, 12.0, 12.0),
-                );
-                snapshot.restore();
+                if b.tail {
+                    snapshot.save();
+                    snapshot.translate(&graphene::Point::new(tail.x() + 6.0, tail.y() + 6.0));
+                    snapshot.rotate(45.0);
+                    snapshot.append_color(
+                        &gdk::RGBA::new(0.05, 0.06, 0.11, 0.86 * a),
+                        &graphene::Rect::new(-6.0, -6.0, 12.0, 12.0),
+                    );
+                    snapshot.restore();
+                }
                 snapshot.save();
                 snapshot.translate(&graphene::Point::new(rect.x() + pad, rect.y() + pad));
                 snapshot.append_layout(&layout, &gdk::RGBA::new(1.0, 0.96, 0.88, 0.95 * a));
                 snapshot.restore();
+            }
+            if let Some(e) = &frame.eyepiece
+                && e.alpha > 0.004
+            {
+                draw_eyepiece(widget.upcast_ref(), snapshot, e);
             }
             if let Some(c) = &frame.compass {
                 draw_compass(widget.upcast_ref(), snapshot, w, c);

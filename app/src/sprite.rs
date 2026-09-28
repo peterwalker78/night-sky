@@ -115,16 +115,21 @@ impl Canvas for CairoCanvas<'_> {
     }
 }
 
-/// One frame of the wisp at `now` milliseconds, for a display `scale`.
-pub fn render(wisp: &mut Wisp, now: f64, scale: f64) -> Option<gdk::Texture> {
+/// Draws something on a canvas `units` big (in the wisp's own units), at
+/// `now` milliseconds, into a texture for a display `scale`.
+fn paint(
+    units: (f64, f64),
+    scale: f64,
+    draw: impl FnOnce(&mut dyn Canvas),
+) -> Option<gdk::Texture> {
     let k = SIZE * scale;
-    let (w, h) = ((NOOK.0 * k).ceil() as i32, (NOOK.1 * k).ceil() as i32);
+    let (w, h) = ((units.0 * k).ceil() as i32, (units.1 * k).ceil() as i32);
     let mut surface = cairo::ImageSurface::create(cairo::Format::ARgb32, w, h).ok()?;
     {
         let cr = cairo::Context::new(&surface).ok()?;
         cr.scale(k, k);
         let mut canvas = CairoCanvas { cr: &cr };
-        wisp.draw(now, true, true, &mut canvas);
+        draw(&mut canvas);
     }
     surface.flush();
     let stride = surface.stride() as usize;
@@ -140,4 +145,25 @@ pub fn render(wisp: &mut Wisp, now: f64, scale: f64) -> Option<gdk::Texture> {
         )
         .upcast(),
     )
+}
+
+/// The wisp resting in its nook, moss and all.
+pub fn render(wisp: &mut Wisp, now: f64, scale: f64) -> Option<gdk::Texture> {
+    paint(NOOK, scale, |c| {
+        wisp.draw(now, true, true, c);
+    })
+}
+
+/// The wisp on its own, out flying, drawn in the middle of a square.
+pub const FLYING: (f64, f64) = (64.0, 64.0);
+
+pub fn render_flying(wisp: &mut Wisp, now: f64, scale: f64) -> Option<gdk::Texture> {
+    paint(FLYING, scale, |c| {
+        wisp.draw(now, true, true, c);
+    })
+}
+
+/// The empty moss, while the wisp is away from it.
+pub fn render_moss(wisp: &Wisp, now: f64, scale: f64) -> Option<gdk::Texture> {
+    paint(NOOK, scale, |c| wisp.draw_moss_alone(now, c))
 }

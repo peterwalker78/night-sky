@@ -267,6 +267,7 @@ impl Game {
     }
 
     fn finish_weights(&mut self, real: UnixMs) {
+        self.hush();
         self.talk.flow = None;
         self.set_prompt(None);
         self.hint = None;
@@ -592,13 +593,17 @@ impl Game {
                                     names: false,
                                 }));
                             }
-                            _ => self.done_talking(),
+                            _ => {
+                                self.done_talking();
+                                self.guide_answered(real);
+                            }
                         }
                     }
                     (AnswerKind::Text, _) => {
                         let person = chosen.person.clone();
                         self.keep_answer(&chosen, text, person.as_deref(), None);
                         self.done_talking();
+                        self.guide_answered(real);
                     }
                 }
             }
