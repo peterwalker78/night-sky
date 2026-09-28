@@ -70,6 +70,14 @@ pub struct Point {
     pub halo: f32,
 }
 
+/// A soft line on the screen: a constellation's figure.
+pub struct Line {
+    pub a: (f64, f64),
+    pub b: (f64, f64),
+    pub color: [f32; 3],
+    pub alpha: f32,
+}
+
 /// The card for something just caught.
 pub struct CardView {
     pub x: f64,
@@ -130,6 +138,7 @@ pub struct Frame {
     pub points: Vec<Point>,
     /// Points drawn over the photographs: the wisp's trail and what it marks.
     pub marks: Vec<Point>,
+    pub lines: Vec<Line>,
     pub eyepiece: Option<Eyepiece>,
     pub card: Option<CardView>,
     pub compass: Option<Compass>,
@@ -287,6 +296,23 @@ fn draw_card(widget: &gtk::Widget, snapshot: &gtk::Snapshot, c: &CardView) {
             gdk::RGBA::new(0.8, 0.83, 0.9, 0.7 * a),
         );
         kx += l.pixel_size().0 as f32 + 18.0;
+    }
+}
+
+/// A line with round ends and a faint glow either side of it.
+fn draw_line(snapshot: &gtk::Snapshot, l: &Line) {
+    if l.alpha <= 0.004 {
+        return;
+    }
+    let builder = gsk::PathBuilder::new();
+    builder.move_to(l.a.0 as f32, l.a.1 as f32);
+    builder.line_to(l.b.0 as f32, l.b.1 as f32);
+    let path = builder.to_path();
+    let [r, g, b] = l.color;
+    for (width, share) in [(5.0, 0.22), (1.3, 1.0)] {
+        let stroke = gsk::Stroke::new(width);
+        stroke.set_line_cap(gsk::LineCap::Round);
+        snapshot.append_stroke(&path, &stroke, &gdk::RGBA::new(r, g, b, l.alpha * share));
     }
 }
 
@@ -499,6 +525,9 @@ mod imp {
             }
             for p in &frame.points {
                 draw_point(snapshot, p);
+            }
+            for l in &frame.lines {
+                draw_line(snapshot, l);
             }
             if let Some(e) = &frame.eyepiece
                 && e.alpha > 0.004

@@ -186,6 +186,9 @@ pub struct Game {
     algol: Option<usize>,
     /// Points drawn over the photographs.
     pub(crate) marks: Vec<crate::view::Point>,
+    /// The star pattern being shown, and how far it has faded in.
+    pub(crate) pattern: Option<usize>,
+    pub(crate) pattern_alpha: f64,
 }
 
 pub(crate) const WARM: Rgb = [1.0, 0.86, 0.66];
@@ -379,6 +382,8 @@ impl Game {
             moon_stops,
             algol,
             marks: Vec::new(),
+            pattern: None,
+            pattern_alpha: 0.0,
         };
         game.arrive(real_now);
         game
@@ -2044,6 +2049,7 @@ impl Game {
         self.draw_marks(real, hz);
         self.marks.clear();
         self.draw_tours(real, hz, prec);
+        let lines = self.pattern_lines(real, hz, dt);
         self.draw_reticle(real, tempo);
 
         let brightness = self.session.brightness(real);
@@ -2114,6 +2120,7 @@ impl Game {
             compass,
             points: std::mem::take(&mut self.points),
             marks: std::mem::take(&mut self.marks),
+            lines,
             sprites,
             bubble,
             texture: Some(frame_texture),

@@ -4,11 +4,12 @@
 
 use crate::camera::Camera;
 use crate::field::Rgb;
-use crate::game::{Game, Look, Timed, envelope, hills};
+use crate::game::{Game, Look, Timed, hills};
 use crate::talk::{Flow, Pending, Prompt};
-use crate::view::Text;
+use crate::view::{Line, Text};
 use gtk::gdk;
 use night_sky_core::coords::{Mat3, Vec3, alt_az, apply, unit};
+use night_sky_core::finds::Target;
 use night_sky_core::journal::Drawing as Drawn;
 use night_sky_core::time::UnixMs;
 
@@ -24,6 +25,8 @@ const WEIGHT: Rgb = [1.0, 0.62, 0.36];
 const DRAWN: Rgb = [1.0, 0.86, 0.66];
 const FIGURE: Rgb = [0.66, 0.78, 1.0];
 const NAMED: Rgb = [1.0, 0.82, 0.6];
+/// How long a revealed constellation stays up after a catch or a drawing.
+const REVEAL_MS: UnixMs = 14_000;
 
 impl Game {
     fn star_screen(&self, hr: u16, hz: &Mat3) -> Option<(f64, f64)> {
@@ -319,17 +322,9 @@ impl Game {
                 self.field.line(p, q, DRAWN, 0.05);
             }
         }
-        if let Some((i, at)) = self.reveal {
-            let a = envelope(real - at, 1_500, 9_000, 3_000) as f32;
-            if a <= 0.0 && real - at > 5_000 {
-                self.reveal = None;
-            } else {
-                for (x, y) in self.sky.figures[i].edges.clone() {
-                    if let (Some(p), Some(q)) = (self.star_screen(x, hz), self.star_screen(y, hz)) {
-                        self.field.line(p, q, FIGURE, 0.2 * a);
-                    }
-                }
-            }
+        // A revealed constellation is shown by `pattern_lines` for a while.
+        if self.reveal.is_some_and(|(_, at)| real - at > REVEAL_MS) {
+            self.reveal = None;
         }
         if let Some(d) = &self.drawing {
             let edges = d.edges.clone();
@@ -347,6 +342,74 @@ impl Game {
                 ring(self, x, y, 12.0, [0.9, 0.95, 1.0], 0.45 * pulse as f32);
             }
         }
+    }
+
+    /// The star pattern to show now: the real constellation a drawing turned
+    /// out to be part of, one just caught or still being looked at, or the
+    /// one tonight's story is told in.
+    fn wanted_pattern(&self) -> Option<usize> {
+        if let Some((f, _)) = self.reveal {
+            return Some(f);
+        }
+        if let Some(tour) = &self.tour
+            && let Target::Story(s) = self.finds[tour.find].target
+        {
+            let anchor = self.sky.tours.stories[s].anchor;
+            return self
+                .sky
+                .figures
+                .iter()
+                .position(|f| f.edges.iter().any(|&(a, b)| a == anchor || b == anchor));
+        }
+        match self.track.map(|i| (i, &self.finds[i].target)) {
+            Some((i, Target::Figure(f))) if self.caught[i] => Some(*f),
+            _ => None,
+        }
+    }
+
+    /// The pattern's lines, breathing slowly in and out and never bright.
+    pub(crate) fn pattern_lines(&mut self, real: UnixMs, hz: &Mat3, dt: f64) -> Vec<Line> {
+        let want = self.wanted_pattern();
+        if want != self.pattern && self.pattern_alpha < 0.03 {
+            self.pattern = want;
+        }
+        let target = if want.is_some() && want == self.pattern {
+            1.0
+        } else {
+            0.0
+        };
+        self.pattern_alpha += (target - self.pattern_alpha) * (1.0 - (-dt / 0.9).exp());
+        let Some(f) = self.pattern else {
+            return Vec::new();
+        };
+        // About one breath every six and a half seconds.
+        let t = real as f64 / 1000.0;
+        let breath = 0.5 - 0.5 * (t * std::f64::consts::TAU / 6.5).cos();
+        let alpha = (self.pattern_alpha
+            * (0.09 + 0.13 * breath)
+            * self.session.brightness(real).max(0.4)) as f32;
+        if alpha < 0.004 {
+            return Vec::new();
+        }
+        let mut out = Vec::new();
+        for (a, b) in self.sky.figures[f].edges.clone() {
+            if let (Some(p), Some(q)) = (self.star_screen(a, hz), self.star_screen(b, hz)) {
+                // Stop short of the stars, so they stand clear of the lines.
+                let (dx, dy) = (q.0 - p.0, q.1 - p.1);
+                let len = (dx * dx + dy * dy).sqrt();
+                if len < 20.0 {
+                    continue;
+                }
+                let k = 8.0 / len;
+                out.push(Line {
+                    a: (p.0 + dx * k, p.1 + dy * k),
+                    b: (q.0 - dx * k, q.1 - dy * k),
+                    color: FIGURE,
+                    alpha,
+                });
+            }
+        }
+        out
     }
 
     /// Words for marks near the middle of the view.
