@@ -65,6 +65,26 @@ button.quiet {
   font-size: 13px;
 }
 button.quiet:hover { background: rgba(240, 214, 168, 0.14); }
+.tonight {
+  background: rgba(7, 9, 19, 0.74);
+  border-radius: 14px;
+  padding: 12px 10px 10px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.tonight-title { font-size: 11px; font-weight: 600; letter-spacing: 2px; color: rgba(240, 214, 168, 0.8); margin: 0 8px 4px 8px; }
+.tonight-hint { font-size: 11px; color: rgba(220, 225, 240, 0.42); margin: 6px 8px 0 8px; }
+button.find-row {
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 9px;
+  padding: 5px 8px;
+}
+button.find-row:hover { background: rgba(240, 214, 168, 0.1); }
+button.find-row.found { opacity: 0.5; }
+.find-mark { color: rgba(240, 214, 168, 0.9); font-size: 12px; margin-top: 2px; }
+.find-name { font-size: 14px; color: #eef0f6; }
+.find-where { font-size: 12px; color: rgba(210, 218, 240, 0.6); }
 .course-step { font-size: 12px; color: rgba(210, 218, 240, 0.55); letter-spacing: 1px; }
 .course-ask { font-size: 22px; color: #f3ecd9; }
 .course entry, .settings entry {

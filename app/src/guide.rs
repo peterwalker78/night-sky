@@ -37,7 +37,10 @@ const READ_MS: UnixMs = 6_000;
 const NUDGE_EVERY_MS: UnixMs = 90_000;
 
 fn number(n: usize) -> String {
-    const WORDS: [&str; 8] = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven"];
+    const WORDS: [&str; 13] = [
+        "No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
+        "Eleven", "Twelve",
+    ];
     WORDS
         .get(n)
         .map(|w| (*w).to_owned())
@@ -192,16 +195,16 @@ impl Game {
             return;
         }
         let what = if n == 1 {
-            "One thing is worth finding tonight: the little circle in the corner.".to_owned()
+            "One thing is worth finding tonight. It's in the list at the top right, with where to look.".to_owned()
         } else {
             format!(
-                "{} things are worth finding tonight: the little circles in the corner.",
+                "{} things are worth finding tonight. They're in the list at the top right, with where to look.",
                 number(n)
             )
         };
         self.say_once(
             "hunt",
-            format!("{what} Look around with the arrows, or drag the sky."),
+            format!("{what} Look around with the arrows, or drag the sky; the strip at the top shows which way you face."),
             real + 500,
             12_000,
         );

@@ -17,7 +17,9 @@ Nothing you write ever leaves your computer.
 
 Night Sky draws the sky over you right now, in fine dots: the real stars, the
 Moon at its real phase, the planets that are really up, the Milky Way where it
-really runs. Sweep across it and catch the night's handful of finds. Hold Space
+really runs. Sweep across it and catch the night's finds: up to a dozen
+planets, clusters, galaxies, named stars and constellations to find by their
+shape, listed at the top right with where to look for each as the sky turns. Hold Space
 on one and the view closes in; a card says something true about it, usually
 about time or distance.
 
@@ -35,7 +37,7 @@ brightens when you catch something, and falls asleep when the lights go out.
 Most apps are built to keep you. This one is built to let you go, and it says
 so here so there's no trick in it.
 
-- **The sky is finite.** There are five to seven things to find each night.
+- **The sky is finite.** There are up to a dozen things to find each night.
   Once they're found, the sky is done until it has turned. Tomorrow really is
   different: the Moon moves about thirteen degrees a night.
 - **It slows as you play.** The twinkle, the drift and the pace ease down over
@@ -79,7 +81,7 @@ journal, not therapy or a crisis service.
 | Arrows, or drag | Look around |
 | Scroll, `+` and `-` | Zoom |
 | Hold `Space` | Catch what's in the ring |
-| `Tab` | Turn towards the next find |
+| `Tab`, or click one in the list | Turn towards the next find |
 | `C` | Draw a constellation: arrows step between stars, `Enter` joins, `C` finishes |
 | `L` | The logbook |
 | `?`, or click the wisp | What the keys do |

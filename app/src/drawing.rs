@@ -250,7 +250,8 @@ impl Game {
             None => "Drawn tonight. It will rise and set with the real sky.".to_owned(),
         };
         self.card = Some(crate::game::Card {
-            x: self.camera.width / 2.0 + self.reticle_radius() + 34.0,
+            x: self.beside_centre(),
+            kicker: "Your constellation".into(),
             title: name.to_owned(),
             body,
             shown: real,
