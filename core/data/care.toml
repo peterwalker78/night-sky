@@ -1,0 +1,32 @@
+# Words that can mean someone is in real trouble tonight. When anything the
+# user writes contains one, the app shows a helpline quietly beside the sky.
+# Matching is on lower-cased words, anywhere in the text. It will sometimes
+# miss, and sometimes match wrongly; a helpline shown to someone who didn't
+# need it costs little.
+phrases = [
+  "kill myself",
+  "killing myself",
+  "end my life",
+  "end it all",
+  "want to die",
+  "wanna die",
+  "wish i was dead",
+  "wish i were dead",
+  "better off dead",
+  "better off without me",
+  "suicide",
+  "suicidal",
+  "hurt myself",
+  "hurting myself",
+  "harm myself",
+  "self harm",
+  "self-harm",
+  "cutting myself",
+  "no reason to live",
+  "nothing to live for",
+  "can't go on",
+  "cannot go on",
+  "can't do this anymore",
+  "don't want to be here",
+  "overdose",
+]

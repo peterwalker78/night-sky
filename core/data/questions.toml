@@ -1,0 +1,263 @@
+# What the sky asks. Each question rides on a find (`on`) and belongs to a
+# thread: people (who is there for you), plans (something to look forward
+# to), or perspective. The feeling behind a question is never named in it.
+#
+# on:      what has to be caught for the question to come up
+#            pole, pole-south   Polaris, or the Southern Cross in the south
+#            moons, rings, mars, venus, moon, meteor, cluster, galaxy,
+#            andromeda, nebula, double, distant (a named star), orion (Betelgeuse or
+#            Rigel), reveal (after a drawing turns out to be a constellation),
+#            any (whatever is caught)
+#            person             someone already named on earlier nights
+#            plan-moon, plan-shower, plan-opposition, plan-pairing,
+#            plan-season        a real sky event ahead
+# answer:  name (a person), text, or plan
+# ask:     for plans, whether the answer is "what" to do or "who" with
+# needs:   "weights" if it only makes sense when weights were set down tonight
+#
+# Placeholders: {name} {event} {day} {planet} {gap}
+
+[[question]]
+id = "pole-3am"
+thread = "people"
+on = "pole"
+answer = "name"
+text = "The whole sky turns around this star, and hardly anyone notices it's the one that stays put. Who would pick up if you rang at 3am?"
+
+[[question]]
+id = "pole-steer"
+thread = "people"
+on = "pole"
+answer = "name"
+text = "Sailors steered by this star because it never moves. Who do you steer by, without really thinking about it?"
+
+[[question]]
+id = "pole-south-3am"
+thread = "people"
+on = "pole-south"
+answer = "name"
+text = "The Southern Cross points to an empty place that the whole sky turns around, and hardly anyone notices it. Who would pick up if you rang at 3am?"
+
+[[question]]
+id = "moons-running"
+thread = "people"
+on = "moons"
+answer = "name"
+text = "Four moons circle Jupiter all night, pulled along without being asked. Who keeps things running around you without being asked?"
+
+[[question]]
+id = "rings-together"
+thread = "people"
+on = "rings"
+answer = "name"
+text = "Saturn's rings are countless small pieces, held together by something you can't see. Who holds things together without anyone noticing?"
+
+[[question]]
+id = "double-seeing"
+thread = "people"
+on = "double"
+answer = "name"
+text = "Two stars that look like one until you really look. Who have you known so long you've stopped seeing them properly?"
+
+[[question]]
+id = "venus-taught"
+thread = "people"
+on = "venus"
+answer = "name"
+text = "Often the first light out in the evening, or the last to fade at dawn. Who taught you something you still use every day?"
+
+[[question]]
+id = "cluster-laughed"
+thread = "people"
+on = "cluster"
+answer = "name"
+text = "A family of stars that set out together. Who were you with the last time you really laughed?"
+
+[[question]]
+id = "nebula-helped"
+thread = "people"
+on = "nebula"
+answer = "name"
+text = "Stars are being made in there, wrapped in cloud. Who helped make you who you are?"
+
+[[question]]
+id = "moon-borrowed"
+thread = "people"
+on = "moon"
+answer = "name"
+text = "The Moon only shines with borrowed light. Whose light do you borrow when yours is low?"
+
+[[question]]
+id = "galaxy-tell"
+thread = "people"
+on = "andromeda"
+answer = "name"
+text = "Its light has travelled for two and a half million years to reach you tonight. Who would you most like to tell something small and good from today?"
+
+[[question]]
+id = "any-hearing"
+thread = "people"
+on = "any"
+answer = "name"
+text = "Who could do with hearing from you this week?"
+
+[[question]]
+id = "any-smile"
+thread = "people"
+on = "any"
+answer = "name"
+text = "Who made you smile lately, without meaning to?"
+
+[[question]]
+id = "person-met"
+thread = "people"
+on = "person"
+answer = "text"
+text = "How did you and {name} first meet? What if you'd been somewhere else that day?"
+
+[[question]]
+id = "person-miss"
+thread = "people"
+on = "person"
+answer = "text"
+text = "What's something {name} does that you'd miss most if it stopped?"
+
+[[question]]
+id = "person-back"
+thread = "people"
+on = "person"
+answer = "text"
+text = "When did {name} last have your back, even in a small way?"
+
+[[question]]
+id = "meteor-second"
+thread = "perspective"
+on = "meteor"
+answer = "text"
+text = "Gone in a second. What was the best second of your day?"
+
+[[question]]
+id = "meteor-grain"
+thread = "perspective"
+on = "meteor"
+answer = "text"
+text = "Most meteors are no bigger than a grain of sand. What small thing made a difference to you lately?"
+
+[[question]]
+id = "moon-slowly"
+thread = "perspective"
+on = "moon"
+answer = "text"
+text = "It has moved about thirteen degrees since last night and nobody saw it happen. What's got better in your life so slowly you didn't notice?"
+
+[[question]]
+id = "galaxy-wished"
+thread = "perspective"
+on = "andromeda"
+answer = "text"
+text = "The farthest thing your eyes can see on their own. What do you have now that you once only wished for?"
+
+[[question]]
+id = "galaxy-step-back"
+thread = "perspective"
+on = "galaxy"
+answer = "text"
+text = "A whole galaxy of stars, and from here it's one faint smudge. What's something you only understood once you stepped back from it?"
+
+[[question]]
+id = "distant-ten-years"
+thread = "perspective"
+on = "distant"
+answer = "text"
+text = "This light set out long before tonight. Picture yourself ten years on, looking back at this week. What stands out?"
+
+[[question]]
+id = "distant-weights"
+thread = "perspective"
+on = "distant"
+answer = "text"
+needs = "weights"
+text = "Starlight is old news by the time it reaches you. Which of tonight's weights will still matter in a year?"
+
+[[question]]
+id = "orion-always"
+thread = "perspective"
+on = "orion"
+answer = "text"
+text = "Back at the same time every year, without fail. What in your life is always there when you come back to it?"
+
+[[question]]
+id = "mars-bigger"
+thread = "perspective"
+on = "mars"
+answer = "text"
+text = "From here Mars is a small red light, but it's a whole world of dust and wind. What turned out bigger than it first looked, in a good way?"
+
+[[question]]
+id = "cluster-keep"
+thread = "perspective"
+on = "cluster"
+answer = "text"
+text = "More stars than you could count, and your eye catches only a handful. What's one small thing from this week you'd like to keep?"
+
+[[question]]
+id = "any-better"
+thread = "perspective"
+on = "any"
+answer = "text"
+text = "What went better today than you expected?"
+
+[[question]]
+id = "reveal-drawn"
+thread = "people"
+on = "reveal"
+answer = "text"
+text = "You've drawn your own shape in the sky. If someone who loves you drew you, what would they put in?"
+
+[[question]]
+id = "plan-moon-under"
+thread = "plans"
+on = "plan-moon"
+answer = "plan"
+ask = "what"
+text = "Full Moon on {day}, bright enough to walk by. Anything you'd like to be doing under it?"
+
+[[question]]
+id = "plan-moon-who"
+thread = "plans"
+on = "plan-moon"
+answer = "plan"
+ask = "who"
+text = "The full Moon rises on {day}. Who would you like to see it with?"
+
+[[question]]
+id = "plan-shower-who"
+thread = "plans"
+on = "plan-shower"
+answer = "plan"
+ask = "who"
+text = "{event} peak on {day}, dozens an hour from somewhere dark. Who would you want beside you for that?"
+
+[[question]]
+id = "plan-opposition-go"
+thread = "plans"
+on = "plan-opposition"
+answer = "plan"
+ask = "what"
+text = "{planet} is at its closest on {day}, and won't be again for {gap}. Somewhere you've been meaning to go?"
+
+[[question]]
+id = "plan-pairing-evening"
+thread = "plans"
+on = "plan-pairing"
+answer = "plan"
+ask = "what"
+text = "On {day} the Moon passes close by {planet}. Anything you'd like to do that evening?"
+
+[[question]]
+id = "plan-season-orion"
+thread = "plans"
+on = "plan-season"
+answer = "plan"
+ask = "what"
+text = "Orion is back in the evening sky by December. What would you like to have started by then?"

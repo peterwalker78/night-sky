@@ -129,7 +129,10 @@ fn pairings(body: Body, from: UnixMs, to: UnixMs, out: &mut Vec<SkyEvent>) {
     let mut t = from + step;
     while t < to {
         let (a, b, c) = (gap(t - step), gap(t), gap(t + step));
-        if b < 3.0 && b <= a && b < c {
+        // Only when both are far enough from the Sun to be seen in a dark sky.
+        let seen =
+            || position(body, t).elongation > 25.0 && position(Body::Moon, t).elongation > 25.0;
+        if b < 3.0 && b <= a && b < c && seen() {
             out.push(SkyEvent {
                 at: t,
                 kind: Kind::Pairing(body),

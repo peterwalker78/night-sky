@@ -175,6 +175,15 @@ pub fn tonight(
         })
         .collect();
     named.sort_by_key(|(_, id)| order(id));
+    // Every third night or so the star the sky turns around takes the named
+    // star's place, found before or not: Polaris, or the Southern Cross.
+    let pole = if observer.lat >= 0.0 { 424 } else { 4730 };
+    if stable_hash(night, "pole").is_multiple_of(3)
+        && let Some(i) = named.iter().position(|(hr, _)| *hr == pole)
+    {
+        let p = named.remove(i);
+        named.insert(0, p);
+    }
     if let Some((hr, id)) = named.into_iter().next() {
         let s = sky.lists.star_name(hr).expect("listed star");
         out.push(Find {
