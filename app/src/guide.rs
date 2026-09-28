@@ -8,7 +8,7 @@
 
 use crate::flight::Flight;
 use crate::game::{Game, envelope};
-use crate::sprite::{FLYING, NOOK, SIZE, render, render_flying, render_moss};
+use crate::sprite::{FLYING, NOOK, SIZE, render_flying, render_moss};
 use crate::talk::Flow;
 use crate::view::{Bubble, Point, Sprite};
 use night_sky_core::coords::{apply, unit};
@@ -94,7 +94,7 @@ fn number(n: usize) -> String {
 
 impl Guide {
     pub fn new(real: UnixMs) -> Guide {
-        let mut wisp = Wisp::new(NOOK.0, NOOK.1);
+        let mut wisp = Wisp::new(FLYING.0, FLYING.1);
         // It wakes as the sky arrives.
         wisp.update(0.05, Mode::Away, Trend::Steady, false, true, false);
         Guide {
@@ -685,48 +685,39 @@ impl Game {
         let look = pointing.map(|(px, _)| ((px - fx) / 120.0).clamp(-1.0, 1.0));
         let mut sprites = Vec::new();
         let mut points = self.guide.flight.embers(real, alpha as f32);
-        if settled {
-            self.guide.wisp.resize(NOOK.0, NOOK.1);
-            self.guide.wisp.set_flight(false, 0.0, None);
-            if let Some(texture) = render(&mut self.guide.wisp, real as f64, self.guide.scale) {
-                sprites.push(Sprite {
-                    texture,
-                    x: nx,
-                    y: ny,
-                    width: nw,
-                    height: nh,
-                    alpha,
-                });
-            }
+        // The moss stays put; the wisp is drawn the same way whether it sits
+        // on it or flies, so going home has no seam.
+        if let Some(texture) = render_moss(&self.guide.wisp, real as f64, self.guide.scale) {
+            sprites.push(Sprite {
+                texture,
+                x: nx,
+                y: ny,
+                width: nw,
+                height: nh,
+                alpha,
+            });
+        }
+        let lean = if settled {
+            0.0
         } else {
-            if let Some(texture) = render_moss(&self.guide.wisp, real as f64, self.guide.scale) {
-                sprites.push(Sprite {
-                    texture,
-                    x: nx,
-                    y: ny,
-                    width: nw,
-                    height: nh,
-                    alpha,
-                });
-            }
-            self.guide.wisp.resize(FLYING.0, FLYING.1);
-            let lean = self.guide.flight.lean();
-            self.guide
-                .wisp
-                .set_flight(true, lean, look.or(Some(lean * 0.8)));
-            if let Some(texture) =
-                render_flying(&mut self.guide.wisp, real as f64, self.guide.scale)
-            {
-                let (sw, sh) = (FLYING.0 * SIZE, FLYING.1 * SIZE);
-                sprites.push(Sprite {
-                    texture,
-                    x: fx - sw / 2.0,
-                    y: fy - sh / 2.0,
-                    width: sw,
-                    height: sh,
-                    alpha,
-                });
-            }
+            self.guide.flight.lean()
+        };
+        let look = if settled {
+            look
+        } else {
+            look.or(Some(lean * 0.8))
+        };
+        self.guide.wisp.set_flight(true, lean, look);
+        if let Some(texture) = render_flying(&mut self.guide.wisp, real as f64, self.guide.scale) {
+            let (sw, sh) = (FLYING.0 * SIZE, FLYING.1 * SIZE);
+            sprites.push(Sprite {
+                texture,
+                x: fx - sw / 2.0,
+                y: fy - sh / 2.0,
+                width: sw,
+                height: sh,
+                alpha,
+            });
         }
 
         // A soft glow round what it's pointing at, for a moment.

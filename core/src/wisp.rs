@@ -247,17 +247,10 @@ impl Wisp {
         self.look = look.map(|l| l.clamp(-1.0, 1.0));
     }
 
-    /// Just the moss, for when the wisp is away from it.
-    pub fn draw_moss_alone(&self, now: f64, canvas: &mut dyn Canvas) {
+    /// Just the moss, on a canvas `width` by `height`.
+    pub fn draw_moss_alone(&self, width: f64, height: f64, now: f64, canvas: &mut dyn Canvas) {
         draw_moss(
-            canvas,
-            self.width,
-            self.height,
-            self.shown,
-            self.happy,
-            true,
-            now,
-            true,
+            canvas, width, height, self.shown, self.happy, true, now, true,
         );
     }
 

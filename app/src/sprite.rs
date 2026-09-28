@@ -147,15 +147,10 @@ fn paint(
     )
 }
 
-/// The wisp resting in its nook, moss and all.
-pub fn render(wisp: &mut Wisp, now: f64, scale: f64) -> Option<gdk::Texture> {
-    paint(NOOK, scale, |c| {
-        wisp.draw(now, true, true, c);
-    })
-}
-
-/// The wisp on its own, out flying, drawn in the middle of a square.
-pub const FLYING: (f64, f64) = (64.0, 64.0);
+/// The wisp on its own, drawn in the middle of a square big enough for all
+/// of its glow and the motes it gives off, wherever it is: on its moss or
+/// out flying. One way of drawing it means no jump between the two.
+pub const FLYING: (f64, f64) = (100.0, 100.0);
 
 pub fn render_flying(wisp: &mut Wisp, now: f64, scale: f64) -> Option<gdk::Texture> {
     paint(FLYING, scale, |c| {
@@ -165,5 +160,7 @@ pub fn render_flying(wisp: &mut Wisp, now: f64, scale: f64) -> Option<gdk::Textu
 
 /// The empty moss, while the wisp is away from it.
 pub fn render_moss(wisp: &Wisp, now: f64, scale: f64) -> Option<gdk::Texture> {
-    paint(NOOK, scale, |c| wisp.draw_moss_alone(now, c))
+    paint(NOOK, scale, |c| {
+        wisp.draw_moss_alone(NOOK.0, NOOK.1, now, c)
+    })
 }
