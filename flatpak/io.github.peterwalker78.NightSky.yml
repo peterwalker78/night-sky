@@ -32,7 +32,7 @@ modules:
       - install -Dm644 data/io.github.peterwalker78.NightSky.metainfo.xml -t /app/share/metainfo
       - install -Dm644 data/io.github.peterwalker78.NightSky.svg -t /app/share/icons/hicolor/scalable/apps
       - install -Dm644 app/data/music/*.opus app/data/music/CREDITS.md -t /app/share/night-sky/music
-      - install -Dm644 app/data/images/*.jpg app/data/images/credits.toml -t /app/share/night-sky/images
+      - if [ -f app/data/images/credits.toml ]; then install -Dm644 app/data/images/*.jpg app/data/images/credits.toml -t /app/share/night-sky/images; fi
     sources:
       - type: dir
         path: ..
