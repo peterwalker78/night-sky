@@ -1,6 +1,6 @@
 //! The wisp as a guide. It lives on a tuft of moss on the horizon, but it's
 //! free to fly: off to the list, the compass, the ring or whatever it's
-//! talking about, looping once round it to point it out, trailing embers.
+//! talking about, looping wide round things in the sky, trailing embers.
 //! On the first night it shows the way and says what each part is for.
 //! After that it mostly keeps quiet, speaking up if someone seems stuck or
 //! asks (? or a click on it). It brightens when something is caught and
@@ -308,7 +308,7 @@ impl Game {
     pub(crate) fn guide_caught(&mut self, real: UnixMs) {
         self.guide.cheer_until = real + 4_000;
         self.guide.last_progress = real;
-        // Over to the card, with a loop of delight.
+        // Over to the card, pleased.
         self.fly(Aim::Card, real, 4_000);
         if self.say_once(
             "caught",
@@ -574,10 +574,10 @@ impl Game {
         let (cx, cy) = (w / 2.0, h / 2.0);
         let beside = |px: f64, py: f64| {
             // Hover off to the side nearer the middle of the screen.
-            let dx = if px > cx { -80.0 } else { 80.0 };
+            let dx = if px > cx { -110.0 } else { 110.0 };
             (
                 (px + dx).clamp(60.0, w - 60.0),
-                (py - 30.0).clamp(60.0, h - 80.0),
+                (py - 45.0).clamp(60.0, h - 80.0),
             )
         };
         Some(match aim {
@@ -600,7 +600,8 @@ impl Game {
             }
             Aim::Ring => {
                 let r = self.reticle_radius();
-                ((cx - r - 70.0, cy - 50.0), Some((cx, cy)))
+                // Above and to the left, clear of a card either side.
+                ((cx - r - 30.0, cy - r - 80.0), Some((cx, cy)))
             }
             Aim::Find(i) => {
                 let now = self.sky_now(self.last_real);
@@ -746,9 +747,12 @@ impl Game {
             self.guide.flight.place(home.0, home.1);
         }
         let at_home_goal = (goal.0 - home.0).abs() < 1.0 && (goal.1 - home.1).abs() < 1.0;
+        // Only things in the sky get a loop; the list, the card and the ring
+        // are pointed at from beside them.
+        let circle = matches!(aim, Aim::Find(_) | Aim::Sky(..) | Aim::Weights);
         self.guide
             .flight
-            .step(real, dt, goal, pointing, !at_home_goal);
+            .step(real, dt, goal, pointing, circle, !at_home_goal);
         let settled = at_home_goal
             && ((self.guide.flight.x - home.0).powi(2) + (self.guide.flight.y - home.1).powi(2))
                 .sqrt()

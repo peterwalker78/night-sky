@@ -1,5 +1,5 @@
 //! How the wisp gets about: a springy chase towards wherever it's going, a
-//! small loop when it arrives somewhere to point something out, a gentle
+//! wide loop when it arrives at something in the sky to point it out, a gentle
 //! bob while it hovers, and a trail of embers behind it.
 
 use crate::view::Point;
@@ -77,6 +77,7 @@ impl Flight {
         dt: f64,
         goal: (f64, f64),
         pointing: Option<(f64, f64)>,
+        circle: bool,
         bob: bool,
     ) {
         let t = now as f64;
@@ -93,10 +94,11 @@ impl Flight {
         let near = ((self.x - goal.0).powi(2) + (self.y - goal.1).powi(2)).sqrt() < 30.0;
         if near && self.arrived.is_none() {
             self.arrived = Some(t);
-            if let Some((px, py)) = pointing {
+            if let Some((px, py)) = pointing.filter(|_| circle) {
+                // Wide enough that the glow never covers what it's showing.
                 let r = ((goal.0 - px).powi(2) + (goal.1 - py).powi(2))
                     .sqrt()
-                    .clamp(40.0, 90.0);
+                    .clamp(100.0, 150.0);
                 self.loop_round = Some((px, py, r, t));
             }
         }

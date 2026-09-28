@@ -219,6 +219,12 @@ pub(crate) fn hills(az: f64) -> f64 {
     .max(0.15)
 }
 
+/// How many magnitudes fainter the view reaches when zoomed in to `fov`,
+/// the way a telescope gathers more light than the eye.
+pub(crate) fn gather(fov: f64) -> f64 {
+    2.5 * (60.0 / fov).clamp(1.0, 100.0).log10()
+}
+
 /// Stars brighter than this are drawn as true points; fainter ones on the lattice.
 const BRIGHT: f64 = 3.0;
 
@@ -968,6 +974,16 @@ impl Game {
         }
         let fov = match self.finds[i].target {
             _ if self.caught[i] && self.photo_id(i).is_some() => self.zoom_for(i),
+            // Too faint for the eye: close enough in for it to show.
+            Target::Showpiece(p) if self.sky.lists.showpieces[p].deep => {
+                let limit = limiting_magnitude(see(Body::Sun, self.observer, now).alt);
+                let short = self.sky.lists.showpieces[p].mag + 0.6 - limit;
+                if short > 0.0 {
+                    (60.0 / 10f64.powf(short / 2.5)).clamp(1.5, 60.0)
+                } else {
+                    self.camera.fov.max(60.0)
+                }
+            }
             Target::Figure(_) => self.zoom_for(i).max(self.camera.fov.min(90.0)),
             _ => self.camera.fov.max(60.0),
         };
@@ -1779,7 +1795,7 @@ impl Game {
 
         // Showpieces' soft light. Zoomed in, the view gathers light like a
         // telescope and fainter things show.
-        let gather = 2.5 * (60.0 / cam.fov).clamp(1.0, 100.0).log10();
+        let gather = gather(cam.fov);
         for (pi, piece) in self.sky.lists.showpieces.iter().enumerate() {
             let fade = if photo_piece == Some(pi) { keep } else { 1.0 };
             if piece.mag > limit + gather + 0.5
@@ -1797,8 +1813,29 @@ impl Game {
             if !cam.on_screen(x, y, 200.0) {
                 continue;
             }
-            let radius = (piece.size / 60.0 / 2.0 * ppd).max(pitch as f64 * 0.8);
+            let true_radius = piece.size / 60.0 / 2.0 * ppd;
+            let radius = true_radius.max(pitch as f64 * 0.8);
             let strength = (10f64.powf(-0.4 * (piece.mag - gather - 3.0))).min(2.0) as f32;
+            // How comfortably it's within reach: faint things just in reach
+            // still show, rather than fading into the lattice.
+            let seen = smoothstep((limit + gather + 0.5 - piece.mag) / 1.5) as f32;
+            if piece.kind != Kind::Cluster && (true_radius < 9.0 || piece.size < 3.0) {
+                // Small nebulae and galaxies: a soft point, a little disc close up.
+                let color = if piece.kind == Kind::Nebula {
+                    [0.62, 0.95, 0.92]
+                } else {
+                    [0.95, 0.93, 0.86]
+                };
+                self.points.push(crate::view::Point {
+                    x,
+                    y,
+                    radius: (true_radius as f32).clamp(1.3, 40.0),
+                    color,
+                    alpha: (0.3 + 0.4 * seen) * fade * if true_radius > 9.0 { 0.8 } else { 1.0 },
+                    halo: 0.9 * seen * fade,
+                });
+                continue;
+            }
             if piece.kind == Kind::Cluster {
                 // Stars too faint to see one by one, sprinkled as single dots.
                 let count = (piece.size / 4.0).clamp(8.0, 36.0) as usize;
@@ -1820,7 +1857,7 @@ impl Game {
                     );
                 }
             } else {
-                let amount = (0.05 * strength).min(0.12);
+                let amount = (0.05 * strength).min(0.12).max(0.035 * seen);
                 let amount = if radius > 120.0 {
                     amount * 120.0 / radius as f32
                 } else {

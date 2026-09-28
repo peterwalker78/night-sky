@@ -50,6 +50,15 @@ button.name { font-size: 13px; padding: 1px 10px; }
 .book-asked { font-size: 14px; color: rgba(210, 218, 240, 0.7); font-style: italic; }
 .book-quiet { font-size: 13px; color: rgba(220, 225, 240, 0.5); }
 .book-big { font-size: 21px; color: #f3ecd9; }
+.menu-card {
+  background: rgba(255, 255, 255, 0.035);
+  border-radius: 12px;
+  margin-top: 4px;
+}
+.menu-row { padding: 12px 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); }
+.menu-card > .menu-row:last-child { border-bottom: none; }
+.menu-count { font-size: 15px; color: rgba(240, 214, 168, 0.85); min-width: 32px; }
+.menu-pillar { font-size: 15px; color: #f3ecd9; font-weight: 600; }
 .book-card {
   background: rgba(255, 255, 255, 0.035);
   border-radius: 12px;
