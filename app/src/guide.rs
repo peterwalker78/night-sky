@@ -120,7 +120,6 @@ fn read_time(text: &str) -> UnixMs {
 }
 /// The pause between one line and the next.
 const BREATH_MS: UnixMs = 700;
-const NUDGE_EVERY_MS: UnixMs = 90_000;
 /// How long it lingers after speaking before it drifts home.
 const LINGER_MS: UnixMs = 5_000;
 
@@ -662,7 +661,8 @@ impl Game {
         } else {
             news.darker_many.replace("{n}", &number(n).to_lowercase())
         };
-        self.say_at(Aim::List, text, real, 8_000);
+        // News, not a matter for the wisp to fly out about.
+        self.status_for(text, real, 6_000);
     }
 
     pub(crate) fn guide_meteor_left(&mut self, real: UnixMs) {
@@ -849,11 +849,14 @@ impl Game {
                 8_000,
             );
         }
+        // Only on the very first night, once, and only if nothing at all
+        // has happened for a while: otherwise the wisp waits to be asked.
         let left = self.to_find();
         if hunting
             && left > 0
+            && self.talk.first_night
+            && self.guide.last_nudge == 0
             && real - self.guide.last_progress.max(self.last_input) > STUCK_MS
-            && real - self.guide.last_nudge > NUDGE_EVERY_MS
         {
             self.guide.last_nudge = real;
             let only_meteor = (0..self.finds.len())
@@ -884,11 +887,10 @@ impl Game {
             && !self.offered_wind_down()
         {
             self.set_offered_wind_down();
-            self.say_at(
-                Aim::Evening,
-                "It's getting late. When you're ready to wind down, press W, or choose Wind down up here.",
+            self.status_for(
+                "It's getting late: W winds down whenever you're ready".into(),
                 real,
-                10_000,
+                8_000,
             );
         }
         let mode = match self.session.phase() {

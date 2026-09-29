@@ -961,7 +961,12 @@ impl Game {
 
     /// A short word at the foot of the screen about a setting just changed.
     /// A new one replaces the last without fading out and in again.
-    fn status(&mut self, text: String, real: UnixMs) {
+    pub(crate) fn status(&mut self, text: String, real: UnixMs) {
+        self.status_for(text, real, 2_500);
+    }
+
+    /// A quiet word at the foot of the screen, kept up for `hold`.
+    pub(crate) fn status_for(&mut self, text: String, real: UnixMs, hold: UnixMs) {
         let shown = match &self.hint {
             Some(h) if real - h.shown < h.hold => h.shown.min(real - 1_000),
             // Almost at once: it answers a key.
@@ -970,7 +975,7 @@ impl Game {
         self.hint = Some(Timed {
             text,
             shown,
-            hold: real - shown + 2_500,
+            hold: real - shown + hold,
         });
     }
 

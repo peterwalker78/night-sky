@@ -59,6 +59,8 @@ impl Game {
             .is_none_or(|(px, py, _)| (px - x).abs() + (py - y).abs() > 1.0)
         {
             self.pointer = Some((x, y, real));
+            // Looking around with the pointer is being busy with the sky.
+            self.last_input = real;
         }
     }
 
