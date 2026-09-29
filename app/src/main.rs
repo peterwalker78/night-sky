@@ -383,7 +383,9 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
     let music = Rc::new(RefCell::new(music::Music::new(
         glib::random_int() as u64,
         game.borrow().quiet(),
+        game.borrow().style(),
     )));
+    game.borrow_mut().styles = music.borrow().styles();
     let last_frame = Rc::new(std::cell::Cell::new(0i64));
     let last_music = Rc::new(std::cell::Cell::new(real));
     let last_list = std::cell::Cell::new(0i64);
@@ -473,6 +475,7 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
                 {
                     let mut m = music.borrow_mut();
                     m.quiet = quiet;
+                    m.want(game.borrow().style());
                     let dt = (real - last_music.get()).clamp(0, 500) as f64 / 1000.0;
                     last_music.set(real);
                     m.tick(level, dt);

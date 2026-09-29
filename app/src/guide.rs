@@ -774,7 +774,7 @@ impl Game {
     pub(crate) fn guide_help(&mut self, real: UnixMs) {
         self.say_at(
             Aim::Near(0.32, 0.5),
-            "Arrows or a drag look around. Hold Space to catch whatever's in the ring. Tab, or a click on the list, turns you to the next find. Point at anything to see what it is. C draws, L opens the logbook, M turns the music off or on, K keeps you company in the background, and W winds down. The button top left opens the menu.",
+            "Arrows or a drag look around. Hold Space to catch whatever's in the ring. Tab, or a click on the list, turns you to the next find. Point at anything to see what it is. C draws, L opens the logbook, M changes the music's style (and after the last, turns it off), K keeps you company in the background, and W winds down. The button top left opens the menu.",
             real,
             15_000,
         );

@@ -155,7 +155,7 @@ journal, not therapy or a crisis service.
 | `L` | The logbook |
 | `?`, or click the wisp | What the keys do; a click also hurries the wisp on when it has more to say |
 | Point at anything | What it is; click it to hear more |
-| `M` | Music off or on |
+| `M` | The next style of music; after the last, off; then round again |
 | `K` | Keep me company: the sky rests and the music plays on in the background; `K` again brings the sky back. While it keeps you company, the arrow keys (or `+` and `-`) set the volume |
 | `W`, or Wind down at the top left | Wind down: the screen dims, and you choose outside or bed |
 | `Ctrl` `,` | Settings |
@@ -247,9 +247,9 @@ under CC BY-SA.
 Six slow lo-fi tracks, all dedicated to the public domain under CC0: "Ease
 into Night", "Moon Unit", "Into The Mist" and "Calm Currents" by HoliznaCC0,
 and "Chill lofi inspired" and "Lofi Hip Hop Loop" by omfgdude. Sources are in
-[`app/data/music/CREDITS.md`](app/data/music/CREDITS.md). The music arrives
-with the sky, eases down as it dims and goes with the lights; `M` turns it off
-or on.
+[`app/data/music/lofi/CREDITS.md`](app/data/music/lofi/CREDITS.md). The music
+arrives with the sky, eases down as it dims and goes with the lights; `M` moves
+on to the next style, and after the last turns it off.
 
 ## Licence
 

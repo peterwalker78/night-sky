@@ -239,8 +239,10 @@ pub struct Game {
     cached: Option<Cached>,
     /// How bright the wisp was drawn in the last full frame.
     pub(crate) sprite_brightness: f64,
-    /// The track playing, by its title.
-    pub playing: Option<String>,
+    /// The style and title of the track playing.
+    pub playing: Option<(String, String)>,
+    /// The styles of music there are, by id and name.
+    pub styles: Vec<(String, String)>,
     pub(crate) ground: westering_core::ground::Ground,
 }
 
@@ -523,6 +525,7 @@ impl Game {
             cached: None,
             sprite_brightness: 1.0,
             playing: None,
+            styles: Vec::new(),
         };
         game.arrive(real_now);
         game
@@ -855,24 +858,53 @@ impl Game {
         if let Err(e) = self.journal.save_settings() {
             eprintln!("westering: couldn't save settings: {e}");
         }
-        self.say(format!("Volume {}%.", (v * 100.0).round()), real, 1_800);
+        self.status(format!("Volume {}%", (v * 100.0).round()), real);
     }
 
+    /// M: the next style of music, and after the last, none; then round
+    /// again from the first.
     pub(crate) fn toggle_music(&mut self, real: UnixMs) {
-        let quiet = !self.journal.settings.quiet;
-        self.journal.settings.quiet = quiet;
+        let settings = &mut self.journal.settings;
+        let at = self
+            .styles
+            .iter()
+            .position(|(id, _)| Some(id) == settings.style.as_ref())
+            .unwrap_or(0);
+        let line = if settings.quiet {
+            settings.quiet = false;
+            settings.style = self.styles.first().map(|s| s.0.clone());
+            self.styles.first().map(|s| format!("Music: {}", s.1))
+        } else if at + 1 < self.styles.len() {
+            settings.style = Some(self.styles[at + 1].0.clone());
+            Some(format!("Music: {}", self.styles[at + 1].1))
+        } else {
+            settings.quiet = true;
+            None
+        };
         if let Err(e) = self.journal.save_settings() {
             eprintln!("westering: couldn't save settings: {e}");
         }
-        self.say(
-            if quiet {
-                "Music off."
-            } else {
-                "Music back on."
-            },
-            real,
-            2_500,
-        );
+        self.status(line.unwrap_or_else(|| "Music off".into()), real);
+    }
+
+    /// A short word at the foot of the screen about a setting just changed.
+    /// A new one replaces the last without fading out and in again.
+    fn status(&mut self, text: String, real: UnixMs) {
+        let shown = match &self.hint {
+            Some(h) if real - h.shown < h.hold => h.shown.min(real - 1_000),
+            // Almost at once: it answers a key.
+            _ => real - 800,
+        };
+        self.hint = Some(Timed {
+            text,
+            shown,
+            hold: real - shown + 2_500,
+        });
+    }
+
+    /// The style of music chosen, by its folder's name.
+    pub fn style(&self) -> Option<&str> {
+        self.journal.settings.style.as_deref()
     }
 
     pub(crate) fn hunting(&self) -> bool {
@@ -2830,9 +2862,9 @@ impl Game {
                     w / 2.0,
                     20.0,
                     match &self.playing {
-                        Some(track) => {
-                            format!("Keeping you company · ♪ {track} · K brings the sky back")
-                        }
+                        Some((style, track)) => format!(
+                            "Keeping you company · ♪ {style}: {track} · K brings the sky back"
+                        ),
                         None => "Keeping you company · K brings the sky back".to_owned(),
                     },
                     12.0,

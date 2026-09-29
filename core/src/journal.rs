@@ -125,6 +125,9 @@ pub struct Settings {
     /// How loud the music is, 0 to 1.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub volume: Option<f64>,
+    /// Which style of music, by its folder's name.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub style: Option<String>,
     /// Less movement: the wisp stays on its moss and the stars twinkle less.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub calm: bool,

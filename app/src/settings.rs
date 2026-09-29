@@ -239,6 +239,24 @@ impl Settings {
             j.settings.volume = Some(v.value());
             let _ = j.save_settings();
         });
+        // The styles of music, as there are.
+        let styles = self.game.borrow().styles.clone();
+        let names: Vec<&str> = styles.iter().map(|s| s.1.as_str()).collect();
+        let style = gtk::DropDown::from_strings(&names);
+        style.set_selected(
+            styles
+                .iter()
+                .position(|s| Some(&s.0) == settings.style.as_ref())
+                .unwrap_or(0) as u32,
+        );
+        let game = self.game.clone();
+        style.connect_selected_notify(move |d| {
+            let mut g = game.borrow_mut();
+            let id = g.styles.get(d.selected() as usize).map(|s| s.0.clone());
+            let j = g.journal_mut();
+            j.settings.style = id;
+            let _ = j.save_settings();
+        });
         let company = gtk::Button::with_label("Start");
         company.add_css_class("chip");
         let me = self.me.borrow().clone();
@@ -254,9 +272,10 @@ impl Settings {
             &[
                 row(
                     "Music",
-                    "Quiet music under the sky. M turns it off or on.",
+                    "Quiet music under the sky. M goes through the styles in turn, then off.",
                     &music,
                 ),
+                row("Style", "", &style),
                 row("Volume", "", &volume),
                 row(
                     "Keep me company",
