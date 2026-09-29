@@ -118,6 +118,14 @@ so here so there's no trick in it.
   Saturn is up in the south-east, a steady light that doesn't twinkle. Give
   your eyes twenty minutes."* To bed: something from tonight, and goodnight.
   Then the window closes itself.
+- **Why outside, sometimes.** A few minutes under the real sky before bed is
+  offered, never pressed, for modest, well-studied reasons. Bright screens in
+  the evening delay the body's sleep hormone and make sleep come later
+  (Chang and others, PNAS, 2015). Moments of awe, such as looking at
+  something vast, go with less stress and less dwelling on oneself (Piff and
+  others, 2015; Anderson, Monroy and Keltner, 2018). Nobody has shown that
+  stargazing itself improves sleep: the claim is only that a little dark and
+  a big sky beat another half hour of screen.
 - **Nothing to come back for.** No streaks, scores, badges, levels,
   notifications or counts of nights. Missing a night costs nothing.
 

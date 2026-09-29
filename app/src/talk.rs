@@ -863,10 +863,10 @@ impl Game {
     pub(crate) fn ask_ending(&mut self) {
         self.talk.flow = Some(Flow::Ending);
         self.set_prompt(Some(Prompt {
-            text: "How does tonight end?".into(),
-            chips: vec!["Going outside to look".into(), "Off to bed".into()],
+            text: "How does tonight end? If it's clear, a few minutes under the real sky first can be worth it: something that vast tends to put the day in proportion, and the dark is kinder to sleep than a screen.".into(),
+            chips: vec!["A few minutes outside first".into(), "Straight to bed".into()],
             entry: false,
-            hint: "The screen dims either way".into(),
+            hint: "Either way, the screen goes off".into(),
             ..Prompt::default()
         }));
     }
