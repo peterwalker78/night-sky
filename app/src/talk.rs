@@ -74,6 +74,8 @@ pub(crate) enum Flow {
     DrawingName,
     /// Outside to look, or off to bed.
     Ending,
+    /// Whether to wind down slowly, with breaths and a few thoughts.
+    WindChoice,
 }
 
 /// A question waiting its turn: it shows a moment after the card.
@@ -778,6 +780,14 @@ impl Game {
                 self.talk.flow = Some(Flow::Place { weight, count });
                 self.place_weight(real);
             }
+            Flow::WindChoice => {
+                self.done_talking();
+                if chip == 0 {
+                    self.start_breathing(real);
+                } else {
+                    self.ask_ending();
+                }
+            }
             Flow::Ending => {
                 let ending = if chip == 0 {
                     crate::game::Ending::Outside
@@ -893,6 +903,10 @@ impl Game {
             Some(Flow::DrawingName) => {
                 self.drawing = None;
                 self.done_talking();
+            }
+            Some(Flow::WindChoice) => {
+                self.done_talking();
+                self.ask_ending();
             }
             _ => self.done_talking(),
         }

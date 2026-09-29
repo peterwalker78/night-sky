@@ -1,0 +1,25 @@
+# Winding down: asked plainly, and only if wanted. A few slow breaths, paced
+# by the wisp (in for four, out for six: about six breaths a minute), then a
+# few lines to think over, one at a time, and then how the night ends.
+
+ask = "Would you like to wind down with a few slow breaths, and a moment to think back over the day?"
+yes = "Yes, let's"
+no = "Just the sky"
+breaths = 5
+in-seconds = 4.0
+out-seconds = 6.0
+in-words = "Breathe in"
+out-words = "and slowly out"
+skip = "Enter or a click moves on · Esc stops · K keeps you company instead"
+
+# Three are chosen each night. Nothing is written down or kept.
+reflections = [
+  "Think back over today. What's one small thing that went all right?",
+  "Who made today a little easier, even in a small way?",
+  "Is there anything you'd like to leave here tonight, rather than take to bed?",
+  "What's one thing you're looking forward to, even a small one?",
+  "Let your shoulders drop, and your jaw. There's nothing more to do tonight.",
+  "Whatever's left can wait until the morning. It will keep, and so will you.",
+  "Where did you feel most like yourself today?",
+  "Is there someone you'd like to hear from tomorrow?",
+]

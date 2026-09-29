@@ -232,6 +232,8 @@ pub struct Game {
     pub(crate) keep: crate::keep::Keep,
     /// A visit while the Sun is up, looking down at the ground.
     pub(crate) day: Option<crate::day::Day>,
+    /// Winding down slowly, with breaths and a few thoughts, if wanted.
+    pub(crate) wind: crate::wind::Wind,
     /// Whether the window has the keyboard.
     pub focused: bool,
     /// When to see again whether the darkening sky has more to find.
@@ -463,6 +465,7 @@ impl Game {
             .take(prepared.len())
             .position(|s| s.hr == 936);
         let steps = vec![0; finds.len()];
+        let wind = crate::wind::Wind::new(&night);
         let mut game = Game {
             sky,
             prepared,
@@ -523,6 +526,7 @@ impl Game {
             offered_wind_down: false,
             plan_marks,
             keep: crate::keep::Keep::new(),
+            wind,
             day,
             ground,
             focused: true,
@@ -930,6 +934,16 @@ impl Game {
             self.held.space = true;
         }
         let phase = self.session.phase();
+        if self.winding() {
+            match key {
+                gdk::Key::Return | gdk::Key::KP_Enter | gdk::Key::space => self.wind_next(real),
+                gdk::Key::Escape => self.wind_done(real),
+                gdk::Key::k | gdk::Key::K => self.toggle_company(real),
+                gdk::Key::m | gdk::Key::M => self.toggle_music(real),
+                _ => {}
+            }
+            return true;
+        }
         if self.keeping() {
             // In the background only a few keys mean anything.
             match key {
@@ -1130,6 +1144,10 @@ impl Game {
     /// A click on something turns the view to it.
     pub fn click(&mut self, x: f64, y: f64, real: UnixMs) {
         self.input(real);
+        if self.winding() {
+            self.wind_next(real);
+            return;
+        }
         if self.on_bubble(x, y) {
             self.guide_next(real);
             return;
@@ -1565,6 +1583,7 @@ impl Game {
         // alive keep moving smoothly on top.
         let every = if self.keeping() { 250 } else { 125 };
         let quiet = (!self.focused || self.keeping())
+            && !self.winding()
             && self.wisp_motion() < 2
             && !self.wants_fast_frames(real);
         if quiet
@@ -1582,11 +1601,15 @@ impl Game {
             }
             return frame;
         }
-        let frame = if self.by_day() {
+        let mut frame = if self.by_day() {
             self.day_frame(real)
         } else {
             self.night_frame(real, dt)
         };
+        if self.winding() {
+            frame.texts.extend(self.wind_texts(real));
+            frame.points.extend(self.wind_ring(real));
+        }
         self.cached = Some(Cached {
             at: real,
             size: (self.camera.width, self.camera.height),
@@ -1666,6 +1689,7 @@ impl Game {
         if !self.keeping() {
             self.tick_talk(real);
         }
+        self.wind_tick(real);
         self.guide_tick(real);
     }
 
@@ -1704,7 +1728,7 @@ impl Game {
                     fov: 90.0,
                     rate: 0.8,
                 });
-                self.ask_ending();
+                self.ask_wind();
             }
             Phase::Finale => {
                 self.set_prompt(None);
@@ -1801,6 +1825,10 @@ impl Game {
                 1,
                 "Pick something from Tonight's list, then hold Space when it's in the ring",
             ),
+            Phase::Dimming if self.winding() => (2, "Breathe with the wisp, or Esc to stop"),
+            Phase::Dimming if matches!(self.talk.flow, Some(crate::talk::Flow::WindChoice)) => {
+                (2, "Choose, or let the screen dim")
+            }
             Phase::Dimming if self.talk.prompt.is_some() => (2, "Choose how tonight ends"),
             Phase::Dimming => (2, "The screen is dimming: let your eyes and mind settle"),
             Phase::Finale if !self.session.last_line(real) => {
@@ -3032,7 +3060,8 @@ impl Game {
 
     /// Keeps the frame clock's pace honest: fast while things move, slow at rest.
     pub fn wants_fast_frames(&self, real: UnixMs) -> bool {
-        self.look.is_some()
+        self.winding()
+            || self.look.is_some()
             || self.pan.0.abs() > 1e-3
             || self.pan.1.abs() > 1e-3
             || self.drag_from.is_some()

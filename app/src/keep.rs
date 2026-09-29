@@ -69,6 +69,20 @@ impl Game {
             self.say_at(Aim::Home, back, real, 4_000);
             return;
         }
+        // Winding down, or at the night's end: K means company instead.
+        if self.winding()
+            || matches!(
+                self.session.phase(),
+                Phase::Dimming | Phase::Finale | Phase::LightsOut
+            )
+        {
+            self.wind_cancel();
+            self.talk.flow = None;
+            self.set_prompt(None);
+            self.ending = None;
+            self.handoff = None;
+            self.session.reopen(real);
+        }
         // Still arriving: the hello can wait, and company begins as soon as
         // the evening does.
         if self.session.phase() == Phase::Arrival {

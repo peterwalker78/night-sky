@@ -1,0 +1,190 @@
+//! Winding down, asked plainly: a few slow breaths with the wisp, if
+//! wanted, and a few lines to think over, before the night's ending. The
+//! evening waits while they happen, and Esc, or choosing something else,
+//! lets them go at any point.
+
+use crate::game::{Game, smoothstep};
+use crate::talk::{Flow, Prompt};
+use crate::view::{Point, Text};
+use westering_core::time::UnixMs;
+use westering_core::winddown::WindDown;
+
+/// A line to think over moves on by itself after this long.
+const LINE_MS: UnixMs = 25_000;
+
+pub enum Stage {
+    Breathing(UnixMs),
+    /// Which line, and since when.
+    Reflecting(usize, UnixMs),
+}
+
+pub struct Wind {
+    pub(crate) words: WindDown,
+    pub(crate) stage: Option<Stage>,
+    lines: Vec<String>,
+}
+
+impl Wind {
+    pub fn new(night: &str) -> Wind {
+        let words = WindDown::bundled();
+        let lines = words.reflections(night);
+        Wind {
+            words,
+            stage: None,
+            lines,
+        }
+    }
+}
+
+impl Game {
+    pub(crate) fn winding(&self) -> bool {
+        self.wind.stage.is_some()
+    }
+
+    /// Asks, as the winding down begins, whether to take it slowly.
+    pub(crate) fn ask_wind(&mut self) {
+        self.talk.flow = Some(Flow::WindChoice);
+        let w = &self.wind.words;
+        self.set_prompt(Some(Prompt {
+            text: w.ask.clone(),
+            chips: vec![w.yes.clone(), w.no.clone()],
+            entry: false,
+            hint: "K keeps you company instead".into(),
+            ..Prompt::default()
+        }));
+    }
+
+    /// Yes: the evening waits while the wisp breathes with the user.
+    pub(crate) fn start_breathing(&mut self, real: UnixMs) {
+        self.hush();
+        self.session.hold(real);
+        self.wind.stage = Some(Stage::Breathing(real));
+    }
+
+    /// On to the next part: from the breaths to the lines, line by line,
+    /// and then how the night ends.
+    pub(crate) fn wind_next(&mut self, real: UnixMs) {
+        self.wind.stage = match self.wind.stage {
+            Some(Stage::Breathing(_)) => Some(Stage::Reflecting(0, real)),
+            Some(Stage::Reflecting(i, _)) if i + 1 < self.wind.lines.len() => {
+                Some(Stage::Reflecting(i + 1, real))
+            }
+            _ => None,
+        };
+        if self.wind.stage.is_none() {
+            self.wind_done(real);
+        }
+    }
+
+    /// Finished, or let go: the evening carries on to its ending.
+    pub(crate) fn wind_done(&mut self, real: UnixMs) {
+        self.wind.stage = None;
+        self.session.resume(real);
+        self.ask_ending();
+    }
+
+    /// Stops it all, without asking anything more: for K, which keeps the
+    /// user company instead.
+    pub(crate) fn wind_cancel(&mut self) {
+        self.wind.stage = None;
+    }
+
+    /// Moves things on by themselves.
+    pub(crate) fn wind_tick(&mut self, real: UnixMs) {
+        match self.wind.stage {
+            Some(Stage::Breathing(since)) if self.wind.words.breath(real - since).is_none() => {
+                self.wind_next(real)
+            }
+            Some(Stage::Reflecting(_, since)) if real - since > LINE_MS => self.wind_next(real),
+            _ => {}
+        }
+        // The wisp breathes in time.
+        let phase = match self.wind.stage {
+            Some(Stage::Breathing(since)) => Some(self.wind.words.phase(real - since)),
+            _ => None,
+        };
+        self.guide.wisp.breathe_with(phase);
+    }
+
+    /// The words in the middle of the screen.
+    pub(crate) fn wind_texts(&self, real: UnixMs) -> Vec<Text> {
+        let (w, h) = (self.camera.width, self.camera.height);
+        let words = &self.wind.words;
+        let mut out = Vec::new();
+        let (line, since) = match self.wind.stage {
+            Some(Stage::Breathing(since)) => {
+                let Some(b) = words.breath(real - since) else {
+                    return out;
+                };
+                let say = if b.inhaling {
+                    &words.in_words
+                } else {
+                    &words.out_words
+                };
+                // Each half fades in as it begins.
+                let a = smoothstep(b.through * 4.0);
+                out.push(
+                    Text::new(w / 2.0, h * 0.62, say.clone(), 24.0, 0.9 * a)
+                        .centred()
+                        .color([1.0, 0.94, 0.84]),
+                );
+                out.push(
+                    Text::new(
+                        w / 2.0,
+                        h * 0.62 + 40.0,
+                        format!("{} of {}", b.count + 1, words.breaths),
+                        13.0,
+                        0.45,
+                    )
+                    .centred(),
+                );
+                (None, since)
+            }
+            Some(Stage::Reflecting(i, since)) => (self.wind.lines.get(i).cloned(), since),
+            None => return out,
+        };
+        if let Some(line) = line {
+            let a = smoothstep((real - since) as f64 / 1_500.0);
+            out.push(
+                Text::new(w / 2.0, h * 0.4, line, 23.0, a)
+                    .centred()
+                    .wrap((w * 0.75).min(720.0))
+                    .color([1.0, 0.94, 0.84]),
+            );
+        }
+        out.push(Text::new(w / 2.0, h - 70.0, words.skip.clone(), 12.0, 0.45).centred());
+        let _ = since;
+        out
+    }
+
+    /// A ring that swells as the breath comes in and settles as it goes out.
+    pub(crate) fn wind_ring(&self, real: UnixMs) -> Vec<Point> {
+        let Some(Stage::Breathing(since)) = self.wind.stage else {
+            return Vec::new();
+        };
+        let Some(b) = self.wind.words.breath(real - since) else {
+            return Vec::new();
+        };
+        let ease = |x: f64| 0.5 - 0.5 * (x * std::f64::consts::PI).cos();
+        let open = if b.inhaling {
+            ease(b.through)
+        } else {
+            1.0 - ease(b.through)
+        };
+        let (cx, cy) = (self.camera.width / 2.0, self.camera.height * 0.4);
+        let r = 40.0 + 60.0 * open;
+        (0..48)
+            .map(|k| {
+                let a = k as f64 / 48.0 * std::f64::consts::TAU;
+                Point {
+                    x: cx + r * a.cos(),
+                    y: cy + r * a.sin(),
+                    radius: 1.6,
+                    color: [1.0, 0.86, 0.62],
+                    alpha: (0.35 + 0.45 * open) as f32,
+                    halo: 0.6,
+                }
+            })
+            .collect()
+    }
+}

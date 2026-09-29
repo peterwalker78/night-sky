@@ -23,6 +23,7 @@ mod talk;
 mod tour;
 mod ui;
 mod view;
+mod wind;
 
 use book::Book;
 use course::Course;

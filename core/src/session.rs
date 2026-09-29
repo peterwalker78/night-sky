@@ -129,6 +129,17 @@ impl Session {
         self.held.is_some()
     }
 
+    /// Back to looking up, from winding down or its ending: the user has
+    /// chosen something else.
+    pub fn reopen(&mut self, now: UnixMs) {
+        self.held = None;
+        if !matches!(self.phase, Phase::Arrival | Phase::Weights | Phase::Hunt) {
+            self.phase = Phase::Hunt;
+            self.phase_since = now;
+            self.all_found_at = None;
+        }
+    }
+
     pub fn phase(&self) -> Phase {
         self.phase
     }

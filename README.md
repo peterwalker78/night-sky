@@ -49,8 +49,13 @@ Some finds take a few minutes:
 Every evening has the same three parts, shown at the top left: **set it down**
 (anything weighing on you, hung low in the west), **look up** (the finds, a
 story, now and then a small question about your life), and **wind down**,
-when you choose. The screen dims, you say whether the night ends outside or
-in bed, and the sky time-lapses your weights down behind the horizon. Going
+when you choose. The wisp asks whether you'd like a few slow breaths and a
+moment to think back over the day: if so, it breathes with you (in for four,
+out for six) while a ring swells and settles, then offers three short lines
+to think over, one at a time. Nothing is written or kept. Then the screen
+dims, you say whether the night ends outside or in bed, and the sky
+time-lapses your weights down behind the horizon. `K` at any point keeps you
+company instead. Going
 outside, the last line names something real to look at; going to bed, it's
 something from tonight worth keeping.
 

@@ -286,6 +286,8 @@ pub struct Wisp {
     /// Squashed or stretched by its flight: width and height factors.
     body: (f64, f64),
     season: Option<Season>,
+    /// Breathing in time with someone: the breath's phase, 0 to 1.
+    paced: Option<f64>,
     humming: bool,
     last_note: f64,
 }
@@ -341,9 +343,16 @@ impl Wisp {
             gesture: None,
             body: (1.0, 1.0),
             season: None,
+            paced: None,
             humming: false,
             last_note: 0.0,
         }
+    }
+
+    /// Breathes in time with a pace set from outside (0 to 1 through a
+    /// breath, in over the first two fifths), or its own when none.
+    pub fn breathe_with(&mut self, phase: Option<f64>) {
+        self.paced = phase;
     }
 
     /// Humming along to music: now and then a note drifts up.
@@ -668,9 +677,18 @@ fn draw(wisp: &mut Wisp, now: f64, moving: bool, dark: bool, cr: &mut dyn Canvas
             * (1.0 + (NIGHT_BREATH - 1.0) * wisp.night_mix)
             * (1.0 + 0.15 * wisp.sleepy);
         // Kept as a running phase, so a changing pace never skips a beat.
-        wisp.breath = (wisp.breath + dt / (wisp.breath_ms * slow)).fract();
+        wisp.breath = match wisp.paced {
+            Some(p) => p,
+            None => (wisp.breath + dt / (wisp.breath_ms * slow)).fract(),
+        };
         let breath = breathing(wisp.breath);
-        radius *= (1.0 + breath * BREATH_DEPTH)
+        // Breathing with someone, it breathes deeper, so it's easy to follow.
+        let depth = if wisp.paced.is_some() {
+            BREATH_DEPTH * 3.0
+        } else {
+            BREATH_DEPTH
+        };
+        radius *= (1.0 + breath * depth)
             * (1.0 + WELCOME_BIGGER * wisp.welcome_mix)
             * (1.0 + 0.03 * wisp.listening);
         // The light swells with each breath too, so a slow breath is easy to

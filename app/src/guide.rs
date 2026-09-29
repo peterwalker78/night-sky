@@ -795,7 +795,7 @@ impl Game {
         match phase {
             Phase::Dimming => self.say_at(
                 Aim::Prompt,
-                "Let's wind down. I'll dim the screen a little at a time: bright light keeps a mind awake, and eyes need the dark to see the faint stars.",
+                "Let's wind down. The screen dims a little at a time from here: bright light keeps a mind awake.",
                 real + 600,
                 10_000,
             ),
