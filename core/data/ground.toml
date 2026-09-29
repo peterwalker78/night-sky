@@ -144,7 +144,7 @@ where = "on a conifer"
 shape = "tree"
 months = [12, 1, 2]
 zone = "temperate"
-fact = "Conifers keep their needles through winter. A waxy coat and a narrow shape let them lose very little water while the ground is frozen."
+fact = "Most conifers keep their needles through winter. A waxy coat and a narrow shape let them lose very little water while the ground is frozen."
 more = [
   "Evergreen doesn't mean never shedding: a pine drops its old needles a few at a time, each after a few years on the tree.",
 ]

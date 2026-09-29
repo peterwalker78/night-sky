@@ -43,6 +43,7 @@ fn kind_of(kind: Kind) -> &'static str {
         Kind::Star => "Star",
         Kind::Dark => "Dark cloud",
         Kind::Cloud => "Star cloud",
+        Kind::Asterism => "Asterism",
     }
 }
 

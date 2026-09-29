@@ -3,7 +3,7 @@
 
 [[body]]
 id = "moon"
-facts = ["Its dark patches are seas of old lava, called maria; the Moon was volcanically active until about 1.2 billion years ago.", "Its surface is about as dark as asphalt: it looks bright only because it is so big in our sky.", "Twelve people walked on it, landed by six Apollo missions between 1969 and 1972."]
+facts = ["Its dark patches are seas of old lava, called maria; the Moon was volcanically active until about 1.2 billion years ago.", "Its surface is about as dark as asphalt: it looks bright only because the night sky around it is so much darker.", "Twelve people walked on it, landed by six Apollo missions between 1969 and 1972."]
 
 [[body]]
 id = "mercury"

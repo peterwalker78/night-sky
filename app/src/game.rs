@@ -679,6 +679,7 @@ impl Game {
                 Kind::Star => "Star",
                 Kind::Dark => "Dark cloud",
                 Kind::Cloud => "Star cloud",
+                Kind::Asterism => "Asterism",
             },
             Target::Meteor(_) => "Meteor",
             Target::Figure(_) => "Constellation",
@@ -702,6 +703,7 @@ impl Game {
             }
             Target::Showpiece(p) => match self.sky.lists.showpieces[p].kind {
                 Kind::Cluster => "Look for a little knot of faint stars.",
+                Kind::Asterism => "Look for a little pattern of stars.",
                 Kind::Galaxy | Kind::Nebula => "Look for a faint smudge of light.",
                 Kind::Double => "It looks like a single star, but close up it's two.",
                 _ => "Look for a single star.",

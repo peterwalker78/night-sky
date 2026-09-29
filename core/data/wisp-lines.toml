@@ -70,7 +70,7 @@ text = "Hello. The evenings are getting lighter, a little more each night."
 
 [[greeting]]
 when = ["summer"]
-text = "Hello. Short nights this time of year: the sky barely gets dark before it starts to lighten."
+text = "Hello. Short nights this time of year: the sky is only truly dark for a few hours."
 
 [[greeting]]
 when = ["autumn"]
@@ -98,7 +98,7 @@ darker-many = "It's getting darker, and more is coming out: {n} more things on t
 spring = "The spring equinox was {day}: from now until autumn, the days are longer than the nights."
 longest-day = "The longest day was {day}. From here the nights grow again, and the stars get a little more time."
 autumn = "The autumn equinox was {day}: from now until spring, the nights are longer than the days."
-longest-night = "The longest night was {day}. From here the days lengthen again, a minute or two at a time."
+longest-night = "The longest night was {day}. From here the days lengthen again, slowly at first."
 
 # A person's star, when it's up. Not every night: now and then.
 [star]

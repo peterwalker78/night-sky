@@ -89,7 +89,7 @@ dec = 57.142
 mag = 3.7
 size = 60.0
 fact = "Two clusters side by side, about 7,500 light years away and both only around 14 million years old."
-more = ["Hipparchus recorded it as a patch of light as early as 130 BC.", "Each of the two clusters holds more than 300 blue-white supergiant stars."]
+more = ["Hipparchus recorded it as a patch of light as early as 130 BC.", "Each holds hundreds of hot blue-white stars, and a few red supergiants shine among them."]
 
 [[showpiece]]
 id = "alpha-persei-cluster"
@@ -111,7 +111,7 @@ dec = 36.461
 mag = 5.8
 size = 20.0
 fact = "Several hundred thousand stars about 24,000 light years away; the 1974 Arecibo message was beamed towards it."
-more = ["Edmond Halley discovered it in 1714.", "Its stars are packed so tightly that they sometimes collide and make new ones, called blue stragglers."]
+more = ["Edmond Halley discovered it in 1714.", "Its stars are packed so tightly that some collide and merge into hotter, bluer stars, called blue stragglers."]
 
 [[showpiece]]
 id = "m92"
@@ -182,7 +182,7 @@ more = ["Hodierna recorded it before 1654; Le Gentil missed it in 1749 while fin
 [[showpiece]]
 id = "coathanger"
 name = "The Coathanger"
-kind = "cluster"
+kind = "asterism"
 ra = 291.350
 dec = 20.183
 mag = 3.6
@@ -243,7 +243,7 @@ dec = 42.330
 mag = 2.1
 size = 0.17
 fact = "An orange and blue pair about 390 light years away."
-more = ["Johann Tobias Mayer found that it was double in 1778.", "The fainter blue star is itself triple, so the single point the eye sees is four stars."]
+more = ["Christian Mayer found that it was double in 1778.", "The fainter blue star is itself triple, so the single point the eye sees is four stars."]
 
 [[showpiece]]
 id = "garnet-star"
@@ -385,7 +385,7 @@ ra = 160.613
 dec = -64.426
 mag = 1.9
 size = 50.0
-fact = "About 486 light years away and only around 14 million years old."
+fact = "About 486 light years away and some 30 to 50 million years old."
 more = ["The third-brightest open cluster in the sky, after the Hyades and the Pleiades.", "Lacaille discovered it on 3 March 1751 and noted how like the Pleiades it looks."]
 
 [[showpiece]]
@@ -407,7 +407,7 @@ ra = 13.158
 dec = -72.800
 mag = 2.7
 size = 320.0
-fact = "A dwarf galaxy of around 3 billion stars, about 200,000 light years away."
+fact = "A dwarf galaxy of hundreds of millions of stars, about 200,000 light years away."
 more = ["Henrietta Swan Leavitt's study of its variable stars, published in 1908, gave astronomers a way to measure distances across the universe.", "Portuguese and Dutch sailors called the two Magellanic Clouds the Cape Clouds."]
 
 [[showpiece]]
@@ -451,4 +451,4 @@ dec = -60.834
 mag = -0.1
 size = 0.0
 fact = "The nearest stars visible to the naked eye; their light left a little over four years ago."
-more = ["Two Sun-like stars that circle each other every 79 years, appearing to the eye as one.", "Its faint third star, Proxima Centauri, is the closest star to the Sun and has an Earth-sized planet."]
+more = ["Two Sun-like stars that circle each other every 79 years, appearing to the eye as one.", "Its faint third star, Proxima Centauri, is the closest star to the Sun and has a planet about as massive as Earth."]

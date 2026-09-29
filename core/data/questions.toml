@@ -80,7 +80,7 @@ id = "nebula-helped"
 thread = "people"
 on = "nebula"
 answer = "name"
-text = "A nebula is a cloud where new stars are being made. Who helped make you who you are?"
+text = "Many nebulae are clouds where new stars are being made. Who helped make you who you are?"
 
 [[question]]
 id = "moon-borrowed"
@@ -150,14 +150,14 @@ id = "moon-slowly"
 thread = "perspective"
 on = "moon"
 answer = "text"
-text = "The Moon has moved about thirteen degrees across the sky since last night, and nobody saw it happen. What's got better in your life so slowly you didn't notice?"
+text = "The Moon has moved about thirteen degrees against the stars since last night, and nobody saw it happen. What's got better in your life so slowly you didn't notice?"
 
 [[question]]
 id = "galaxy-wished"
 thread = "perspective"
 on = "andromeda"
 answer = "text"
-text = "The Andromeda Galaxy is the farthest thing your eyes can see on their own, once just a smudge people wondered about. What do you have now that you once only wished for?"
+text = "The Andromeda Galaxy is one of the farthest things your eyes can see on their own, once just a smudge people wondered about. What do you have now that you once only wished for?"
 
 [[question]]
 id = "galaxy-step-back"

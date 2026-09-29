@@ -13,7 +13,7 @@ kind = "sea"
 lat = 20.67
 lon = -56.68
 diameter = 2592.2
-fact = "The \"Ocean of Storms\", the only lunar plain called an ocean. It covers about a tenth of the Moon, and some of its lavas are only about a billion years old."
+fact = "The \"Ocean of Storms\", the only lunar plain called an ocean. It covers about a tenth of the Moon, and some of its lavas are only about 2 billion years old."
 
 [[feature]]
 name = "Mare Imbrium"
@@ -93,7 +93,7 @@ kind = "sea"
 lat = 13.20
 lon = 4.09
 diameter = 242.5
-fact = "The \"Sea of Vapours\", a small plain 242 km across, bordered to the north-east by the Apennine mountains."
+fact = "The \"Sea of Vapours\", a small plain 242 km across, bordered to the north-west by the Apennine mountains."
 
 [[feature]]
 name = "Mare Cognitum"
@@ -149,7 +149,7 @@ kind = "crater"
 lat = 23.73
 lon = -47.49
 diameter = 40.0
-fact = "The brightest large feature on the Moon, bright enough to pick out by earthshine. It is about 3.5 km deep, deeper than the Grand Canyon."
+fact = "The brightest large feature on the Moon, bright enough to pick out by earthshine. It is about 2.7 km deep, deeper than the Grand Canyon."
 
 [[feature]]
 name = "Plato"
@@ -373,4 +373,4 @@ name = "Chang'e 5 (Statio Tianchuan)"
 kind = "landing"
 lat = 43.06
 lon = -51.92
-fact = "Chang'e 5 landed near Mons Rümker on 1 December 2020 and brought 1,731 g of samples back to Earth. The basalts proved unusually young, under 2 billion years old."
+fact = "Chang'e 5 landed near Mons Rümker on 1 December 2020 and brought 1,731 g of samples back to Earth. The basalts proved unusually young, about 2 billion years old."

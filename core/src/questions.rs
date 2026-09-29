@@ -79,6 +79,8 @@ pub fn triggers(find: &Find, sky: &Sky) -> Vec<&'static str> {
                 Kind::Dark => vec![],
                 // Looking deep into our own galaxy.
                 Kind::Cloud => vec!["distant"],
+                // Not born together, so not the cluster questions.
+                Kind::Asterism => vec![],
             }
         }
         Target::Meteor(_) => vec!["meteor"],
