@@ -393,7 +393,9 @@ pub struct PromptBar {
     aside_more: gtk::Label,
     aside_box: gtk::Box,
     text: gtk::Label,
-    chips: gtk::FlowBox,
+    /// The choices, in a row, or stacked in a small window. A plain box:
+    /// a flow box's height-for-width could leave the hint drawn over it.
+    chips: gtk::Box,
     entry: gtk::Entry,
     names: gtk::Box,
     hint: gtk::Label,
@@ -427,12 +429,7 @@ impl PromptBar {
             aside_box.add_controller(click);
         }
         panel.append(&aside_box);
-        let chips = gtk::FlowBox::new();
-        chips.set_selection_mode(gtk::SelectionMode::None);
-        chips.set_max_children_per_line(3);
-        chips.set_column_spacing(6);
-        chips.set_row_spacing(6);
-        chips.set_homogeneous(false);
+        let chips = gtk::Box::new(gtk::Orientation::Horizontal, 6);
         let entry = gtk::Entry::new();
         let names = gtk::Box::new(gtk::Orientation::Horizontal, 6);
         let hint = label("", "hint");
@@ -524,6 +521,11 @@ impl PromptBar {
         let w = (width - 24.0).clamp(200.0, 560.0);
         self.panel.set_width_request(w as i32);
         self.text.set_max_width_chars(if compact { 40 } else { 60 });
+        self.chips.set_orientation(if compact {
+            gtk::Orientation::Vertical
+        } else {
+            gtk::Orientation::Horizontal
+        });
         if compact {
             self.panel.add_css_class("compact");
         } else {
@@ -597,7 +599,7 @@ impl PromptBar {
             b.add_css_class("chip");
             let game = game.clone();
             b.connect_clicked(move |_| game.borrow_mut().answer_chip(i, wall_clock()));
-            self.chips.insert(&b, -1);
+            self.chips.append(&b);
         }
         self.chips.set_visible(!p.chips.is_empty());
         let hint = match (p.entry, p.chips.len()) {

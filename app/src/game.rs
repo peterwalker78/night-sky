@@ -102,6 +102,8 @@ pub(crate) struct Catch {
 pub(crate) struct Card {
     /// A photograph for the card itself, by its id.
     pub(crate) picture: Option<String>,
+    /// The find it's about, if it's one of tonight's.
+    pub(crate) find: Option<usize>,
     pub(crate) x: f64,
     pub(crate) kicker: String,
     pub(crate) title: String,
@@ -193,6 +195,11 @@ pub struct Game {
     pub(crate) last_input: UnixMs,
     /// When Space went down, to tell a tap from a hold.
     pub(crate) space_since: Option<UnixMs>,
+    /// Which of tonight's finds have been seen: caught with the card up
+    /// long enough to read, or a story begun.
+    pub(crate) viewed: Vec<bool>,
+    /// Whether it's been said that Tab brings back what was skipped.
+    told_tab: bool,
     /// 0-1, eased: how far the keys in the corner are showing.
     legend_mix: f64,
     /// Key releases wait a moment: X11's auto-repeat sends a release before
@@ -281,6 +288,9 @@ pub(crate) const WARM: Rgb = [1.0, 0.86, 0.66];
 pub(crate) fn compact(width: f64, height: f64) -> bool {
     width < 820.0 || height < 560.0
 }
+
+/// A card up at least this long has been seen.
+const VIEWED_MS: UnixMs = 3_000;
 
 /// A press of Space shorter than this is a tap: it carries on rather than
 /// catches.
@@ -483,6 +493,8 @@ impl Game {
             .take(prepared.len())
             .position(|s| s.hr == 936);
         let steps = vec![0; finds.len()];
+        // Anything caught earlier tonight was seen then.
+        let viewed = caught.clone();
         let wind = crate::wind::Wind::new(&night);
         let mut game = Game {
             sky,
@@ -514,6 +526,8 @@ impl Game {
             finale_turned: false,
             last_input: real_now,
             space_since: None,
+            viewed,
+            told_tab: false,
             legend_mix: 0.0,
             releases: Vec::new(),
             esc_armed: 0,
@@ -1091,10 +1105,13 @@ impl Game {
                     }
                 }
             }
-            gdk::Key::Return | gdk::Key::KP_Enter | gdk::Key::Tab => {
+            gdk::Key::Return | gdk::Key::KP_Enter => {
                 if !self.carry_on(real) {
                     return false;
                 }
+            }
+            gdk::Key::Tab => {
+                self.back_to_skipped(real);
             }
             gdk::Key::Escape => {
                 if self.card.is_some() {
@@ -1626,9 +1643,23 @@ impl Game {
         }
         self.save_page();
         if self.begin_tour(i, real) {
+            // A story or a walk is its own showing: nothing to come back to.
+            self.viewed[i] = true;
             self.guide_tour_began(real);
             return;
         }
+        self.show_find_card(i, real);
+        if let Target::Figure(f) = self.finds[i].target {
+            self.reveal = Some((f, real));
+        }
+        self.after_catch(i, real);
+        self.guide_caught(real);
+    }
+
+    /// The card for find `i`: what it is, something true about it, and its
+    /// photograph if it has one for the card.
+    fn show_find_card(&mut self, i: usize, real: UnixMs) {
+        let find = self.finds[i].clone();
         let x = self.beside(Some(i), self.zoom_for(i));
         let kicker = self.kind_word(i).to_owned();
         let mut body = find.fact;
@@ -1646,17 +1677,41 @@ impl Game {
         }
         self.card = Some(Card {
             picture: self.card_picture(i),
+            find: Some(i),
             x,
             kicker,
             title: find.name,
             body,
             shown: real,
         });
-        if let Target::Figure(f) = self.finds[i].target {
-            self.reveal = Some((f, real));
+    }
+
+    /// Tab: back to the first thing on the list not yet seen, whether it
+    /// was never reached or its card was put away before it could be read;
+    /// with nothing missed, it carries on like Space.
+    fn back_to_skipped(&mut self, real: UnixMs) -> bool {
+        if !self.hunting() || self.more_now() || self.talk.prompt.is_some() {
+            return self.carry_on(real);
         }
-        self.after_catch(i, real);
-        self.guide_caught(real);
+        let now = self.sky_now(real);
+        let hz = horizon(self.observer, now);
+        let prec = precession(now);
+        let missed = (0..self.finds.len()).find(|&i| {
+            !self.viewed[i]
+                && !matches!(self.finds[i].target, Target::Meteor(_))
+                && self.card.as_ref().and_then(|c| c.find) != Some(i)
+                && self
+                    .find_dir(i, now, &hz, &prec)
+                    .is_some_and(|v| alt_az(v).0 > 0.0)
+        });
+        let Some(i) = missed else {
+            return self.carry_on(real);
+        };
+        self.turn_to(i, real);
+        if self.caught[i] {
+            self.show_find_card(i, real);
+        }
+        true
     }
 
     fn save_page(&self) {
@@ -1666,6 +1721,16 @@ impl Game {
     }
 
     pub(crate) fn dismiss_card(&mut self, real: UnixMs) {
+        // Up long enough to read counts as seen; put away sooner, Tab can
+        // bring it back.
+        if let Some((i, shown)) = self.card.as_ref().and_then(|c| Some((c.find?, c.shown))) {
+            if real - shown >= VIEWED_MS {
+                self.viewed[i] = true;
+            } else if !self.told_tab {
+                self.told_tab = true;
+                self.status("Tab brings back anything you skipped".into(), real);
+            }
+        }
         if self.tour.is_some() && self.turn_page(real) {
             return;
         }
@@ -1779,6 +1844,7 @@ impl Game {
             added += usize::from(!caught);
             self.finds.push(find);
             self.caught.push(caught);
+            self.viewed.push(caught);
             self.steps.push(0);
         }
         if added > 0 {

@@ -463,6 +463,7 @@ impl Game {
         };
         self.card = Some(Card {
             picture: None,
+            find: None,
             x: self.beside_centre(),
             kicker: h.kind,
             title: h.name,

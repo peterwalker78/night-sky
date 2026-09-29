@@ -162,7 +162,8 @@ journal, not therapy or a crisis service.
 | --- | --- |
 | Arrows, or drag | Look around |
 | Scroll, `+` and `-` | Zoom |
-| Tap `Space` (or `Enter`, or `Tab`) | Carry on, one step at a time: the wisp's next word, then past a card or a story's page, then round to the next find |
+| Tap `Space` (or `Enter`) | Carry on, one step at a time: the wisp's next word, then past a card or a story's page, then round to the next find |
+| `Tab` | Back to the first thing on the list you haven't seen yet: never reached, or its card put away before you could read it |
 | Hold `Space` | Catch what's in the ring |
 | Click one in the list | Turn towards it |
 | `C` | Draw a constellation: arrows step between stars, `Enter` joins, `C` finishes |

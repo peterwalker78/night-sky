@@ -255,6 +255,7 @@ impl Game {
         };
         self.card = Some(crate::game::Card {
             picture: None,
+            find: None,
             x: self.beside_centre(),
             kicker: "Your constellation".into(),
             title: name.to_owned(),
