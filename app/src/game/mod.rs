@@ -892,9 +892,6 @@ impl Game {
                 self.handoff = Some(last);
                 self.caption = None;
                 self.track = None;
-                if self.talk.first_night {
-                    self.guide_logbook_at_end(real);
-                }
                 // Face the west, where tonight's stars go down.
                 self.look = Some(Look {
                     az: 268.0,

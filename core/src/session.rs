@@ -40,7 +40,7 @@ impl Timings {
         arrival: 4_500,
         after_last_find: 6 * MINUTE,
         hunt_most: 25 * MINUTE,
-        dimming: 75_000,
+        dimming: 40_000,
         lapse: 22_000,
         hold: 14_000,
         lights_out: 25_000,
@@ -67,8 +67,13 @@ impl Timings {
     }
 }
 
-/// The dimmest the sky gets before lights out, as a fraction of full.
+/// How dim the sky is once the dimming's done, as a fraction of full.
 pub const DIM: f64 = 0.4;
+/// How dim it has gone by the time the lights go out: it only ever gets
+/// darker from the dimming on.
+pub const LAST: f64 = 0.28;
+/// The least wait between choosing how tonight ends and the finale.
+const ENDING_BEAT: UnixMs = 5_000;
 /// The slowest the sky's motion gets, as a fraction of the start.
 pub const CALMEST: f64 = 0.45;
 
@@ -84,6 +89,9 @@ pub struct Session {
     /// Held still since then: the evening waits while the wisp keeps
     /// someone company in the background.
     held: Option<UnixMs>,
+    /// When the dimming began. The screen keeps dimming by the clock
+    /// while the evening's held for breaths and a line to think over.
+    dim_from: UnixMs,
 }
 
 fn smoothstep(x: f64) -> f64 {
@@ -103,6 +111,7 @@ impl Session {
             found: 0,
             all_found_at: None,
             held: None,
+            dim_from: now,
         }
     }
 
@@ -152,6 +161,9 @@ impl Session {
     fn enter(&mut self, phase: Phase, now: UnixMs) -> Option<Phase> {
         self.phase = phase;
         self.phase_since = now;
+        if phase == Phase::Dimming {
+            self.dim_from = now;
+        }
         Some(phase)
     }
 
@@ -214,6 +226,18 @@ impl Session {
     }
 
     /// The user has had enough of the hunt.
+    /// How tonight ends has been chosen: the finale follows as soon as the
+    /// screen has finished dimming, a few seconds on at the least.
+    pub fn ending_chosen(&mut self, now: UnixMs) {
+        if self.phase != Phase::Dimming || self.held.is_some() {
+            return;
+        }
+        let t = self.timings;
+        let natural = self.phase_since + t.dimming;
+        let soonest = (self.dim_from + t.dimming).max(now + ENDING_BEAT);
+        self.phase_since = natural.min(soonest) - t.dimming;
+    }
+
     pub fn finish(&mut self, now: UnixMs) -> Option<Phase> {
         match self.phase {
             Phase::Arrival | Phase::Weights | Phase::Hunt => self.enter(Phase::Dimming, now),
@@ -238,9 +262,12 @@ impl Session {
         match self.phase {
             Phase::Arrival => smoothstep(x(t.arrival)),
             Phase::Weights | Phase::Hunt => 1.0,
-            Phase::Dimming => 1.0 - (1.0 - DIM) * smoothstep(x(t.dimming)),
-            Phase::Finale => DIM,
-            Phase::LightsOut => DIM * (1.0 - smoothstep(x(t.lights_out))),
+            Phase::Dimming => {
+                let dimmed = (now - self.dim_from) as f64 / t.dimming.max(1) as f64;
+                1.0 - (1.0 - DIM) * smoothstep(dimmed)
+            }
+            Phase::Finale => DIM - (DIM - LAST) * smoothstep(x(t.lapse + t.hold)),
+            Phase::LightsOut => LAST * (1.0 - smoothstep(x(t.lights_out))),
             Phase::Over => 0.0,
         }
     }
@@ -338,6 +365,31 @@ mod tests {
             t += 50;
         }
         assert!(s.lapse(t) >= Timings::STANDARD.lapse_sky - 1);
+    }
+
+    #[test]
+    fn the_screen_dims_through_the_breaths_and_goes_on_once_chosen() {
+        let t = Timings::STANDARD;
+        let mut s = Session::new(0, t, 5, false);
+        run_until(&mut s, 0, 10_000);
+        s.finish(10_000);
+        // Held for the breaths and a line to think over: still dimming.
+        s.hold(12_000);
+        assert!((s.brightness(10_000 + t.dimming) - DIM).abs() < 1e-9);
+        s.resume(90_000);
+        assert_eq!(s.phase(), Phase::Dimming);
+        // Chosen: the finale follows a few seconds on, not a whole dim later.
+        s.ending_chosen(91_000);
+        let changes = run_until(&mut s, 91_000, 100_000);
+        assert_eq!(changes[0], (91_000 + ENDING_BEAT, Phase::Finale));
+        // And it only ever gets darker from there.
+        let mut last = s.brightness(changes[0].0);
+        for at in (changes[0].0..changes[0].0 + 60_000).step_by(100) {
+            s.tick(at);
+            let b = s.brightness(at);
+            assert!(b <= last + 1e-9, "brightened at {at}");
+            last = b;
+        }
     }
 
     #[test]

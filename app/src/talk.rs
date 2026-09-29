@@ -805,6 +805,7 @@ impl Game {
                     crate::game::Ending::Bed
                 };
                 self.ending = Some(ending);
+                self.session.ending_chosen(real);
                 self.done_talking();
                 self.guide_ending(ending, real);
             }
@@ -876,7 +877,13 @@ impl Game {
             text: "How does tonight end? If it's clear, a few minutes under the real sky first can be worth it: something that vast tends to put the day in proportion, and the dark is kinder to sleep than a screen.".into(),
             chips: vec!["A few minutes outside first".into(), "Straight to bed".into()],
             entry: false,
-            hint: "Either way, the screen goes off".into(),
+            // The first night, where it's all kept, said here rather than
+            // later, once the screen has gone dark.
+            hint: if self.talk.first_night {
+                "Either way, the screen goes off. Everything from tonight is kept in your logbook: L opens it, any night".into()
+            } else {
+                "Either way, the screen goes off".into()
+            },
             ..Prompt::default()
         }));
     }

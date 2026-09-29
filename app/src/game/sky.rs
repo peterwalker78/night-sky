@@ -489,8 +489,7 @@ impl Game {
         self.draw_reticle(real, tempo);
 
         let brightness = self.session.brightness(real);
-        let veil = self.finale_veil(real);
-        let frame_texture = self.field.texture((brightness * (1.0 - veil)) as f32 * 1.0);
+        let frame_texture = self.field.texture(brightness as f32);
         let mut texts = if self.keeping() {
             Vec::new()
         } else {
@@ -621,20 +620,6 @@ impl Game {
             },
             alpha: self.legend_mix,
         })
-    }
-
-    /// The moment the time-lapse hands back to the present: a dip to dark.
-    pub(super) fn finale_veil(&self, real: UnixMs) -> f64 {
-        if self.session.phase() != Phase::Finale {
-            return 0.0;
-        }
-        let into = self.session.in_phase(real) - self.session.timings.lapse;
-        let x = into as f64 / 1_300.0;
-        if (-1.0..=1.0).contains(&x) {
-            1.0 - x.abs()
-        } else {
-            0.0
-        }
     }
 
     pub(super) fn draw_reticle(&mut self, real: UnixMs, tempo: f64) {
@@ -836,13 +821,14 @@ impl Game {
                         * 1.4,
                 )
             } else {
-                smoothstep(into as f64 / 2_000.0)
+                smoothstep(into as f64 / 4_000.0)
             };
+            // Quiet, in the dimmed sky's own light: nothing brightens now.
             out.push(
-                Text::new(w / 2.0, h * 0.7, handoff.line.clone(), 23.0, a)
+                Text::new(w / 2.0, h * 0.7, handoff.line.clone(), 20.0, 0.55 * a)
                     .centred()
                     .wrap((w * 0.7).min(760.0))
-                    .color([1.0, 0.94, 0.84]),
+                    .color([0.9, 0.84, 0.74]),
             );
         }
         out

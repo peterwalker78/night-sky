@@ -1,5 +1,5 @@
 //! Winding down, if wanted: a few slow breaths paced by the wisp, then a
-//! few lines to think over, one at a time. Nothing is written or kept.
+//! line to think over. Nothing is written or kept.
 
 use serde::Deserialize;
 
@@ -68,11 +68,12 @@ impl WindDown {
         (elapsed.max(0) as f64 % self.breath_ms()) / self.breath_ms()
     }
 
-    /// Tonight's three lines to think over.
+    /// Tonight's line to think over: one, so the evening winds down
+    /// rather than opening up again.
     pub fn reflections(&self, night: &str) -> Vec<String> {
         let mut all: Vec<&String> = self.reflections.iter().collect();
         all.sort_by_key(|r| stable_hash((0, 0, 11), &format!("{night}:{r}")));
-        all.into_iter().take(3).cloned().collect()
+        all.into_iter().take(1).cloned().collect()
     }
 }
 
@@ -96,10 +97,10 @@ mod tests {
     }
 
     #[test]
-    fn three_lines_a_night_that_never_name_the_feeling() {
+    fn one_line_a_night_that_never_names_the_feeling() {
         let w = WindDown::bundled();
         let tonight = w.reflections("2026-09-29");
-        assert_eq!(tonight.len(), 3);
+        assert_eq!(tonight.len(), 1);
         assert_eq!(tonight, w.reflections("2026-09-29"));
         let all = include_str!("../data/wind-down.toml").to_lowercase();
         for word in UNSAID {

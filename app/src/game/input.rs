@@ -465,12 +465,13 @@ impl Game {
             if into >= self.session.timings.lapse
                 && let Some(h) = &self.handoff
             {
-                // After the lapse the sky is back to now: face the hand-off.
-                self.camera.az = h.az;
-                self.camera.alt = h.alt.clamp(8.0, 60.0) + 6.0;
-                self.camera.fov = 95.0;
-                self.camera.update();
-                self.look = None;
+                // After the lapse, drift round to face the hand-off.
+                self.look = Some(Look {
+                    az: h.az,
+                    alt: h.alt.clamp(8.0, 60.0) + 6.0,
+                    fov: 95.0,
+                    rate: 0.3,
+                });
                 self.finale_turned = true;
             }
         }

@@ -852,17 +852,6 @@ impl Game {
         self.say_at(Aim::Near(0.4, 0.4), line, real + 300, 9_000);
     }
 
-    /// The first night's end: where tonight is kept.
-    pub(crate) fn guide_logbook_at_end(&mut self, real: UnixMs) {
-        self.say_once(
-            "logbook-end",
-            Aim::Home,
-            "Everything from tonight is in your logbook: what you found, what you set down, what you wrote. L opens it, any night.",
-            real + 12_000,
-            9_000,
-        );
-    }
-
     /// A word after an old weight has been looked at again.
     pub(crate) fn guide_looked_back(&mut self, chip: usize, real: UnixMs) {
         let line = match chip {
@@ -1255,8 +1244,9 @@ impl Game {
         let dt = ((real - self.guide.last_frame) as f64 / 1000.0).clamp(0.0, 0.1);
         self.guide.last_frame = real;
         let (nx, ny, nw, nh) = self.nook();
+        // Fading out with the lights, from wherever the finale left it.
         let alpha = if matches!(self.session.phase(), Phase::LightsOut | Phase::Over) {
-            brightness / westering_core::session::DIM
+            0.6 * brightness / westering_core::session::LAST
         } else {
             brightness.max(0.6)
         };
@@ -1560,12 +1550,21 @@ impl Game {
                 (x.max(10.0), (fy - 26.0).max(150.0), false)
             };
             let bottom = bottom + lift;
+            // As the screen dims for the night, so do the words.
+            let late = if matches!(
+                self.session.phase(),
+                Phase::Dimming | Phase::Finale | Phase::LightsOut
+            ) {
+                0.35 + 0.65 * brightness
+            } else {
+                1.0
+            };
             Some(Bubble {
                 x,
                 bottom,
                 text: l.text.clone(),
                 width,
-                alpha: a * alpha.min(1.0),
+                alpha: a * alpha.min(1.0) * late,
                 tail,
                 // Space moves the wisp on first, except while typing.
                 more: more.then_some((
