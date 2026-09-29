@@ -69,6 +69,13 @@ pub struct DayLines {
 #[derive(Deserialize)]
 pub struct FreeLines {
     pub suggest: String,
+    /// The first time the sky is handed over, once the list's been walked.
+    pub handover: String,
+    /// On later nights, said at the bottom of the screen instead.
+    pub open: String,
+    /// F pressed before the sky's been handed over, the first night and after.
+    pub wait_first: String,
+    pub wait: String,
 }
 
 #[derive(Deserialize)]

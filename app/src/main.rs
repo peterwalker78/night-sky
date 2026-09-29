@@ -329,7 +329,7 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
     let drag = gtk::GestureDrag::new();
     {
         let game = game.clone();
-        drag.connect_drag_begin(move |_, _, _| game.borrow_mut().drag_begin(wall_clock()));
+        drag.connect_drag_begin(move |_, x, y| game.borrow_mut().drag_begin(x, y, wall_clock()));
     }
     {
         let game = game.clone();
@@ -340,13 +340,15 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
     {
         let game = game.clone();
         drag.connect_drag_end(move |gesture, dx, dy| {
-            if dx.abs() < 3.0
+            // A press held on the ring was a catch, not a click.
+            let held = game.borrow_mut().drag_end();
+            if !held
+                && dx.abs() < 3.0
                 && dy.abs() < 3.0
                 && let Some((x, y)) = gesture.start_point()
             {
                 game.borrow_mut().click(x, y, wall_clock());
             }
-            game.borrow_mut().drag_end();
         });
     }
     view.add_controller(drag);

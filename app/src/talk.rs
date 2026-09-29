@@ -428,9 +428,10 @@ impl Game {
 
     /// Shows a waiting question once its moment comes.
     pub(crate) fn tick_talk(&mut self, real: UnixMs) {
-        // Free look is quiet: anything the sky means to ask waits for the
-        // guided way.
-        if self.free_look() {
+        // Free look is quiet: one thing is asked an evening at most, in a
+        // pause after a close look, and the rest waits for the guided way.
+        let free = self.free_look();
+        if free && (self.free_asked || self.free_moment.is_none_or(|at| real < at)) {
             return;
         }
         let due = self
@@ -451,6 +452,10 @@ impl Game {
         let Some((_, pending)) = self.talk.pending.take() else {
             return;
         };
+        if free {
+            self.free_asked = true;
+            self.free_moment = None;
+        }
         match pending {
             Pending::Question { chosen, star } => {
                 self.show_question(*chosen, star);

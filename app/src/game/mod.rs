@@ -212,6 +212,23 @@ pub struct Game {
     pub urgent: bool,
     /// After a story or a walk, the ring rests until the view moves on.
     pub(crate) ring_resting: bool,
+    /// Looking round freely tonight, with the mouse, rather than the
+    /// guided way. Every evening starts guided.
+    pub(crate) free: bool,
+    /// Whether the wisp has handed tonight's sky over, opening free look.
+    pub(crate) handed_over: bool,
+    /// Whether it's said tonight to look together first.
+    pub(crate) told_wait: bool,
+    /// When the next look at whether to hand the sky over is due.
+    pub(crate) next_handover_check: UnixMs,
+    /// In free look, when a waiting question may be offered: a moment
+    /// after backing out from a card that was read.
+    pub(crate) free_moment: Option<UnixMs>,
+    /// Whether free look has had its one question tonight.
+    pub(crate) free_asked: bool,
+    /// When a press on the ring began, held with the mouse to catch as
+    /// Space does.
+    pub(crate) mouse_hold: Option<UnixMs>,
     /// When free look began, for the wisp's one suggestion.
     pub(crate) free_since: UnixMs,
     /// Which of tonight's finds have been seen: caught with the card up
@@ -556,6 +573,13 @@ impl Game {
             urgent: false,
             ring_resting: false,
             free_since: real_now,
+            free: false,
+            handed_over: false,
+            told_wait: false,
+            next_handover_check: 0,
+            free_moment: None,
+            free_asked: false,
+            mouse_hold: None,
             viewed,
             told_tab: false,
             legend_mix: 0.0,

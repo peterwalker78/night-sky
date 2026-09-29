@@ -288,7 +288,9 @@ impl Game {
     fn held_back(&self) -> Held {
         let asking =
             self.talk.prompt.is_some() && matches!(self.talk.flow, Some(Flow::Question { .. }));
+        // A question offered in free look is still asked in full.
         let quiet = self.free_look()
+            && self.talk.prompt.is_none()
             && self.hunting()
             && self.tour.is_none()
             && !self.keeping()
@@ -612,7 +614,7 @@ impl Game {
         );
         self.say_at(
             Aim::Ring,
-            "Tap Space to turn to the next thing to find, and hold it to catch whatever's inside the ring.",
+            "Tap Space to turn to the next thing to find, and hold it, or press and hold on the ring, to catch whatever's inside.",
             real + 500,
             8_000,
         );
@@ -663,6 +665,65 @@ impl Game {
         self.guide.cheer_until = real + 3_000;
         self.guide.last_progress = real;
         self.hush();
+    }
+
+    /// Whether the guided part of tonight is done enough to hand the sky
+    /// over: the first time, the whole list (but for meteors, which need
+    /// luck, and anything that's set); after that, the first find and
+    /// whatever it brought up.
+    fn ready_to_hand_over(&self, real: UnixMs) -> bool {
+        if self.card.is_some()
+            || self.talk.prompt.is_some()
+            || self.talk.pending.is_some()
+            || self.tour.is_some()
+            || self.drawing.is_some()
+            || self.wisp_busy(real)
+        {
+            return false;
+        }
+        if self.seen("handover") {
+            return self.caught.iter().any(|c| *c);
+        }
+        let now = self.sky_now(real);
+        let hz = westering_core::coords::horizon(self.observer, now);
+        let prec = westering_core::coords::precession(now);
+        (0..self.finds.len()).all(|i| {
+            self.caught[i]
+                || matches!(self.finds[i].target, Target::Meteor(_))
+                || self
+                    .find_dir(i, now, &hz, &prec)
+                    .is_none_or(|v| westering_core::coords::alt_az(v).0 < 0.0)
+        })
+    }
+
+    /// Free look opens: said in full the first time, and after that only
+    /// at the foot of the screen.
+    fn hand_over(&mut self, real: UnixMs) {
+        self.handed_over = true;
+        if self.seen("handover") {
+            let line = self.guide.lines.free.open.clone();
+            self.status_for(line, real, 7_000);
+        } else {
+            self.mark_seen("handover");
+            let line = self.guide.lines.free.handover.clone();
+            self.say_at(Aim::Near(0.5, 0.35), line, real, 12_000);
+        }
+    }
+
+    /// F before the sky's been handed over: a word once, then just a line
+    /// at the foot of the screen.
+    pub(crate) fn guide_not_yet(&mut self, real: UnixMs) {
+        let line = if self.seen("handover") {
+            self.guide.lines.free.wait.clone()
+        } else {
+            self.guide.lines.free.wait_first.clone()
+        };
+        if self.told_wait {
+            self.status_for(line, real, 5_000);
+        } else {
+            self.told_wait = true;
+            self.say(line, real, 7_000);
+        }
     }
 
     pub(crate) fn guide_all_found(&mut self, real: UnixMs) {
@@ -826,9 +887,14 @@ impl Game {
     }
 
     pub(crate) fn guide_help(&mut self, real: UnixMs) {
+        let free = if self.handed_over {
+            "F switches to free look: drag to look around, and click anything that glows to close in on it and read all about it; Esc, or a click on the sky, zooms back out. In free look the wisp keeps quiet; F brings it back."
+        } else {
+            "Once we've looked together a while, F opens free look, for wandering with the mouse."
+        };
         self.say_at(
             Aim::Near(0.32, 0.5),
-            "Arrows or a drag look around. Tapping Space carries on: the wisp's next word, then past a card, then to the next find (Enter does the same). Tab goes back to the first thing on the list you haven't seen yet. Hold Space to catch whatever's in the ring, or click the list to turn to something. F switches to free look: drag to look around, and click anything that glows to close in on it and read all about it; Esc, or a click on the sky, zooms back out. In free look the wisp keeps quiet and only drifts over to keep you company; F brings it back. Point at anything to see what it is. C draws, L opens the logbook, M changes the music's style (and after the last, turns it off), K keeps you company in the background, and W winds down. The button top left opens the menu.",
+            format!("Arrows or a drag look around. Tapping Space carries on: the wisp's next word, then past a card, then to the next find (Enter does the same, and so does a click while a card is up). Tab goes back to the first thing on the list you haven't seen yet. Hold Space, or press and hold on the ring, to catch whatever's in it; click the list to turn to something. {free} Point at anything to see what it is. C draws, L opens the logbook, M changes the music's style (and after the last, turns it off), K keeps you company in the background, and W winds down. The button top left opens the menu."),
             real,
             15_000,
         );
@@ -922,6 +988,13 @@ impl Game {
                     real,
                     8_000,
                 );
+            }
+        }
+        // Once tonight's sky has been walked together, it's handed over.
+        if hunting && !self.handed_over && real >= self.next_handover_check {
+            self.next_handover_check = real + 1_000;
+            if self.ready_to_hand_over(real) {
+                self.hand_over(real);
             }
         }
         // A long while in free look: one quiet suggestion, from the moss.

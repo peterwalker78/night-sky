@@ -607,13 +607,17 @@ impl Game {
                     (vec!["?".into()], "all the keys".into()),
                 ]
             } else {
-                vec![
+                let mut rows = vec![
                     (vec!["+".into(), "−".into()], "zoom in and out".into()),
                     (vec!["← ↑ ↓ →".into()], "aim the ring".into()),
                     (vec!["Space".into()], "carry on; hold to catch".into()),
-                    (vec!["F".into()], "free look, with the mouse".into()),
-                    (vec!["?".into()], "all the keys".into()),
-                ]
+                ];
+                // Free look only once the wisp has handed the sky over.
+                if self.handed_over {
+                    rows.push((vec!["F".into()], "free look, with the mouse".into()));
+                }
+                rows.push((vec!["?".into()], "all the keys".into()));
+                rows
             },
             alpha: self.legend_mix,
         })
@@ -725,7 +729,7 @@ impl Game {
                 let words = if self.catch.progress > 0.0 {
                     self.finds[i].name.clone()
                 } else {
-                    format!("{} · hold Space", self.finds[i].name)
+                    format!("{} · hold Space, or hold a click", self.finds[i].name)
                 };
                 let lx = cx + r.max(self.apparent_radius(i, cam.fov).min(r * 1.6)) + 14.0;
                 out.push(Text::new(

@@ -294,31 +294,33 @@ impl Settings {
             j.settings.calm = b.is_active();
             let _ = j.save_settings();
         });
-        let free = gtk::Switch::new();
-        free.set_active(settings.free_look);
-        let game = self.game.clone();
-        free.connect_active_notify(move |b| {
-            let mut g = game.borrow_mut();
-            let j = g.journal_mut();
-            j.settings.free_look = b.is_active();
-            let _ = j.save_settings();
-        });
-        group(
-            &self.body,
-            "MOTION",
-            &[
-                row(
-                    "Calmer",
-                    "The wisp stays on its moss and the stars twinkle less.",
-                    &calm,
-                ),
-                row(
-                    "Free look",
-                    "Look around with the mouse and click anything that glows for a closer look, while the wisp keeps quiet, instead of the guided way with the keyboard and the ring. F switches.",
-                    &free,
-                ),
-            ],
-        );
+        let mut motion = vec![row(
+            "Calmer",
+            "The wisp stays on its moss and the stars twinkle less.",
+            &calm,
+        )];
+        // Free look is there once the wisp has handed tonight's sky over.
+        let (handed_over, free_now) = {
+            let g = self.game.borrow();
+            (g.handed_over && !g.by_day(), g.free_look())
+        };
+        if handed_over {
+            let free = gtk::Switch::new();
+            free.set_active(free_now);
+            let game = self.game.clone();
+            free.connect_active_notify(move |b| {
+                let mut g = game.borrow_mut();
+                if g.free_look() != b.is_active() {
+                    g.toggle_look(crate::wall_clock());
+                }
+            });
+            motion.push(row(
+                "Free look, tonight",
+                "Look around with the mouse and click anything that glows for a closer look, while the wisp keeps quiet, instead of the guided way with the keyboard and the ring. F switches.",
+                &free,
+            ));
+        }
+        group(&self.body, "MOTION", &motion);
 
         let ask = gtk::DropDown::from_strings(&["Sometimes", "Rarely", "Never"]);
         ask.set_selected(match settings.ask {

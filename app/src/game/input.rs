@@ -4,6 +4,9 @@
 
 use super::*;
 
+/// A press shorter than this is a click, not a hold.
+const CLICK_MS: UnixMs = 250;
+
 impl Game {
     pub(crate) fn input(&mut self, real: UnixMs) {
         self.last_input = real;
@@ -14,18 +17,26 @@ impl Game {
     /// Looking around with the mouse, rather than the keyboard and the
     /// ring. Never by day, where there's no ring.
     pub(crate) fn free_look(&self) -> bool {
-        self.journal.settings.free_look && !self.by_day()
+        self.free && !self.by_day()
     }
 
     /// F: between the guided way, with the keyboard and the ring, and free
-    /// look, with the mouse. Kept for next time.
+    /// look, with the mouse, once the wisp has handed the sky over.
     pub(crate) fn toggle_look(&mut self, real: UnixMs) {
-        let free = !self.journal.settings.free_look;
-        self.journal.settings.free_look = free;
-        if let Err(e) = self.journal.save_settings() {
-            eprintln!("westering: couldn't save settings: {e}");
+        if self.by_day() {
+            return;
         }
+        if !self.free && !self.handed_over {
+            self.guide_not_yet(real);
+            return;
+        }
+        if self.free && self.card.is_some() {
+            self.dismiss_card(real);
+        }
+        let free = !self.free;
+        self.free = free;
         self.catch = Catch::default();
+        self.mouse_hold = None;
         self.ring_resting = false;
         self.free_since = real;
         self.status_for(
@@ -288,7 +299,10 @@ impl Game {
         self.guide_next(real);
         // Something is already in the ring: don't swing away from it.
         if self.catch.target.is_some() && !self.free_look() && !self.ring_resting {
-            self.status("Hold Space to catch it".into(), real);
+            self.status(
+                "Hold Space, or press and hold on the ring, to catch it".into(),
+                real,
+            );
             return true;
         }
         self.turn_to_next(real);
@@ -321,15 +335,43 @@ impl Game {
         }
     }
 
-    pub fn drag_begin(&mut self, real: UnixMs) {
-        self.ring_resting = false;
+    pub fn drag_begin(&mut self, x: f64, y: f64, real: UnixMs) {
         self.input(real);
+        // The guided way: a press held on the ring catches, as Space does.
+        let (cx, cy) = (self.camera.width / 2.0, self.camera.height / 2.0);
+        let on_ring = ((x - cx).powi(2) + (y - cy).powi(2)).sqrt() < self.reticle_radius() + 12.0;
+        if on_ring
+            && self.hunting()
+            && !self.free_look()
+            && !self.ring_resting
+            && self.card.is_none()
+            && self.talk.prompt.is_none()
+            && self.drawing.is_none()
+            && self.tour.is_none()
+            && !self.more_now()
+        {
+            self.mouse_hold = Some(real);
+            self.catch.holding = true;
+            if self.catch.target.is_none() {
+                self.try_meteor(real);
+            }
+            return;
+        }
+        self.ring_resting = false;
         self.look = None;
         self.drag_from = Some((self.camera.az, self.camera.alt, 0.0, 0.0));
     }
 
     pub fn drag_update(&mut self, dx: f64, dy: f64, real: UnixMs) {
         self.input(real);
+        // Moving off while holding the ring lets go, and looks around instead.
+        if self.mouse_hold.is_some() && dx.abs() + dy.abs() > 8.0 {
+            self.mouse_hold = None;
+            self.catch.holding = false;
+            self.ring_resting = false;
+            self.look = None;
+            self.drag_from = Some((self.camera.az, self.camera.alt, 0.0, 0.0));
+        }
         if let Some((az, alt, _, _)) = self.drag_from {
             let ppd = self.camera.px_per_degree();
             let cos_alt = self.camera.alt.to_radians().cos().max(0.2);
@@ -339,8 +381,15 @@ impl Game {
         }
     }
 
-    pub fn drag_end(&mut self) {
+    /// Says whether the press was held on the ring, catching, rather
+    /// than a click.
+    pub fn drag_end(&mut self) -> bool {
         self.drag_from = None;
+        let Some(since) = self.mouse_hold.take() else {
+            return false;
+        };
+        self.catch.holding = false;
+        self.last_real - since > CLICK_MS
     }
 
     pub fn scroll(&mut self, dy: f64, real: UnixMs) {
@@ -385,9 +434,14 @@ impl Game {
         if self.click_hovered(x, y, real) {
             return;
         }
-        // Free look: a click on empty sky puts the card away.
-        if self.free_look() && self.card.is_some() {
-            self.dismiss_card(real);
+        // Free look: a click on empty sky backs out. The guided way: it
+        // carries on, as Space does, so the mouse alone will do.
+        if self.card.is_some() {
+            if self.free_look() {
+                self.dismiss_card(real);
+            } else {
+                self.carry_on(real);
+            }
             return;
         }
         if !self.hunting() {

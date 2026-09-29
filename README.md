@@ -162,10 +162,10 @@ journal, not therapy or a crisis service.
 | --- | --- |
 | Arrows, or drag | Look around |
 | Scroll, `+` and `-` | Zoom |
-| Tap `Space` (or `Enter`) | Carry on, one step at a time: the wisp's next word, then past a card or a story's page, then round to the next find |
+| Tap `Space` (or `Enter`, or click while a card is up) | Carry on, one step at a time: the wisp's next word, then past a card or a story's page, then round to the next find |
 | `Tab` | Back to the first thing on the list you haven't seen yet: never reached, or its card put away before you could read it |
-| `F`, or Free look in the menu | Switch between the guided way (the keyboard and the ring) and free look (drag to look around, and click anything that glows to close in on it, with its photograph and everything there is to know, while the wisp keeps quiet; Esc zooms back out) |
-| Hold `Space` | Catch what's in the ring |
+| Hold `Space`, or press and hold on the ring | Catch what's in the ring |
+| `F`, or Free look in the menu | Once the wisp has walked the evening with you, switch between the guided way and free look: drag to look around, and click anything that glows to close in on it, with its photograph and everything there is to know, while the wisp keeps quiet; Esc zooms back out. The first night that's once tonight's list is done; after that, once the first find is. Every evening starts guided |
 | Click one in the list | Turn towards it |
 | `C` | Draw a constellation: arrows step between stars, `Enter` joins, `C` finishes |
 | `L` | The logbook |

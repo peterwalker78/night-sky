@@ -50,6 +50,8 @@ impl Game {
         // Free look: a close look, with all there is to tell; questions
         // wait for the guided way.
         if self.free_look() {
+            // Whatever it brings to mind waits for a pause.
+            self.after_catch(i, real);
             let x = self.pointer.map_or(self.camera.width / 2.0, |p| p.0);
             if !self.inspect(Subject::Find(i), x, real) {
                 self.show_find_card(i, real);
@@ -93,6 +95,10 @@ impl Game {
     }
 
     pub(crate) fn dismiss_card(&mut self, real: UnixMs) {
+        let read = self
+            .card
+            .as_ref()
+            .is_some_and(|c| real - c.shown >= 2 * VIEWED_MS);
         // Up long enough to read counts as seen; put away sooner, Tab can
         // bring it back.
         if let Some((i, shown)) = self.card.as_ref().and_then(|c| Some((c.find?, c.shown))) {
@@ -126,8 +132,13 @@ impl Game {
         self.catch.progress = 0.0;
         self.catch.target = None;
         if self.free_look() {
-            // Back out to where the view was, and the wisp home.
+            // Back out to where the view was, and the wisp home. After a
+            // card that was read, a waiting question may be offered, once
+            // an evening, when the view has settled.
             self.end_inspect(real);
+            if read && !self.free_asked && self.talk.pending.is_some() {
+                self.free_moment = Some(real + 1_800);
+            }
             return;
         }
         if self.session.all_found() && self.hunting() {
