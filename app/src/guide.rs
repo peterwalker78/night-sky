@@ -103,18 +103,35 @@ pub struct Guide {
     moss: Option<(UnixMs, f64, gtk::gdk::Texture)>,
     /// The wisp's picture as last drawn: when it's next due, at what scale.
     wisp_drawn: Option<(UnixMs, f64, gtk::gdk::Texture)>,
+    /// Whether it's suggested the guided way, after a long free look.
+    suggested_guided: bool,
 }
 
-/// Whether a line waits: while a card is up only its own line speaks, and
-/// while a question is asked only lines about the question do.
-fn waiting((card_up, asking): (bool, bool), l: &Line) -> bool {
-    (card_up && l.aim != Aim::Card && l.aim != Aim::Stay)
-        || (asking && l.aim != Aim::Prompt && l.aim != Aim::Stay)
+/// What the wisp is holding its tongue for.
+#[derive(Clone, Copy)]
+struct Held {
+    card_up: bool,
+    asking: bool,
+    /// Looking round freely: only a word from the moss, and everything
+    /// else waits for the guided way.
+    quiet: bool,
+}
+
+/// Whether a line waits: while a card is up only its own line speaks,
+/// while a question is asked only lines about the question do, and in
+/// free look only what it says from its moss.
+fn waiting(held: Held, l: &Line) -> bool {
+    (held.card_up && l.aim != Aim::Card && l.aim != Aim::Stay)
+        || (held.asking && l.aim != Aim::Prompt && l.aim != Aim::Stay)
+        || (held.quiet && l.aim != Aim::Home)
 }
 
 /// How often, at the least, the wisp's picture is drawn afresh when it
 /// hasn't said: its breath runs smoothly between, as a scale.
 const WISP_REDRAW_MS: UnixMs = 66;
+/// How long in free look before the wisp suggests a moment of the guided
+/// evening, once.
+const FREE_SUGGEST_MS: UnixMs = 8 * 60_000;
 /// How long someone can look around without finding anything before the
 /// wisp offers to help.
 const STUCK_MS: UnixMs = 35_000;
@@ -173,6 +190,7 @@ impl Guide {
             lines: Lines::bundled(),
             moss: None,
             wisp_drawn: None,
+            suggested_guided: false,
         }
     }
 }
@@ -256,12 +274,21 @@ impl Game {
         }
     }
 
-    /// What the wisp is holding its tongue for: a card that's up, and a
-    /// question being asked.
-    fn held_back(&self) -> (bool, bool) {
+    /// What the wisp is holding its tongue for: a card that's up, a
+    /// question being asked, or someone looking round on their own.
+    fn held_back(&self) -> Held {
         let asking =
             self.talk.prompt.is_some() && matches!(self.talk.flow, Some(Flow::Question { .. }));
-        (self.card.is_some(), asking)
+        let quiet = self.free_look()
+            && self.hunting()
+            && self.tour.is_none()
+            && !self.keeping()
+            && !self.winding();
+        Held {
+            card_up: self.card.is_some(),
+            asking,
+            quiet,
+        }
     }
 
     /// Whether the wisp has more to say now, rather than later.
@@ -792,7 +819,7 @@ impl Game {
     pub(crate) fn guide_help(&mut self, real: UnixMs) {
         self.say_at(
             Aim::Near(0.32, 0.5),
-            "Arrows or a drag look around. Tapping Space carries on: the wisp's next word, then past a card, then to the next find (Enter does the same). Tab goes back to the first thing on the list you haven't seen yet. Hold Space to catch whatever's in the ring, or click the list to turn to something. F switches to free look: drag to look around, and click anything that glows. Point at anything to see what it is. C draws, L opens the logbook, M changes the music's style (and after the last, turns it off), K keeps you company in the background, and W winds down. The button top left opens the menu.",
+            "Arrows or a drag look around. Tapping Space carries on: the wisp's next word, then past a card, then to the next find (Enter does the same). Tab goes back to the first thing on the list you haven't seen yet. Hold Space to catch whatever's in the ring, or click the list to turn to something. F switches to free look: drag to look around and click anything that glows to read all about it, then click again or press Esc to put the card away. In free look the wisp keeps quiet and only drifts over to keep you company; F brings it back. Point at anything to see what it is. C draws, L opens the logbook, M changes the music's style (and after the last, turns it off), K keeps you company in the background, and W winds down. The button top left opens the menu.",
             real,
             15_000,
         );
@@ -861,6 +888,7 @@ impl Game {
         let left = self.to_find();
         if hunting
             && left > 0
+            && !self.free_look()
             && self.talk.first_night
             && self.guide.last_nudge == 0
             && real - self.guide.last_progress.max(self.last_input) > STUCK_MS
@@ -886,6 +914,17 @@ impl Game {
                     8_000,
                 );
             }
+        }
+        // A long while in free look: one quiet suggestion, from the moss.
+        if hunting
+            && self.free_look()
+            && !self.guide.suggested_guided
+            && real - self.free_since > FREE_SUGGEST_MS
+            && !self.wisp_busy(real)
+        {
+            self.guide.suggested_guided = true;
+            let line = self.guide.lines.free.suggest.clone();
+            self.say_at(Aim::Home, line, real, 12_000);
         }
         // A long look: offer to wind down, once.
         if hunting
@@ -1192,7 +1231,7 @@ impl Game {
                 self.guide.pointing_since = None;
             }
             // Between lines of the same run it stays where it is.
-            self.guide.busy_until = real + LINGER_MS.min(2_000);
+            self.guide.busy_until = self.guide.busy_until.max(real + LINGER_MS.min(2_000));
         }
 
         // Nothing more to say: home to its moss, and it's the user's turn.
@@ -1239,6 +1278,8 @@ impl Game {
         let at_home_goal = (goal.0 - home.0).abs() < 1.0 && (goal.1 - home.1).abs() < 1.0;
         // Pointed at from beside, with a soft ring, never by flying round it.
         let circle = false;
+        // In free look it drifts rather than darts.
+        self.guide.flight.gentle = self.free_look();
         if !self.panel_open {
             self.guide
                 .flight
@@ -1377,7 +1418,10 @@ impl Game {
         }
 
         // A soft glow round what it's pointing at, for a moment.
-        if let (Some(since), Some((px, py))) = (self.guide.pointing_since, pointing) {
+        // Not in free look: the thing already glows under the pointer.
+        if let (Some(since), Some((px, py)), false) =
+            (self.guide.pointing_since, pointing, self.free_look())
+        {
             let age = (real - since) as f64;
             if age < 2_600.0 {
                 let a = (1.0 - age / 2_600.0) as f32;

@@ -314,7 +314,7 @@ impl Settings {
                 ),
                 row(
                     "Free look",
-                    "Look around with the mouse and click anything that glows, instead of the guided way with the keyboard and the ring. F switches.",
+                    "Look around with the mouse and click anything that glows to read about it, while the wisp keeps quiet, instead of the guided way with the keyboard and the ring. F switches.",
                     &free,
                 ),
             ],

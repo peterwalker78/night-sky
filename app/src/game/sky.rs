@@ -595,8 +595,11 @@ impl Game {
                 vec![
                     (vec!["Drag".into()], "look around".into()),
                     (vec!["Scroll".into()], "zoom in and out".into()),
-                    (vec!["Click".into()], "anything that glows".into()),
-                    (vec!["F".into()], "the guided way, with the ring".into()),
+                    (
+                        vec!["Click".into()],
+                        "read about anything that glows".into(),
+                    ),
+                    (vec!["F".into()], "the guided way, with the wisp".into()),
                     (vec!["?".into()], "all the keys".into()),
                 ]
             } else {

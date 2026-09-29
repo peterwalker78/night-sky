@@ -3,7 +3,7 @@
 //! on a card. One of tonight's finds not yet caught keeps its secret: the
 //! click turns the view to it instead, so it can be caught.
 
-use crate::game::{Card, Game, envelope};
+use crate::game::{Card, Game, Subject, envelope};
 use crate::view::{Point, Text};
 use westering_core::catalogues::Kind;
 use westering_core::coords::{Mat3, alt_az, apply, from_alt_az, unit};
@@ -25,6 +25,8 @@ pub(crate) struct Hovered {
     more: Option<String>,
     /// One of tonight's finds, which a click turns to instead.
     find: Option<usize>,
+    /// What a click in free look tells about.
+    subject: Subject,
 }
 
 /// How close the pointer has to be, in pixels, beyond the thing's own size.
@@ -79,7 +81,7 @@ impl Game {
             westering_core::session::Phase::Weights
                 | westering_core::session::Phase::Hunt
                 | westering_core::session::Phase::Dimming
-        ) && self.card.is_none()
+        ) && (self.card.is_none() || self.free_look())
             && self.drawing.is_none()
             && self.tour.is_none()
             && !self.placing()
@@ -174,6 +176,7 @@ impl Game {
                     kind: self.kind_word(i).to_owned(),
                     more: caught.then(|| f.fact.clone()),
                     find: (!caught).then_some(i),
+                    subject: Subject::Find(i),
                 },
             );
         }
@@ -227,6 +230,7 @@ impl Game {
                         .to_owned(),
                         more,
                         find: None,
+                        subject: Subject::Body(body),
                     },
                 );
             }
@@ -286,6 +290,7 @@ impl Game {
                     kind: brightness.to_owned(),
                     more: None,
                     find: None,
+                    subject: Subject::Plain,
                 },
             );
         }
@@ -315,6 +320,7 @@ impl Game {
                         kind: "Star".into(),
                         more: s.describe(year),
                         find: None,
+                        subject: Subject::Star(s.hr),
                     },
                 );
             }
@@ -323,7 +329,7 @@ impl Game {
         // Clusters, galaxies and nebulae bright enough to show at this zoom.
         let limit = westering_core::sky::limiting_magnitude(see(Body::Sun, self.observer, now).alt);
         let reach = limit + crate::game::gather(cam.fov) + 0.5;
-        for p in &self.sky.lists.showpieces {
+        for (pi, p) in self.sky.lists.showpieces.iter().enumerate() {
             if p.mag > reach || taken.iter().any(|n| n == &p.name) {
                 continue;
             }
@@ -345,6 +351,7 @@ impl Game {
                         kind: kind_of(p.kind).to_owned(),
                         more: Some(p.fact.clone()),
                         find: None,
+                        subject: Subject::Piece(pi),
                     },
                 );
             }
@@ -370,6 +377,7 @@ impl Game {
                                 .into(),
                         ),
                         find: None,
+                        subject: Subject::Plain,
                     },
                 );
             }
@@ -396,6 +404,7 @@ impl Game {
                             kind: "A star with a name".into(),
                             more: None,
                             find: None,
+                            subject: Subject::Star(hr),
                         },
                     );
                 }
@@ -423,6 +432,7 @@ impl Game {
                         kind: "Constellation".into(),
                         more: caught.then(|| self.finds[i].fact.clone()),
                         find: (!caught).then_some(i),
+                        subject: Subject::Find(i),
                     },
                 );
             }
@@ -527,14 +537,26 @@ impl Game {
         let Some(h) = self.pick(x, y, now, &hz, &prec) else {
             return false;
         };
-        if let Some(i) = h.find {
-            // Free look catches it with the click, once it's close enough in
-            // to see; the guided way turns to it for the ring.
-            if self.free_look() && self.catchable(i) {
-                self.caught_one(i, real);
-            } else {
-                self.turn_to(i, real);
+        // Free look: a find is caught with the click, once close enough in
+        // to see, and anything tells all there is about it, quietly.
+        if self.free_look() {
+            if let Some(i) = h.find {
+                if self.catchable(i) {
+                    self.caught_one(i, real);
+                } else {
+                    self.turn_to(i, real);
+                }
+                return true;
             }
+            let shown = self.show_detail(h.subject, h.x, real);
+            if shown {
+                self.visit(h.x, h.y, real);
+            }
+            return shown;
+        }
+        if let Some(i) = h.find {
+            // The guided way turns to it, for the ring.
+            self.turn_to(i, real);
             return true;
         }
         let Some(body) = h.more else {

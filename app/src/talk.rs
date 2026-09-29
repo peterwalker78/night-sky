@@ -428,6 +428,11 @@ impl Game {
 
     /// Shows a waiting question once its moment comes.
     pub(crate) fn tick_talk(&mut self, real: UnixMs) {
+        // Free look is quiet: anything the sky means to ask waits for the
+        // guided way.
+        if self.free_look() {
+            return;
+        }
         let due = self
             .talk
             .pending

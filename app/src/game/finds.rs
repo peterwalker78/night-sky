@@ -250,11 +250,12 @@ impl Game {
         let (alt, az) = alt_az(v);
         if alt < 0.0 {
             let name = self.finds[i].name.clone();
-            self.say(
-                format!("{name} has gone below the horizon for now."),
-                real,
-                5_000,
-            );
+            let line = format!("{name} has gone below the horizon for now.");
+            if self.free_look() {
+                self.status_for(line, real, 4_000);
+            } else {
+                self.say(line, real, 5_000);
+            }
             return;
         }
         let fov = match self.finds[i].target {
@@ -285,7 +286,12 @@ impl Game {
                 None => self.look_for(i).to_owned(),
             };
             let line = format!("{}. {hint}", self.finds[i].name);
-            self.say_at(crate::guide::Aim::Find(i), line, real, 7_000);
+            // Free look keeps the wisp out of it: a quiet word instead.
+            if self.free_look() {
+                self.status_for(line, real, 5_000);
+            } else {
+                self.say_at(crate::guide::Aim::Find(i), line, real, 7_000);
+            }
         }
     }
 

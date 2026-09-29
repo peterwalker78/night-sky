@@ -44,10 +44,26 @@ impl Game {
             self.guide_tour_began(real);
             return;
         }
-        self.show_find_card(i, real);
         if let Target::Figure(f) = self.finds[i].target {
             self.reveal = Some((f, real));
         }
+        // Free look: the card tells all there is, and the wisp only drifts
+        // over; questions wait for the guided way.
+        if self.free_look() {
+            let now = self.sky_now(real);
+            let spot = self
+                .find_dir(i, now, &horizon(self.observer, now), &precession(now))
+                .and_then(|v| self.camera.project(v));
+            let x = spot.map_or(self.camera.width / 2.0, |s| s.0);
+            if !self.show_detail(Subject::Find(i), x, real) {
+                self.show_find_card(i, real);
+            }
+            if let Some((sx, sy)) = spot {
+                self.visit(sx, sy, real);
+            }
+            return;
+        }
+        self.show_find_card(i, real);
         self.after_catch(i, real);
         self.guide_caught(real);
     }
@@ -88,7 +104,7 @@ impl Game {
         if let Some((i, shown)) = self.card.as_ref().and_then(|c| Some((c.find?, c.shown))) {
             if real - shown >= VIEWED_MS {
                 self.viewed[i] = true;
-            } else if !self.told_tab {
+            } else if !self.told_tab && !self.free_look() {
                 self.told_tab = true;
                 self.status("Tab brings back anything you skipped".into(), real);
             }
@@ -115,6 +131,11 @@ impl Game {
         }
         self.catch.progress = 0.0;
         self.catch.target = None;
+        if self.free_look() {
+            // Home again, quietly.
+            self.fly(crate::guide::Aim::Home, real, 0);
+            return;
+        }
         if self.session.all_found() && self.hunting() {
             self.guide_all_found(real);
         }
@@ -296,6 +317,10 @@ impl Game {
                 Some(_) => vec![
                     ("Space".into(), "go on".into()),
                     ("Esc".into(), "stop here".into()),
+                ],
+                None if self.free_look() => vec![
+                    ("Click".into(), "the sky to close".into()),
+                    ("Esc".into(), "close".into()),
                 ],
                 None => vec![("Space".into(), "carry on".into())],
             },

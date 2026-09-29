@@ -80,17 +80,26 @@ impl Tonight {
 
     /// Refreshes the list from the game; cheap when nothing changed.
     pub fn sync(&self, game: &Rc<RefCell<Game>>) {
-        let (visible, rows, day) = {
+        let (visible, rows, day, free) = {
             let g = game.borrow();
-            (g.show_tonight(), g.tonight_rows(wall_clock()), g.by_day())
+            (
+                g.show_tonight(),
+                g.tonight_rows(wall_clock()),
+                g.by_day(),
+                g.free_look(),
+            )
         };
         show(&self.root, visible);
         // By day it's today's list, and a click opens a find rather than
-        // turning to it.
-        if day {
-            self.title.set_text("TODAY");
-            self.hint
-                .set_text("Click one, or tap Space, to see the next");
+        // turning to it. In free look it's the mouse alone.
+        self.title.set_text(if day { "TODAY" } else { "TONIGHT" });
+        let hint = match (day, free) {
+            (true, _) => "Click one, or tap Space, to see the next",
+            (false, true) => "Click one to turn to it",
+            (false, false) => "Click one, or tap Space, to turn to the next",
+        };
+        if self.hint.text() != hint {
+            self.hint.set_text(hint);
         }
         if !visible || *self.shown.borrow() == rows {
             return;

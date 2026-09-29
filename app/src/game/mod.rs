@@ -3,10 +3,13 @@
 //! into a frame for the view.
 
 mod catching;
+mod detail;
 mod finds;
 mod input;
 mod photos;
 mod sky;
+
+pub(crate) use detail::Subject;
 
 use crate::camera::Camera;
 use crate::field::{Field, Rgb, noise3};
@@ -205,6 +208,8 @@ pub struct Game {
     pub urgent: bool,
     /// After a story or a walk, the ring rests until the view moves on.
     pub(crate) ring_resting: bool,
+    /// When free look began, for the wisp's one suggestion.
+    pub(crate) free_since: UnixMs,
     /// Which of tonight's finds have been seen: caught with the card up
     /// long enough to read, or a story begun.
     pub(crate) viewed: Vec<bool>,
@@ -538,6 +543,7 @@ impl Game {
             space_since: None,
             urgent: false,
             ring_resting: false,
+            free_since: real_now,
             viewed,
             told_tab: false,
             legend_mix: 0.0,
@@ -887,6 +893,9 @@ impl Game {
                 "Write down what's on your mind, or choose Nothing tonight",
             ),
             Phase::Hunt if self.tour.is_some() => (1, "Space goes on, Esc stops here"),
+            Phase::Hunt if self.card.is_some() && self.free_look() => {
+                (1, "Click the sky, or Esc, to put the card away")
+            }
             Phase::Hunt if self.card.is_some() => (1, "Space to carry on"),
             Phase::Hunt if self.talk.prompt.is_some() => {
                 (1, "Answer if you like, or Esc to let it pass")
@@ -900,7 +909,7 @@ impl Game {
             ),
             Phase::Hunt if self.free_look() => (
                 1,
-                "Drag to look around, and click anything that glows. F for the guided way",
+                "Drag to look around, and click anything that glows to read about it. F for the guided way",
             ),
             Phase::Hunt if self.caught.iter().any(|c| *c) => (
                 1,
@@ -924,8 +933,10 @@ impl Game {
         };
         // When the wisp has nothing more to say and something is asked of
         // the user, say so: it's their turn.
-        let yours =
-            !self.wisp_busy(real) && matches!(self.session.phase(), Phase::Weights | Phase::Hunt);
+        // In free look nothing is asked: it's theirs all along.
+        let yours = !self.wisp_busy(real)
+            && matches!(self.session.phase(), Phase::Weights | Phase::Hunt)
+            && !(self.hunting() && self.free_look());
         Some(Evening {
             step,
             now: if yours {

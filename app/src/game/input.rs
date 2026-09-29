@@ -27,9 +27,10 @@ impl Game {
         }
         self.catch = Catch::default();
         self.ring_resting = false;
+        self.free_since = real;
         self.status_for(
             if free {
-                "Free look: drag to look around, and click anything that glows"
+                "Free look: drag to look around, and click anything that glows to read about it"
             } else {
                 "Guided: Space carries on, and the ring catches what's in it"
             }
@@ -381,6 +382,11 @@ impl Game {
             return;
         }
         if self.click_hovered(x, y, real) {
+            return;
+        }
+        // Free look: a click on empty sky puts the card away.
+        if self.free_look() && self.card.is_some() {
+            self.dismiss_card(real);
             return;
         }
         if !self.hunting() {

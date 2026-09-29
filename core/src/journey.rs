@@ -65,9 +65,16 @@ pub struct DayLines {
     pub help: String,
 }
 
+/// What the wisp says in free look, where it mostly keeps quiet.
+#[derive(Deserialize)]
+pub struct FreeLines {
+    pub suggest: String,
+}
+
 #[derive(Deserialize)]
 pub struct Lines {
     pub day: DayLines,
+    pub free: FreeLines,
     greeting: Vec<Greeting>,
     pub round: Round,
     pub news: News,

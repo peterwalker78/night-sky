@@ -38,6 +38,9 @@ pub struct Flight {
     /// How squashed (below 0) or stretched (above 0) it is, on a spring.
     squash: f64,
     squash_v: f64,
+    /// Drifting rather than darting: a softer spring, a lower top speed
+    /// and a sparser trail, for keeping someone company without fuss.
+    pub gentle: bool,
 }
 
 /// Smooth noise: a gentle wander through -1 to 1 that never repeats, from
@@ -83,6 +86,7 @@ impl Flight {
             heading: 0.0,
             squash: 0.0,
             squash_v: 0.0,
+            gentle: false,
         }
     }
 
@@ -164,16 +168,21 @@ impl Flight {
         if gathering {
             (ax, ay) = (self.x, self.y + 4.0);
         }
+        let (spring, damping, top) = if self.gentle {
+            (SPRING * 0.3, DAMPING * 0.55, TOP_SPEED * 0.3)
+        } else {
+            (SPRING, DAMPING, TOP_SPEED)
+        };
         let (fx, fy) = (
-            SPRING * (ax - self.x) - DAMPING * self.vx,
-            SPRING * (ay - self.y) - DAMPING * self.vy,
+            spring * (ax - self.x) - damping * self.vx,
+            spring * (ay - self.y) - damping * self.vy,
         );
         self.vx += fx * dt;
         self.vy += fy * dt;
         let speed = self.speed();
-        if speed > TOP_SPEED {
-            self.vx *= TOP_SPEED / speed;
-            self.vy *= TOP_SPEED / speed;
+        if speed > top {
+            self.vx *= top / speed;
+            self.vy *= top / speed;
         }
         self.x += self.vx * dt;
         self.y += self.vy * dt;
@@ -194,7 +203,11 @@ impl Flight {
         // Embers: a stream while it flies, a spark now and then while it
         // hovers, and none once it's home on its moss.
         let speed = self.speed();
-        let every = if speed > 60.0 { 14.0 } else { 260.0 };
+        let every = match (speed > 60.0, self.gentle) {
+            (true, false) => 14.0,
+            (true, true) => 70.0,
+            _ => 260.0,
+        };
         if self.home && speed <= 60.0 {
             self.last_ember = t;
         }

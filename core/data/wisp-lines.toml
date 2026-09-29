@@ -140,6 +140,11 @@ risen = "{name} has come up since you put me on, {where}."
 late = "It's getting late. Whenever you're ready, W winds down and I'll see you off to bed."
 closing = "That's been a good long while. I'll wind down now, and the music with me."
 
+# Free look, where the wisp keeps quiet: once, after a good while looking
+# around, it suggests a moment of the guided evening.
+[free]
+suggest = "You've been looking around a good while. Whenever you like, F brings me back for a question or a story, or W starts winding down."
+
 # By day, looking down at the ground instead of up at the stars.
 [day]
 first = [
