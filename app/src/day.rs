@@ -463,6 +463,7 @@ impl Game {
         // Left of the middle, so the wisp beside it stays clear of the list.
         let x = (self.camera.width / 2.0 - 240.0).max(20.0);
         self.card = Some(Card {
+            footnote: None,
             picture: None,
             find: None,
             x,
@@ -795,6 +796,7 @@ impl Game {
         let (sprites, bubble, embers) = self.guide_frame(real, gain.max(0.3));
         let card = self.card_view(real);
         crate::view::Frame {
+            glows: Vec::new(),
             points: std::mem::take(&mut self.points),
             silhouettes: self.day_life(real),
             marks: embers,

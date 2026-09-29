@@ -111,6 +111,8 @@ pub(crate) struct Catch {
 pub(crate) struct Card {
     /// A photograph for the card itself, by its id.
     pub(crate) picture: Option<String>,
+    /// A small line at the foot: whose the photograph in the sky is.
+    pub(crate) footnote: Option<String>,
     /// The find it's about, if it's one of tonight's.
     pub(crate) find: Option<usize>,
     pub(crate) x: f64,
@@ -126,6 +128,8 @@ pub(crate) struct Card {
 pub(crate) enum Eye {
     Find(usize),
     Piece(usize),
+    /// A planet or the Moon looked at close up, not one of tonight's finds.
+    Body(Body),
 }
 
 /// A full frame kept for reuse, less the wisp and anything alive.
@@ -258,6 +262,14 @@ pub struct Game {
     /// Where the pointer is over the sky, and when it last moved.
     pub(crate) pointer: Option<(f64, f64, UnixMs)>,
     pub(crate) hovered: Option<crate::hover::Hovered>,
+    /// What's glowing near the pointer, in free look.
+    pub(crate) glowing: Vec<crate::hover::GlowState>,
+    /// How far the ring round what the pointer is on has come in.
+    pub(crate) ring_level: f64,
+    /// Something clicked in free look, being looked at close up.
+    pub(crate) inspect: Option<detail::Inspect>,
+    /// Until when the view is still backing out from a close look.
+    pub(crate) backing_out: UnixMs,
     /// How tonight ends, once chosen.
     pub(crate) ending: Option<Ending>,
     /// The guide has offered to wind down.
@@ -574,6 +586,10 @@ impl Game {
             leaving_card: None,
             pointer: None,
             hovered: None,
+            glowing: Vec::new(),
+            ring_level: 0.0,
+            inspect: None,
+            backing_out: 0,
             ending: None,
             offered_wind_down: false,
             plan_marks,
@@ -727,6 +743,7 @@ impl Game {
             if self.by_day() {
                 frame.silhouettes = self.day_life(real);
             }
+            self.overlay(&mut frame, real, dt);
             return frame;
         }
         let mut frame = if self.by_day() {
@@ -743,6 +760,7 @@ impl Game {
             size: (self.camera.width, self.camera.height),
             brightness: self.sprite_brightness,
             frame: Frame {
+                glows: Vec::new(),
                 sprites: Vec::new(),
                 bubble: None,
                 marks: Vec::new(),
@@ -750,7 +768,19 @@ impl Game {
                 ..frame.clone()
             },
         });
+        self.overlay(&mut frame, real, dt);
         frame
+    }
+
+    /// What follows the pointer, drawn fresh every frame over a full or a
+    /// reused one.
+    fn overlay(&mut self, frame: &mut Frame, real: UnixMs, dt: f64) {
+        if self.by_day() || self.keeping() {
+            return;
+        }
+        let (glows, texts) = self.hover_overlay(real, dt);
+        frame.glows = glows;
+        frame.texts.extend(texts);
     }
 
     /// Everything that isn't drawing: the arc of the visit, company, what's
@@ -894,7 +924,7 @@ impl Game {
             ),
             Phase::Hunt if self.tour.is_some() => (1, "Space goes on, Esc stops here"),
             Phase::Hunt if self.card.is_some() && self.free_look() => {
-                (1, "Click the sky, or Esc, to put the card away")
+                (1, "Esc, or a click on the sky, zooms back out")
             }
             Phase::Hunt if self.card.is_some() => (1, "Space to carry on"),
             Phase::Hunt if self.talk.prompt.is_some() => {
@@ -909,7 +939,7 @@ impl Game {
             ),
             Phase::Hunt if self.free_look() => (
                 1,
-                "Drag to look around, and click anything that glows to read about it. F for the guided way",
+                "Drag to look around, and click anything that glows for a closer look. F for the guided way",
             ),
             Phase::Hunt if self.caught.iter().any(|c| *c) => (
                 1,

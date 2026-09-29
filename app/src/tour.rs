@@ -258,6 +258,7 @@ impl Game {
             self.beside_centre()
         };
         self.card = Some(Card {
+            footnote: None,
             picture: None,
             find: None,
             x,

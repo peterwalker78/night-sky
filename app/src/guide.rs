@@ -56,6 +56,8 @@ pub enum Aim {
     Evening,
     /// Something at a place on the screen, in pixels.
     Spot(f64, f64),
+    /// Hanging about at a place on the screen, looking at another.
+    Hang(f64, f64, f64, f64),
 }
 
 #[derive(Clone)]
@@ -243,6 +245,13 @@ impl Game {
         self.mark_seen(key);
         self.say_at(aim, text, real, hold);
         true
+    }
+
+    /// Home to its moss now, with nothing to linger for.
+    pub(crate) fn wisp_home(&mut self, real: UnixMs) {
+        self.guide.aim = Aim::Home;
+        self.guide.pointing_since = None;
+        self.guide.busy_until = real;
     }
 
     /// Flies somewhere without saying anything, and lingers a while.
@@ -819,7 +828,7 @@ impl Game {
     pub(crate) fn guide_help(&mut self, real: UnixMs) {
         self.say_at(
             Aim::Near(0.32, 0.5),
-            "Arrows or a drag look around. Tapping Space carries on: the wisp's next word, then past a card, then to the next find (Enter does the same). Tab goes back to the first thing on the list you haven't seen yet. Hold Space to catch whatever's in the ring, or click the list to turn to something. F switches to free look: drag to look around and click anything that glows to read all about it, then click again or press Esc to put the card away. In free look the wisp keeps quiet and only drifts over to keep you company; F brings it back. Point at anything to see what it is. C draws, L opens the logbook, M changes the music's style (and after the last, turns it off), K keeps you company in the background, and W winds down. The button top left opens the menu.",
+            "Arrows or a drag look around. Tapping Space carries on: the wisp's next word, then past a card, then to the next find (Enter does the same). Tab goes back to the first thing on the list you haven't seen yet. Hold Space to catch whatever's in the ring, or click the list to turn to something. F switches to free look: drag to look around, and click anything that glows to close in on it and read all about it; Esc, or a click on the sky, zooms back out. In free look the wisp keeps quiet and only drifts over to keep you company; F brings it back. Point at anything to see what it is. C draws, L opens the logbook, M changes the music's style (and after the last, turns it off), K keeps you company in the background, and W winds down. The button top left opens the menu.",
             real,
             15_000,
         );
@@ -1133,6 +1142,7 @@ impl Game {
                 }
             }
             Aim::Spot(x, y) => (beside(x, y), Some((x, y))),
+            Aim::Hang(x, y, px, py) => ((x, y), Some((px, py))),
             Aim::Moon(f) => match self.moon_spot(f) {
                 Some((x, y, _)) => {
                     // Hover just off the place, towards the middle of the disc.

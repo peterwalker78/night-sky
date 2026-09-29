@@ -30,7 +30,7 @@ impl Game {
         self.free_since = real;
         self.status_for(
             if free {
-                "Free look: drag to look around, and click anything that glows to read about it"
+                "Free look: drag to look around, and click anything that glows for a closer look"
             } else {
                 "Guided: Space carries on, and the ring catches what's in it"
             }
@@ -350,6 +350,7 @@ impl Game {
             Phase::Hunt | Phase::Arrival | Phase::Dimming
         ) {
             self.look = None;
+            self.let_go();
             self.camera.fov *= 1.12f64.powf(dy);
             self.camera.update();
         }
@@ -473,6 +474,7 @@ impl Game {
                 _ => self.track = None,
             }
         }
+        self.inspect_steer();
         if let Some(look) = self.look {
             let k = 1.0 - (-dt * look.rate * 2.0).exp();
             let daz = turn(self.camera.az, look.az);

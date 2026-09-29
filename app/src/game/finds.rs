@@ -99,6 +99,16 @@ impl Game {
     /// How narrow the view goes to show a find close up.
     pub(super) fn zoom_for(&self, i: usize) -> f64 {
         match self.finds[i].target {
+            // A hop keeps the view wide enough to see the next step.
+            Target::Hop(_) => self.catch.fov_before.unwrap_or(self.camera.fov),
+            Target::MoonWalk => self.moon_walk_fov(),
+            ref target => self.zoom_for_target(target),
+        }
+    }
+
+    /// How narrow the view goes to show something close up.
+    pub(super) fn zoom_for_target(&self, target: &Target) -> f64 {
+        match *target {
             // Close enough for the disc to fill about a quarter of the view.
             Target::Body(body) => {
                 let d = see(body, self.observer, self.clock.sky(self.last_real))
@@ -126,10 +136,8 @@ impl Game {
             Target::Figure(f) => self.sky.figures[f]
                 .centre(&self.sky.stars)
                 .map_or(60.0, |(_, reach)| (reach * 3.0).clamp(20.0, 100.0)),
-            // A hop keeps the view wide enough to see the next step.
-            Target::Hop(_) => self.catch.fov_before.unwrap_or(self.camera.fov),
             Target::Story(_) => 50.0,
-            Target::MoonWalk => self.moon_walk_fov(),
+            Target::Hop(_) | Target::MoonWalk => self.camera.fov,
         }
     }
 
@@ -343,6 +351,7 @@ impl Game {
             && !self.keeping()
             && !self.finds.is_empty()
             && self.eye_alpha < 0.3
+            && self.inspect.is_none()
     }
 
     /// Tab: back to the first thing on the list not yet seen, whether it

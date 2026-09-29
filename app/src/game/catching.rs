@@ -47,19 +47,12 @@ impl Game {
         if let Target::Figure(f) = self.finds[i].target {
             self.reveal = Some((f, real));
         }
-        // Free look: the card tells all there is, and the wisp only drifts
-        // over; questions wait for the guided way.
+        // Free look: a close look, with all there is to tell; questions
+        // wait for the guided way.
         if self.free_look() {
-            let now = self.sky_now(real);
-            let spot = self
-                .find_dir(i, now, &horizon(self.observer, now), &precession(now))
-                .and_then(|v| self.camera.project(v));
-            let x = spot.map_or(self.camera.width / 2.0, |s| s.0);
-            if !self.show_detail(Subject::Find(i), x, real) {
+            let x = self.pointer.map_or(self.camera.width / 2.0, |p| p.0);
+            if !self.inspect(Subject::Find(i), x, real) {
                 self.show_find_card(i, real);
-            }
-            if let Some((sx, sy)) = spot {
-                self.visit(sx, sy, real);
             }
             return;
         }
@@ -88,6 +81,7 @@ impl Game {
             }
         }
         self.card = Some(Card {
+            footnote: None,
             picture: self.card_picture(i),
             find: Some(i),
             x,
@@ -132,8 +126,8 @@ impl Game {
         self.catch.progress = 0.0;
         self.catch.target = None;
         if self.free_look() {
-            // Home again, quietly.
-            self.fly(crate::guide::Aim::Home, real, 0);
+            // Back out to where the view was, and the wisp home.
+            self.end_inspect(real);
             return;
         }
         if self.session.all_found() && self.hunting() {
@@ -300,6 +294,8 @@ impl Game {
             });
         let card = self.card.as_ref().map(|c| crate::view::CardView {
             picture: picture.clone(),
+            footnote: c.footnote.clone(),
+            middle: self.inspect.is_some() && !compact,
             // In a small window it takes the middle.
             x: if compact {
                 (self.camera.width - width) / 2.0
@@ -308,7 +304,11 @@ impl Game {
             },
             width,
             compact,
-            y: (self.camera.height / 2.0 - 70.0).max(70.0) + rise(real - c.shown),
+            y: if self.inspect.is_some() && !compact {
+                self.camera.height / 2.0
+            } else {
+                (self.camera.height / 2.0 - 70.0).max(70.0)
+            } + rise(real - c.shown),
             kicker: c.kicker.clone(),
             title: c.title.clone(),
             body: c.body.clone(),
@@ -318,10 +318,7 @@ impl Game {
                     ("Space".into(), "go on".into()),
                     ("Esc".into(), "stop here".into()),
                 ],
-                None if self.free_look() => vec![
-                    ("Click".into(), "the sky to close".into()),
-                    ("Esc".into(), "close".into()),
-                ],
+                None if self.free_look() => vec![("Esc".into(), "zoom back out".into())],
                 None => vec![("Space".into(), "carry on".into())],
             },
             alpha: envelope(real - c.shown, 350, 600_000, 800),

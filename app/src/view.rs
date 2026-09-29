@@ -98,6 +98,24 @@ pub struct CardView {
     pub compact: bool,
     /// A photograph at the top, and whose it is.
     pub picture: Option<(gdk::Texture, String)>,
+    /// A small line under the words.
+    pub footnote: Option<String>,
+    /// Centred up and down on `y`, rather than hanging from it.
+    pub middle: bool,
+}
+
+/// A soft light round something worth a click, and a fine ring round the
+/// one the pointer is on.
+#[derive(Clone, Debug)]
+pub struct Glow {
+    pub x: f64,
+    pub y: f64,
+    /// How big the thing itself is on the screen.
+    pub radius: f64,
+    /// 0 to 1: how lit.
+    pub strength: f64,
+    /// 0 to 1: the ring's opacity.
+    pub ring: f64,
 }
 
 /// A photograph of what's being looked at, set into the sky at its true size.
@@ -178,6 +196,9 @@ pub struct Legend {
 #[derive(Default, Clone)]
 pub struct Frame {
     pub legend: Option<Legend>,
+    /// What's worth a click, lit as the pointer comes near: drawn smooth,
+    /// over the dots, every frame.
+    pub glows: Vec<Glow>,
     pub points: Vec<Point>,
     /// Living things moving about: drawn fresh every frame.
     pub silhouettes: Vec<Silhouette>,
@@ -368,7 +389,14 @@ fn draw_card(widget: &gtk::Widget, snapshot: &gtk::Snapshot, c: &CardView) {
             Some(inner as f64),
         )
     });
-    let text_h = pad + kh as f32 + 6.0 + th as f32 + 10.0 + bh as f32 + keys_h + pad;
+    let footnote = c
+        .footnote
+        .as_ref()
+        .map(|f| layout(widget, f, 10.5, false, Some(inner as f64)));
+    let foot_h = footnote
+        .as_ref()
+        .map_or(0.0, |l| l.pixel_size().1 as f32 + 10.0);
+    let text_h = pad + kh as f32 + 6.0 + th as f32 + 10.0 + bh as f32 + foot_h + keys_h + pad;
     let pic_h = c.picture.as_ref().map_or(0.0, |(t, _)| {
         let natural = inner * t.height() as f32 / t.width().max(1) as f32;
         natural
@@ -385,7 +413,12 @@ fn draw_card(widget: &gtk::Widget, snapshot: &gtk::Snapshot, c: &CardView) {
     };
     let height = text_h + top_h;
     // Kept on the screen, however short the window.
-    let (x, y) = (c.x as f32, (c.y as f32).min(room - height - 8.0).max(8.0));
+    let top = if c.middle {
+        c.y as f32 - height / 2.0
+    } else {
+        c.y as f32
+    };
+    let (x, y) = (c.x as f32, top.min(room - height - 8.0).max(8.0));
     panel(snapshot, &graphene::Rect::new(x, y, width, height), 14.0, a);
     let mut cy = y + pad;
     if top_h > 0.0
@@ -439,6 +472,16 @@ fn draw_card(widget: &gtk::Widget, snapshot: &gtk::Snapshot, c: &CardView) {
         gdk::RGBA::new(0.86, 0.88, 0.93, 0.92 * a),
     );
     cy += bh as f32 + 16.0;
+    if let Some(l) = &footnote {
+        text_at(
+            snapshot,
+            l,
+            x + pad,
+            cy - 4.0,
+            gdk::RGBA::new(0.8, 0.83, 0.9, 0.5 * a),
+        );
+        cy += foot_h;
+    }
     let mut kx = x + pad;
     for (key, words) in &c.keys {
         kx += keycap(widget, snapshot, key, kx, cy, a) + 6.0;
@@ -520,6 +563,44 @@ fn draw_point(snapshot: &gtk::Snapshot, p: &Point) {
     snapshot.push_rounded_clip(&gsk::RoundedRect::from_rect(rect, p.radius));
     snapshot.append_color(&gdk::RGBA::new(r, g, b, p.alpha.min(1.0)), &rect);
     snapshot.pop();
+}
+
+fn draw_glow(snapshot: &gtk::Snapshot, g: &Glow) {
+    let (x, y) = (g.x as f32, g.y as f32);
+    let s = g.strength.clamp(0.0, 1.0) as f32;
+    if s > 0.004 {
+        // Warm at the heart, fading to nothing: wider and brighter the nearer.
+        let core = g.radius.max(2.0) as f32;
+        let reach = core + 12.0 + 30.0 * s;
+        let warm = |a: f32| gdk::RGBA::new(1.0, 0.9, 0.72, a);
+        let stops = [
+            gsk::ColorStop::new(0.0, warm(0.6 * s)),
+            gsk::ColorStop::new(core / reach, warm(0.38 * s)),
+            gsk::ColorStop::new((core / reach + 1.0) / 2.0, warm(0.1 * s)),
+            gsk::ColorStop::new(1.0, warm(0.0)),
+        ];
+        snapshot.append_radial_gradient(
+            &graphene::Rect::new(x - reach, y - reach, 2.0 * reach, 2.0 * reach),
+            &graphene::Point::new(x, y),
+            reach,
+            reach,
+            0.0,
+            1.0,
+            &stops,
+        );
+    }
+    let ring = g.ring.clamp(0.0, 1.0) as f32;
+    if ring > 0.004 {
+        // Settling inwards as it appears.
+        let r = (g.radius.max(3.0) + 7.0 + 5.0 * (1.0 - g.ring)) as f32;
+        let rect = graphene::Rect::new(x - r, y - r, 2.0 * r, 2.0 * r);
+        let colour = gdk::RGBA::new(0.9, 0.93, 1.0, 0.55 * ring);
+        snapshot.append_border(
+            &gsk::RoundedRect::from_rect(rect, r),
+            &[1.2; 4],
+            &[colour; 4],
+        );
+    }
 }
 
 fn draw_eyepiece(_widget: &gtk::Widget, snapshot: &gtk::Snapshot, e: &Eyepiece) {
@@ -742,6 +823,9 @@ mod imp {
             }
             for l in &frame.lines {
                 draw_line(snapshot, l);
+            }
+            for g in &frame.glows {
+                draw_glow(snapshot, g);
             }
             if let Some(e) = &frame.eyepiece
                 && e.alpha > 0.004

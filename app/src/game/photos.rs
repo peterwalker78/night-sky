@@ -82,6 +82,17 @@ impl Game {
         if !matches!(self.session.phase(), Phase::Hunt | Phase::Dimming) || self.drawing.is_some() {
             return None;
         }
+        // Whatever's being looked at close up comes first.
+        if let Some(eye) = self
+            .inspect
+            .as_ref()
+            .and_then(|i| self.inspect_eye(i.subject))
+            && let Some(v) = self.eye_dir(eye, now, hz, prec)
+            && alt_az(v).0 > 0.0
+        {
+            let half = self.target_half(&self.eye_of(eye), self.camera.fov);
+            return Some((eye, smoothstep((half - 12.0) / 50.0))).filter(|e| e.1 > 0.0);
+        }
         let (cx, cy) = (self.camera.width / 2.0, self.camera.height / 2.0);
         // Tonight's finds once caught, and anything else pictured that the
         // view has closed in on: a telescope would show it too.
@@ -125,6 +136,7 @@ impl Game {
         match eye {
             Eye::Find(i) => self.finds[i].target.clone(),
             Eye::Piece(p) => Target::Showpiece(p),
+            Eye::Body(b) => Target::Body(b),
         }
     }
 
@@ -135,6 +147,10 @@ impl Game {
                 let piece = &self.sky.lists.showpieces[p];
                 Some(apply(hz, apply(prec, unit(piece.ra, piece.dec))))
             }
+            Eye::Body(b) => {
+                let s = see(b, self.observer, now);
+                Some(from_alt_az(s.alt, s.az))
+            }
         }
     }
 
@@ -142,6 +158,11 @@ impl Game {
         match eye {
             Eye::Find(i) => self.photo_id(i),
             Eye::Piece(p) => Some(self.sky.lists.showpieces[p].id.clone()),
+            Eye::Body(b) => self
+                .photos
+                .credit(b.id())
+                .filter(|c| !c.card_only)
+                .map(|_| b.id().to_owned()),
         }
     }
 

@@ -4,13 +4,24 @@
 //! click turns the view to it instead, so it can be caught.
 
 use crate::game::{Card, Game, Subject, envelope};
-use crate::view::{Point, Text};
+use crate::view::{Glow, Text};
 use westering_core::catalogues::Kind;
 use westering_core::coords::{Mat3, alt_az, apply, from_alt_az, unit};
 use westering_core::ephem::Body;
 use westering_core::finds::Target;
 use westering_core::sky::see;
 use westering_core::time::{UnixMs, civil_date};
+
+/// Something lit by the pointer's nearness, easing towards how lit it
+/// should be.
+pub(crate) struct GlowState {
+    key: String,
+    x: f64,
+    y: f64,
+    radius: f64,
+    level: f64,
+    target: f64,
+}
 
 /// Something the pointer is over.
 #[derive(Clone, Debug, PartialEq)]
@@ -39,7 +50,7 @@ const NAMELESS: f32 = 4.5;
 /// hands.
 const BORROWED: [(u16, &str); 3] = [(2451, "Pup"), (6056, "Oph"), (6698, "Oph")];
 /// How far from the pointer things start to glow, in free look.
-const GLOW_REACH: f64 = 90.0;
+const GLOW_REACH: f64 = 260.0;
 /// A hint fades once the pointer has been still this long.
 const STILL_MS: UnixMs = 4_000;
 
@@ -440,71 +451,102 @@ impl Game {
         all
     }
 
-    /// The hint beside the pointer, and a faint ring round what it names.
-    /// It waits for the pointer to settle a moment, so sweeping across the
-    /// sky doesn't flicker names.
-    pub(crate) fn hover_frame(
-        &mut self,
-        real: UnixMs,
-        now: UnixMs,
-        hz: &Mat3,
-        prec: &Mat3,
-    ) -> Vec<Text> {
-        let mut out = Vec::new();
-        let Some((px, py, since)) = self.pointer.filter(|_| self.hinting()) else {
+    /// Looks round the pointer, on the frames the sky is drawn: what it's
+    /// on, and in free look everything near enough to glow and how much.
+    pub(crate) fn hover_scan(&mut self, now: UnixMs, hz: &Mat3, prec: &Mat3) {
+        for g in &mut self.glowing {
+            g.target = 0.0;
+        }
+        let Some((px, py, _)) = self.pointer.filter(|_| self.hinting()) else {
             self.hovered = None;
-            return out;
+            return;
         };
-        let free = self.free_look();
-        // Free look: everything with something to tell glows as the pointer
-        // comes near, brighter the nearer, so nothing is missed.
-        if free {
+        let looking_at = self.inspect.as_ref().map(|i| i.subject);
+        // Not while looking at something close up: nothing competes with it.
+        if self.free_look() && self.inspect.is_none() {
             for (d, h) in self.near(px, py, now, hz, prec, GLOW_REACH) {
-                if h.find.is_none() && h.more.is_none() {
+                if (h.find.is_none() && h.more.is_none()) || Some(h.subject) == looking_at {
                     continue;
                 }
+                // Faint at the edge of reach, coming alive the nearer it is.
                 let close = (1.0 - d.max(0.0) / GLOW_REACH).clamp(0.0, 1.0);
-                self.marks.push(Point {
-                    x: h.x,
-                    y: h.y,
-                    radius: (h.radius.max(2.0) + 2.0) as f32,
-                    color: [1.0, 0.88, 0.62],
-                    alpha: (0.25 + 0.5 * close * close) as f32,
-                    halo: (0.5 + 0.5 * close) as f32,
-                });
+                let target = 0.22 + 0.78 * close.powf(1.3);
+                let key = format!("{:?} {}", h.subject, h.name);
+                match self.glowing.iter_mut().find(|g| g.key == key) {
+                    Some(g) => {
+                        (g.x, g.y, g.radius, g.target) = (h.x, h.y, h.radius, target);
+                    }
+                    None => self.glowing.push(GlowState {
+                        key,
+                        x: h.x,
+                        y: h.y,
+                        radius: h.radius,
+                        level: 0.0,
+                        target,
+                    }),
+                }
             }
         }
-        self.hovered = self.pick(px, py, now, hz, prec);
-        let Some(h) = &self.hovered else {
-            return out;
+        self.hovered = self
+            .pick(px, py, now, hz, prec)
+            .filter(|h| Some(h.subject) != looking_at || h.subject == Subject::Plain);
+    }
+
+    /// The glows, the ring round what the pointer is on and the words
+    /// beside it, eased every frame so nothing flickers or pops.
+    pub(crate) fn hover_overlay(&mut self, real: UnixMs, dt: f64) -> (Vec<Glow>, Vec<Text>) {
+        let mut glows = Vec::new();
+        let mut out = Vec::new();
+        let (rise, fall) = (1.0 - (-dt / 0.12).exp(), 1.0 - (-dt / 0.35).exp());
+        for g in &mut self.glowing {
+            let k = if g.target > g.level { rise } else { fall };
+            g.level += (g.target - g.level) * k;
+        }
+        self.glowing.retain(|g| g.target > 0.0 || g.level > 0.01);
+        let shown = self.pointer.is_some() && self.hinting();
+        let hovered = self.hovered.clone().filter(|_| shown);
+        for g in &self.glowing {
+            glows.push(Glow {
+                x: g.x,
+                y: g.y,
+                radius: g.radius,
+                strength: g.level,
+                ring: 0.0,
+            });
+        }
+        let free = self.free_look();
+        let Some(h) = hovered else {
+            self.ring_level += (0.0 - self.ring_level) * fall;
+            return (glows, out);
         };
         // What's in the ring already has its own label.
         if h.find.is_some() && h.find == self.catch.target {
-            return out;
+            return (glows, out);
         }
+        let since = self.pointer.map_or(real, |p| p.2);
         // Up a moment after the pointer settles, gone a while after it stops;
         // at once in free look, where pointing is the way to find things.
         let a = if free {
-            envelope(real - since, 60, STILL_MS * 3, 1_200)
+            envelope(real - since, 90, STILL_MS * 3, 1_200)
         } else {
             envelope(real - since - 150, 200, STILL_MS, 1_200)
         };
-        if a <= 0.0 {
-            return out;
-        }
-        let r = h.radius.max(3.0) + 7.0;
-        for k in 0..18 {
-            let t = k as f64 / 18.0 * std::f64::consts::TAU;
-            self.marks.push(Point {
-                x: h.x + r * t.cos(),
-                y: h.y + r * t.sin(),
-                radius: 1.0,
-                color: [0.85, 0.9, 1.0],
-                alpha: (0.45 * a) as f32,
-                halo: 0.0,
+        let k = if a > self.ring_level { rise } else { fall };
+        self.ring_level += (a - self.ring_level) * k;
+        if self.ring_level > 0.004 {
+            glows.push(Glow {
+                x: h.x,
+                y: h.y,
+                radius: h.radius,
+                strength: 0.0,
+                ring: self.ring_level,
             });
         }
+        if a <= 0.0 {
+            return (glows, out);
+        }
         // Beside the pointer, kept on the screen.
+        let (px, py) = self.pointer.map_or((h.x, h.y), |p| (p.0, p.1));
         let (w, hgt) = (self.camera.width, self.camera.height);
         // Clear of the Tonight list on the right when it's showing.
         let right = if self.show_tonight() { w - 310.0 } else { w };
@@ -516,13 +558,16 @@ impl Game {
         let y = (py + 14.0).min(hgt - 60.0);
         out.push(Text::new(x, y, h.name.clone(), 14.0, 0.92 * a).bold());
         let action = match (h.find.is_some(), h.more.is_some()) {
-            (true, _) if free => format!("{} · one of tonight's finds · click to catch it", h.kind),
+            (true, _) if free => {
+                format!("{} · one of tonight's finds · click to look closer", h.kind)
+            }
             (true, _) => format!("{} · one of tonight's finds · click to turn to it", h.kind),
+            (false, true) if free => format!("{} · click to look closer", h.kind),
             (false, true) => format!("{} · click for more", h.kind),
             (false, false) => h.kind.clone(),
         };
         out.push(Text::new(x, y + 19.0, action, 12.0, 0.6 * a).color([0.82, 0.86, 0.95]));
-        out
+        (glows, out)
     }
 
     /// A click on something named: more about it, or a turn to one of
@@ -540,19 +585,13 @@ impl Game {
         // Free look: a find is caught with the click, once close enough in
         // to see, and anything tells all there is about it, quietly.
         if self.free_look() {
-            if let Some(i) = h.find {
-                if self.catchable(i) {
-                    self.caught_one(i, real);
-                } else {
-                    self.turn_to(i, real);
-                }
-                return true;
+            match h.find {
+                Some(i) if self.caught[i] => return self.inspect(Subject::Find(i), x, real),
+                Some(i) if self.catchable(i) => self.caught_one(i, real),
+                Some(i) => self.turn_to(i, real),
+                None => return self.inspect(h.subject, x, real),
             }
-            let shown = self.show_detail(h.subject, h.x, real);
-            if shown {
-                self.visit(h.x, h.y, real);
-            }
-            return shown;
+            return true;
         }
         if let Some(i) = h.find {
             // The guided way turns to it, for the ring.
@@ -563,6 +602,7 @@ impl Game {
             return false;
         };
         self.card = Some(Card {
+            footnote: None,
             picture: None,
             find: None,
             x: self.beside_centre(),

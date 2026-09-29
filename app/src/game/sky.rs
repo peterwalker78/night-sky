@@ -509,11 +509,14 @@ impl Game {
         }
         texts.extend(self.words(real, brightness));
         if !self.keeping() {
-            texts.extend(self.hover_frame(real, now, hz, prec));
+            self.hover_scan(now, hz, prec);
         }
         self.sprite_brightness = brightness;
         let (sprites, bubble, embers) = self.guide_frame(real, brightness);
+        // Looking at something close up, its card tells all this instead.
         if let Some(eye) = self.eye
+            && self.inspect.is_none()
+            && real > self.backing_out
             && self.eye_alpha > 0.05
             && let Some(c) = self
                 .eye_photo(eye)
@@ -556,6 +559,7 @@ impl Game {
                 bottom: compact(cam.width, cam.height),
             });
         Frame {
+            glows: Vec::new(),
             legend: self.legend(dt),
             silhouettes: Vec::new(),
             eyepiece,
@@ -597,7 +601,7 @@ impl Game {
                     (vec!["Scroll".into()], "zoom in and out".into()),
                     (
                         vec!["Click".into()],
-                        "read about anything that glows".into(),
+                        "a closer look at anything that glows".into(),
                     ),
                     (vec!["F".into()], "the guided way, with the wisp".into()),
                     (vec!["?".into()], "all the keys".into()),
