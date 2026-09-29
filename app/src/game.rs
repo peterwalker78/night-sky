@@ -195,6 +195,8 @@ pub struct Game {
     pub(crate) last_input: UnixMs,
     /// When Space went down, to tell a tap from a hold.
     pub(crate) space_since: Option<UnixMs>,
+    /// After a story or a walk, the ring rests until the view moves on.
+    pub(crate) ring_resting: bool,
     /// Which of tonight's finds have been seen: caught with the card up
     /// long enough to read, or a story begun.
     pub(crate) viewed: Vec<bool>,
@@ -526,6 +528,7 @@ impl Game {
             finale_turned: false,
             last_input: real_now,
             space_since: None,
+            ring_resting: false,
             viewed,
             told_tab: false,
             legend_mix: 0.0,
@@ -923,6 +926,34 @@ impl Game {
         self.last_input = real;
     }
 
+    /// Looking around with the mouse, rather than the keyboard and the
+    /// ring. Never by day, where there's no ring.
+    pub(crate) fn free_look(&self) -> bool {
+        self.journal.settings.free_look && !self.by_day()
+    }
+
+    /// F: between the guided way, with the keyboard and the ring, and free
+    /// look, with the mouse. Kept for next time.
+    pub(crate) fn toggle_look(&mut self, real: UnixMs) {
+        let free = !self.journal.settings.free_look;
+        self.journal.settings.free_look = free;
+        if let Err(e) = self.journal.save_settings() {
+            eprintln!("westering: couldn't save settings: {e}");
+        }
+        self.catch = Catch::default();
+        self.ring_resting = false;
+        self.status_for(
+            if free {
+                "Free look: drag to look around, and click anything that glows"
+            } else {
+                "Guided: Space carries on, and the ring catches what's in it"
+            }
+            .into(),
+            real,
+            4_000,
+        );
+    }
+
     /// A little louder or quieter, and kept.
     fn nudge_volume(&mut self, by: f64, real: UnixMs) {
         let v = (self.volume() + by).clamp(0.0, 1.0);
@@ -1074,6 +1105,9 @@ impl Game {
             self.end_tour(real);
             self.dismiss_card(real);
         }
+        if arrow {
+            self.ring_resting = false;
+        }
         match key {
             gdk::Key::Left => self.held.left = true,
             gdk::Key::Right => self.held.right = true,
@@ -1083,6 +1117,7 @@ impl Game {
             gdk::Key::w | gdk::Key::W => self.wind_down(real),
             gdk::Key::m | gdk::Key::M => self.toggle_music(real),
             gdk::Key::k | gdk::Key::K => self.toggle_company(real),
+            gdk::Key::f | gdk::Key::F => self.toggle_look(real),
             gdk::Key::c | gdk::Key::C => {
                 if self.hunting() && self.card.is_none() && self.talk.prompt.is_none() {
                     self.start_drawing(real);
@@ -1103,6 +1138,7 @@ impl Game {
                     && self.talk.prompt.is_none()
                     && !self.more_now()
                     && self.hunting()
+                    && !self.free_look()
                 {
                     self.catch.holding = true;
                     if self.catch.target.is_none() {
@@ -1174,7 +1210,7 @@ impl Game {
         }
         self.guide_next(real);
         // Something is already in the ring: don't swing away from it.
-        if self.catch.target.is_some() {
+        if self.catch.target.is_some() && !self.free_look() && !self.ring_resting {
             self.status("Hold Space to catch it".into(), real);
             return true;
         }
@@ -1209,6 +1245,7 @@ impl Game {
     }
 
     pub fn drag_begin(&mut self, real: UnixMs) {
+        self.ring_resting = false;
         self.input(real);
         self.look = None;
         self.drag_from = Some((self.camera.az, self.camera.alt, 0.0, 0.0));
@@ -1315,6 +1352,7 @@ impl Game {
 
     /// Turns the view towards find `i`, and says what to look for.
     pub fn turn_to(&mut self, i: usize, real: UnixMs) {
+        self.ring_resting = false;
         if self.by_day() {
             if self.card.is_some() {
                 self.dismiss_card(real);
@@ -1633,7 +1671,7 @@ impl Game {
         }
     }
 
-    fn caught_one(&mut self, i: usize, real: UnixMs) {
+    pub(crate) fn caught_one(&mut self, i: usize, real: UnixMs) {
         self.caught[i] = true;
         if !matches!(self.finds[i].target, Target::Meteor(_)) {
             self.track = Some(i);
@@ -2009,6 +2047,10 @@ impl Game {
                 1,
                 "That's tonight's sky. Look around, or wind down when you're ready",
             ),
+            Phase::Hunt if self.free_look() => (
+                1,
+                "Drag to look around, and click anything that glows. F for the guided way",
+            ),
             Phase::Hunt if self.caught.iter().any(|c| *c) => (
                 1,
                 "Tap Space for the next find, hold it to catch. Point at anything to see what it is",
@@ -2163,6 +2205,12 @@ impl Game {
         prec: &Mat3,
     ) {
         if !self.hunting() || self.card.is_some() {
+            return;
+        }
+        // The ring is the guided way's, and rests after a story or a walk
+        // until the view moves on.
+        if self.free_look() || self.ring_resting {
+            self.catch = Catch::default();
             return;
         }
         let r = self.reticle_radius();
@@ -2866,12 +2914,23 @@ impl Game {
         let target = if wanted { 1.0 } else { 0.0 };
         self.legend_mix += (target - self.legend_mix) * (1.0 - (-dt / 0.4).exp());
         (self.legend_mix > 0.01).then(|| crate::view::Legend {
-            rows: vec![
-                (vec!["+".into(), "−".into()], "zoom in and out".into()),
-                (vec!["← ↑ ↓ →".into()], "look around, or drag".into()),
-                (vec!["Space".into()], "carry on; hold to catch".into()),
-                (vec!["?".into()], "all the keys".into()),
-            ],
+            rows: if self.free_look() {
+                vec![
+                    (vec!["Drag".into()], "look around".into()),
+                    (vec!["Scroll".into()], "zoom in and out".into()),
+                    (vec!["Click".into()], "anything that glows".into()),
+                    (vec!["F".into()], "the guided way, with the ring".into()),
+                    (vec!["?".into()], "all the keys".into()),
+                ]
+            } else {
+                vec![
+                    (vec!["+".into(), "−".into()], "zoom in and out".into()),
+                    (vec!["← ↑ ↓ →".into()], "aim the ring".into()),
+                    (vec!["Space".into()], "carry on; hold to catch".into()),
+                    (vec!["F".into()], "free look, with the mouse".into()),
+                    (vec!["?".into()], "all the keys".into()),
+                ]
+            },
             alpha: self.legend_mix,
         })
     }
@@ -3018,7 +3077,12 @@ impl Game {
 
     fn draw_reticle(&mut self, real: UnixMs, tempo: f64) {
         let ringed = matches!(self.session.phase(), Phase::Hunt | Phase::Arrival) || self.placing();
-        if !ringed || self.card.is_some() || self.keeping() {
+        if !ringed
+            || self.card.is_some()
+            || self.keeping()
+            || (self.free_look() && !self.placing())
+            || self.ring_resting
+        {
             return;
         }
         let r = self.reticle_radius();

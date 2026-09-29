@@ -294,14 +294,30 @@ impl Settings {
             j.settings.calm = b.is_active();
             let _ = j.save_settings();
         });
+        let free = gtk::Switch::new();
+        free.set_active(settings.free_look);
+        let game = self.game.clone();
+        free.connect_active_notify(move |b| {
+            let mut g = game.borrow_mut();
+            let j = g.journal_mut();
+            j.settings.free_look = b.is_active();
+            let _ = j.save_settings();
+        });
         group(
             &self.body,
             "MOTION",
-            &[row(
-                "Calmer",
-                "The wisp stays on its moss and the stars twinkle less.",
-                &calm,
-            )],
+            &[
+                row(
+                    "Calmer",
+                    "The wisp stays on its moss and the stars twinkle less.",
+                    &calm,
+                ),
+                row(
+                    "Free look",
+                    "Look around with the mouse and click anything that glows, instead of the guided way with the keyboard and the ring. F switches.",
+                    &free,
+                ),
+            ],
         );
 
         let ask = gtk::DropDown::from_strings(&["Sometimes", "Rarely", "Never"]);

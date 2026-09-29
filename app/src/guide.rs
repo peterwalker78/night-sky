@@ -785,7 +785,7 @@ impl Game {
     pub(crate) fn guide_help(&mut self, real: UnixMs) {
         self.say_at(
             Aim::Near(0.32, 0.5),
-            "Arrows or a drag look around. Tapping Space carries on: the wisp's next word, then past a card, then to the next find (Enter does the same). Tab goes back to the first thing on the list you haven't seen yet. Hold Space to catch whatever's in the ring, or click the list to turn to something. Point at anything to see what it is. C draws, L opens the logbook, M changes the music's style (and after the last, turns it off), K keeps you company in the background, and W winds down. The button top left opens the menu.",
+            "Arrows or a drag look around. Tapping Space carries on: the wisp's next word, then past a card, then to the next find (Enter does the same). Tab goes back to the first thing on the list you haven't seen yet. Hold Space to catch whatever's in the ring, or click the list to turn to something. F switches to free look: drag to look around, and click anything that glows. Point at anything to see what it is. C draws, L opens the logbook, M changes the music's style (and after the last, turns it off), K keeps you company in the background, and W winds down. The button top left opens the menu.",
             real,
             15_000,
         );

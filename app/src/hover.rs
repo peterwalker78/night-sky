@@ -36,6 +36,8 @@ const NAMELESS: f32 = 4.5;
 /// delta and nu Ophiuchi in the Serpent's, which passes through Ophiuchus's
 /// hands.
 const BORROWED: [(u16, &str); 3] = [(2451, "Pup"), (6056, "Oph"), (6698, "Oph")];
+/// How far from the pointer things start to glow, in free look.
+const GLOW_REACH: f64 = 90.0;
 /// A hint fades once the pointer has been still this long.
 const STILL_MS: UnixMs = 4_000;
 
@@ -107,13 +109,30 @@ impl Game {
         hz: &Mat3,
         prec: &Mat3,
     ) -> Option<Hovered> {
+        self.near(x, y, now, hz, prec, REACH)
+            .into_iter()
+            .min_by(|a, b| a.0.total_cmp(&b.0))
+            .map(|(_, h)| h)
+    }
+
+    /// Everything within `reach` pixels of a point, beyond its own size,
+    /// with how far.
+    fn near(
+        &self,
+        x: f64,
+        y: f64,
+        now: UnixMs,
+        hz: &Mat3,
+        prec: &Mat3,
+        reach: f64,
+    ) -> Vec<(f64, Hovered)> {
         let cam = self.camera;
         let ppd = cam.px_per_degree();
-        let mut best: Option<(f64, Hovered)> = None;
+        let mut all: Vec<(f64, Hovered)> = Vec::new();
         let mut consider = |sx: f64, sy: f64, radius: f64, h: Hovered| {
             let d = ((sx - x).powi(2) + (sy - y).powi(2)).sqrt() - radius;
-            if d < REACH && best.as_ref().is_none_or(|(bd, _)| d < *bd) {
-                best = Some((
+            if d < reach {
+                all.push((
                     d,
                     Hovered {
                         x: sx,
@@ -228,7 +247,7 @@ impl Game {
             let Some((sx, sy)) = cam.project(v) else {
                 continue;
             };
-            if (sx - x).abs() > 40.0 || (sy - y).abs() > 40.0 {
+            if (sx - x).abs() > reach + 20.0 || (sy - y).abs() > reach + 20.0 {
                 continue;
             }
             // A few figures borrow stars from their neighbours; those stars
@@ -381,7 +400,33 @@ impl Game {
                 }
             }
         }
-        best.map(|(_, h)| h)
+        // Tonight's constellations, at their middles.
+        for i in 0..self.finds.len() {
+            let Target::Figure(f) = self.finds[i].target else {
+                continue;
+            };
+            let Some(v) = self.find_dir(i, now, hz, prec).filter(|v| up(*v)) else {
+                continue;
+            };
+            if let Some((sx, sy)) = cam.project(v) {
+                let caught = self.caught[i];
+                consider(
+                    sx,
+                    sy,
+                    8.0,
+                    Hovered {
+                        x: 0.0,
+                        y: 0.0,
+                        radius: 0.0,
+                        name: self.sky.figures[f].name.clone(),
+                        kind: "Constellation".into(),
+                        more: caught.then(|| self.finds[i].fact.clone()),
+                        find: (!caught).then_some(i),
+                    },
+                );
+            }
+        }
+        all
     }
 
     /// The hint beside the pointer, and a faint ring round what it names.
@@ -399,6 +444,25 @@ impl Game {
             self.hovered = None;
             return out;
         };
+        let free = self.free_look();
+        // Free look: everything with something to tell glows as the pointer
+        // comes near, brighter the nearer, so nothing is missed.
+        if free {
+            for (d, h) in self.near(px, py, now, hz, prec, GLOW_REACH) {
+                if h.find.is_none() && h.more.is_none() {
+                    continue;
+                }
+                let close = (1.0 - d.max(0.0) / GLOW_REACH).clamp(0.0, 1.0);
+                self.marks.push(Point {
+                    x: h.x,
+                    y: h.y,
+                    radius: (h.radius.max(2.0) + 2.0) as f32,
+                    color: [1.0, 0.88, 0.62],
+                    alpha: (0.25 + 0.5 * close * close) as f32,
+                    halo: (0.5 + 0.5 * close) as f32,
+                });
+            }
+        }
         self.hovered = self.pick(px, py, now, hz, prec);
         let Some(h) = &self.hovered else {
             return out;
@@ -407,8 +471,13 @@ impl Game {
         if h.find.is_some() && h.find == self.catch.target {
             return out;
         }
-        // Up a moment after the pointer settles, gone a while after it stops.
-        let a = envelope(real - since - 150, 200, STILL_MS, 1_200);
+        // Up a moment after the pointer settles, gone a while after it stops;
+        // at once in free look, where pointing is the way to find things.
+        let a = if free {
+            envelope(real - since, 60, STILL_MS * 3, 1_200)
+        } else {
+            envelope(real - since - 150, 200, STILL_MS, 1_200)
+        };
         if a <= 0.0 {
             return out;
         }
@@ -436,6 +505,7 @@ impl Game {
         let y = (py + 14.0).min(hgt - 60.0);
         out.push(Text::new(x, y, h.name.clone(), 14.0, 0.92 * a).bold());
         let action = match (h.find.is_some(), h.more.is_some()) {
+            (true, _) if free => format!("{} · one of tonight's finds · click to catch it", h.kind),
             (true, _) => format!("{} · one of tonight's finds · click to turn to it", h.kind),
             (false, true) => format!("{} · click for more", h.kind),
             (false, false) => h.kind.clone(),
@@ -457,7 +527,13 @@ impl Game {
             return false;
         };
         if let Some(i) = h.find {
-            self.turn_to(i, real);
+            // Free look catches it with the click, once it's close enough in
+            // to see; the guided way turns to it for the ring.
+            if self.free_look() && self.catchable(i) {
+                self.caught_one(i, real);
+            } else {
+                self.turn_to(i, real);
+            }
             return true;
         }
         let Some(body) = h.more else {

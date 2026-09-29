@@ -131,6 +131,10 @@ pub struct Settings {
     /// Less movement: the wisp stays on its moss and the stars twinkle less.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub calm: bool,
+    /// Looking around with the mouse, clicking what glows, rather than the
+    /// keyboard and the ring.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub free_look: bool,
     /// What the wisp has already shown, so it doesn't say it twice.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub seen: Vec<String>,
