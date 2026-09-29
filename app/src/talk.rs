@@ -108,7 +108,7 @@ const MAX_WEIGHTS: usize = 3;
 const LOOKS: [&str; 4] = ["Lighter", "Much the same", "Heavier", "It's behind me"];
 
 /// "The Moon" becomes "the Moon"; names stay as they are.
-fn lower_first(name: &str) -> String {
+pub(crate) fn lower_first(name: &str) -> String {
     match name.strip_prefix("The ") {
         Some(rest) => format!("the {rest}"),
         None => name.to_owned(),
@@ -495,7 +495,10 @@ impl Game {
                 self.remember_asked(&format!("look-back:{id}"));
                 self.talk.flow = Some(Flow::LookBack { weight: id });
                 self.set_prompt(Some(Prompt {
-                    text: format!("On {date}{found}, you wrote down “{text}” as something on your mind. How does it feel now?"),
+                    text: match westering_core::journey::sky_since(days_between(&when, &self.night)) {
+                        Some(ago) => format!("{ago}, on {date}{found}, you wrote down “{text}” as something on your mind. How does it feel now?"),
+                        None => format!("On {date}{found}, you wrote down “{text}” as something on your mind. How does it feel now?"),
+                    },
                     placeholder: String::new(),
                     chips: LOOKS.iter().map(|s| (*s).to_owned()).collect(),
                     entry: false,

@@ -33,6 +33,26 @@ pub enum Mode {
     Holding,
 }
 
+/// The time of year where the user is, shown on the moss.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Season {
+    Winter,
+    Spring,
+    Summer,
+    Autumn,
+}
+
+impl Season {
+    pub fn name(self) -> &'static str {
+        match self {
+            Season::Winter => "winter",
+            Season::Spring => "spring",
+            Season::Summer => "summer",
+            Season::Autumn => "autumn",
+        }
+    }
+}
+
 /// Feelings that colour whatever mode it's in. Each eases in and out.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Feel {
@@ -159,6 +179,10 @@ const MOSS_HEIGHT: f64 = 8.0;
 const MOSS_FRESH: Rgb = Rgb(0.49, 0.62, 0.34);
 const MOSS_TIRED: Rgb = Rgb(0.55, 0.56, 0.34);
 const MOSS_DRY: Rgb = Rgb(0.62, 0.52, 0.33);
+/// The seasons on the moss: winter's frost, a spring flower, an autumn leaf.
+const FROST: Rgb = Rgb(0.86, 0.93, 1.0);
+const PETAL: Rgb = Rgb(1.0, 0.96, 0.84);
+const LEAF: Rgb = Rgb(0.86, 0.5, 0.2);
 /// The sky in the nook: a wash behind the wisp saying which way the dose is
 /// going, so recovering and wearing read at a glance rather than only from
 /// the wisp's colour. Fresh green-blue while it recovers, a dusky haze while
@@ -257,6 +281,7 @@ pub struct Wisp {
     gesture: Option<(Gesture, f64)>,
     /// Squashed or stretched by its flight: width and height factors.
     body: (f64, f64),
+    season: Option<Season>,
 }
 
 impl Wisp {
@@ -309,7 +334,14 @@ impl Wisp {
             breath: 0.0,
             gesture: None,
             body: (1.0, 1.0),
+            season: None,
         }
+    }
+
+    /// The time of year, for the moss: none where the year has no seasons
+    /// to speak of.
+    pub fn set_season(&mut self, season: Option<Season>) {
+        self.season = season;
     }
 
     /// What it's feeling, over and above its mode.
@@ -355,7 +387,15 @@ impl Wisp {
     /// Just the moss, on a canvas `width` by `height`.
     pub fn draw_moss_alone(&self, width: f64, height: f64, now: f64, canvas: &mut dyn Canvas) {
         draw_moss(
-            canvas, width, height, self.shown, self.happy, true, now, true,
+            canvas,
+            width,
+            height,
+            self.shown,
+            self.happy,
+            true,
+            now,
+            true,
+            self.season,
         );
     }
 
@@ -569,7 +609,17 @@ fn draw(wisp: &mut Wisp, now: f64, moving: bool, dark: bool, cr: &mut dyn Canvas
             wisp.wearing * (1.0 - wisp.privacy),
             dark,
         );
-        draw_moss(cr, width, height, dose, wisp.happy, dark, now, moving);
+        draw_moss(
+            cr,
+            width,
+            height,
+            dose,
+            wisp.happy,
+            dark,
+            now,
+            moving,
+            wisp.season,
+        );
     }
 
     // --- Where and how big ---------------------------------------------------
@@ -921,6 +971,7 @@ fn draw_moss(
     dark: bool,
     now: f64,
     moving: bool,
+    season: Option<Season>,
 ) {
     let moss_left = width * (1.0 - MOSS_SPAN) / 2.0;
     let moss_right = width - moss_left;
@@ -934,6 +985,12 @@ fn draw_moss(
         base
     };
     let colour = colour.mix(MOSS_FRESH, happy * 0.3);
+    // Frost pales it in winter.
+    let colour = if season == Some(Season::Winter) {
+        colour.mix(FROST, 0.22)
+    } else {
+        colour
+    };
     let floor = height - MOSS_FLOOR;
     let top = floor - MOSS_HEIGHT * (1.0 - dry * 0.25);
 
@@ -977,8 +1034,14 @@ fn draw_moss(
         cr.fill();
     }
 
-    // A few short sprigs stand up when fresh and bow over as they dry.
-    let lift = 1.0 - dry * 0.5;
+    // A few short sprigs stand up when fresh and bow over as they dry;
+    // summer's stand taller.
+    let lift = (1.0 - dry * 0.5)
+        * if season == Some(Season::Summer) {
+            1.35
+        } else {
+            1.0
+        };
     let stir = if moving {
         (now / 3100.0).sin() * 0.5
     } else {
@@ -990,6 +1053,7 @@ fn draw_moss(
     ));
     cr.set_line_width(1.2);
     cr.set_round_ends(true);
+    let mut tips = Vec::with_capacity(3);
     for (i, (at, tall)) in [(0.3, 4.0), (0.52, 5.0), (0.74, 3.5)]
         .into_iter()
         .enumerate()
@@ -1009,6 +1073,62 @@ fn draw_moss(
         );
         cr.stroke();
         cr.disc(bx + lean, by - rise, 0.9 * lift);
+        tips.push((bx + lean, by - rise));
+    }
+
+    match season {
+        Some(Season::Winter) => {
+            // Frost glinting on the cushions, one glint at a time.
+            for (k, at) in [0.2, 0.33, 0.45, 0.61, 0.77, 0.86].into_iter().enumerate() {
+                let t = at;
+                let gx = moss_left + (moss_right - moss_left) * at;
+                let gy = floor - (top - floor).abs() * 0.75 * (4.0 * t * (1.0 - t)) - 3.2;
+                let glint = if moving {
+                    ((now / 2300.0 + k as f64 * 1.7).sin() * 0.5 + 0.5).powi(3)
+                } else {
+                    0.3
+                };
+                cr.set_paint(Paint::solid(FROST, 0.35 + 0.55 * glint));
+                cr.disc(gx, gy, 0.55 + 0.5 * glint);
+            }
+        }
+        Some(Season::Spring) => {
+            // A small flower on the middle sprig.
+            let (fx, fy) = tips[1];
+            cr.set_paint(Paint::solid(PETAL, 0.95));
+            for k in 0..5 {
+                let a = k as f64 / 5.0 * TAU - PI / 2.0;
+                cr.disc(fx + a.cos() * 1.5, fy + a.sin() * 1.5, 1.1);
+            }
+            cr.set_paint(Paint::solid(Rgb(0.98, 0.78, 0.3), 1.0));
+            cr.disc(fx, fy, 0.8);
+        }
+        Some(Season::Summer) => {
+            // Seed heads, gold in the light.
+            cr.set_paint(Paint::solid(Rgb(0.93, 0.8, 0.45), 0.9));
+            for &(tx, ty) in &tips {
+                cr.disc(tx, ty - 0.6, 1.3);
+            }
+        }
+        Some(Season::Autumn) => {
+            // One fallen leaf, resting against the mound.
+            let (lx, ly) = (moss_right - 9.0, floor - 1.6);
+            cr.save();
+            cr.translate(lx, ly);
+            cr.move_to(-4.2, 0.6);
+            cr.curve_to(-2.0, -2.6, 2.4, -2.4, 4.4, -0.4);
+            cr.curve_to(2.2, 1.8, -1.8, 2.0, -4.2, 0.6);
+            cr.close_path();
+            cr.set_paint(Paint::solid(LEAF, 0.92));
+            cr.fill();
+            cr.set_paint(Paint::solid(Rgb(0.55, 0.3, 0.12), 0.7));
+            cr.set_line_width(0.5);
+            cr.move_to(-4.6, 0.8);
+            cr.line_to(3.6, -0.5);
+            cr.stroke();
+            cr.restore();
+        }
+        None => {}
     }
 }
 

@@ -10,12 +10,17 @@ use crate::flight::Flight;
 use crate::game::{Game, envelope};
 use crate::idle::{Idle, Kind, Scene};
 use crate::sprite::{FLYING, NOOK, SIZE, render_flying, render_moss};
-use crate::talk::Flow;
+use crate::talk::{Flow, lower_first};
 use crate::view::{Bubble, Point, Sprite};
-use westering_core::coords::{apply, unit};
+use westering_core::coords::{angles, apply, observe, unit};
+use westering_core::finale::whereabouts;
 use westering_core::finds::{Target, stable_hash};
+use westering_core::journal::long_date;
+use westering_core::journey::{Lines, Tonight, risen, season, turned, year_round};
+use westering_core::questions::{days_between, key_of};
 use westering_core::session::Phase;
 use westering_core::time::UnixMs;
+use westering_core::time::{DAY, civil_date, clock, weekday};
 use westering_core::wisp::{Feel, Gesture, Mode, Trend, Wisp};
 
 /// A place on the screen, in pixels.
@@ -91,6 +96,7 @@ pub struct Guide {
     idle: Idle,
     /// Where an idle look is aimed.
     idle_spot: Option<Spot>,
+    lines: Lines,
 }
 
 /// Whether a line waits: while a card is up only its own line speaks, and
@@ -115,9 +121,9 @@ const NUDGE_EVERY_MS: UnixMs = 90_000;
 const LINGER_MS: UnixMs = 5_000;
 
 fn number(n: usize) -> String {
-    const WORDS: [&str; 13] = [
+    const WORDS: [&str; 17] = [
         "No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
-        "Eleven", "Twelve",
+        "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
     ];
     WORDS
         .get(n)
@@ -151,6 +157,7 @@ impl Guide {
             moved_until: 0,
             idle: Idle::new(real),
             idle_spot: None,
+            lines: Lines::bundled(),
         }
     }
 }
@@ -342,6 +349,8 @@ impl Game {
     }
 
     pub(crate) fn guide_arrival(&mut self, real: UnixMs) {
+        let (_, month, _) = civil_date(self.sky_now(real), self.offset_s);
+        self.guide.wisp.set_season(season(month, self.observer.lat));
         let n = self.to_find();
         let things = match n {
             0 => String::new(),
@@ -370,29 +379,118 @@ impl Game {
             );
             return;
         }
-        let greetings = [
-            "Hello again.",
-            "Good to see you.",
-            "The sky has turned since you were last here.",
-            "Clear skies in here, at least.",
-            "Let's set the day down for a while.",
-            "A few quiet minutes, and then the rest of the night is yours.",
-        ];
-        let pick = stable_hash((0, 0, 0), &self.night) as usize % greetings.len();
+        let hello = self.hello(real);
         let text = if n == 0 && !self.finds.is_empty() {
-            format!(
-                "{} You've found tonight's sky already; look around as long as you like.",
-                greetings[pick]
-            )
+            format!("{hello} You've found tonight's sky already; look around as long as you like.")
         } else if self.finds.is_empty() {
-            format!(
-                "{} It's still light out, so there's not much to find yet.",
-                greetings[pick]
-            )
+            format!("{hello} It's still light out, so there's not much to find yet.")
         } else {
-            format!("{}{things}", greetings[pick])
+            format!("{hello}{things}")
         };
         self.say_at(Aim::Near(0.3, 0.5), text, real + 1_200, 6_000);
+        self.one_more_thing(real);
+    }
+
+    /// The evening before this one, and the first, from the logbook.
+    fn earlier_nights(&self) -> (Option<String>, Option<String>) {
+        let earlier: Vec<String> = self
+            .journal
+            .nights()
+            .into_iter()
+            .filter(|k| *k < self.night)
+            .collect();
+        (earlier.first().cloned(), earlier.last().cloned())
+    }
+
+    /// Tonight's hello: one that fits the night, or, after a while away,
+    /// what the sky has done since.
+    fn hello(&self, real: UnixMs) -> String {
+        let now = self.sky_now(real);
+        let (hour, _) = clock(now, self.offset_s);
+        let (_, month, _) = civil_date(now, self.offset_s);
+        let lines = &self.guide.lines;
+        if let (Some(last), _) = self.earlier_nights() {
+            let days = days_between(&last, &self.night);
+            if days >= 10 {
+                if let Some(name) = risen(&self.sky, self.observer, now - days * DAY, now) {
+                    return format!("Hello. {}", lines.news.risen.replace("{name}", &name));
+                }
+                if (30..=45).contains(&days) {
+                    return format!("Hello. {}", lines.news.moon);
+                }
+            }
+        }
+        lines
+            .greeting(&Tonight {
+                night: &self.night,
+                hour,
+                weekday: weekday(now, self.offset_s),
+                moon: &self.page.moon,
+                month,
+                lat: self.observer.lat,
+            })
+            .to_owned()
+    }
+
+    /// At most one thing more on arriving, when there's something worth
+    /// it: the year come round, the Sun at an equinox or solstice, or the
+    /// star of someone named, now and then.
+    fn one_more_thing(&mut self, real: UnixMs) {
+        let now = self.sky_now(real);
+        let (last, first) = self.earlier_nights();
+        if let Some(first) = &first
+            && let Some(years) = year_round(first, &self.night)
+            && !self.seen(&format!("round-{years}"))
+        {
+            self.mark_seen(&format!("round-{years}"));
+            let lines = &self.guide.lines.round;
+            let mut text = lines.text.replace("{date}", &long_date(first));
+            let person = self
+                .journal
+                .people
+                .iter()
+                .filter(|p| p.mentions.iter().any(|m| m.night == *first))
+                .map(|p| p.name.clone())
+                .next();
+            if let Some(name) = person {
+                text = format!("{text} {}", lines.person.replace("{name}", &name));
+            } else if let Some(find) = self
+                .journal
+                .night(first)
+                .and_then(|p| p.finds.first().cloned())
+            {
+                text = format!(
+                    "{text} {}",
+                    lines.find.replace("{find}", &lower_first(&find))
+                );
+            }
+            self.say_at(Aim::Near(0.4, 0.4), text, real + 1_200, 10_000);
+            return;
+        }
+        if let Some((kind, at)) = turned(now, self.observer.lat)
+            && last.is_none_or(|l| l < key_of(at, self.offset_s))
+        {
+            let text = self.guide.lines.turn(kind, at, now, self.offset_s);
+            self.say_at(Aim::Near(0.4, 0.4), text, real + 1_200, 9_000);
+            return;
+        }
+        // Someone's star, about one evening in three that it's up.
+        if !stable_hash((0, 0, 1), &self.night).is_multiple_of(3) {
+            return;
+        }
+        let star = self.journal.people.iter().find_map(|p| {
+            p.stars.iter().find_map(|&hr| {
+                let star = self.sky.stars.get(hr)?;
+                let (ra, dec) = angles(star.dir);
+                let (alt, az) = observe(self.observer, now, ra, dec);
+                let name = self.sky.lists.star_name(hr)?.name.clone();
+                (alt > 20.0).then(|| (p.name.clone(), name, ra, dec, alt, az))
+            })
+        });
+        if let Some((person, name, ra, dec, alt, az)) = star {
+            let text = self.guide.lines.star(&person, &name, &whereabouts(alt, az));
+            self.say_at(Aim::Sky(ra, dec), text, real + 1_200, 8_000);
+        }
     }
 
     pub(crate) fn guide_weights(&mut self, real: UnixMs) {

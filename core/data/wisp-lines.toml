@@ -1,0 +1,102 @@
+# What the wisp says when it isn't guiding: its hellos, and the ways it
+# marks time. Time here is kept the way the sky keeps it (Moons, seasons,
+# the year coming round), never by counting visits, and nothing here may
+# mind how long anyone was away.
+#
+# greeting.when: all must hold for the line to be chosen. Any of
+#   full-moon new-moon crescent   the Moon tonight
+#   late early                    after ten at night / before eight
+#   monday friday saturday sunday
+#   winter spring summer autumn   by the month, for the user's hemisphere
+# A greeting with a `when` is preferred over one without, some nights.
+
+[[greeting]]
+text = "Hello again."
+
+[[greeting]]
+text = "Good to see you."
+
+[[greeting]]
+text = "Clear skies in here, at least."
+
+[[greeting]]
+text = "Let's set the day down for a while."
+
+[[greeting]]
+text = "A few quiet minutes, and then the rest of the night is yours."
+
+[[greeting]]
+text = "Hello. Same sky as outside, give or take the clouds."
+
+[[greeting]]
+when = ["full-moon"]
+text = "Hello. The Moon's full tonight: it washes the faint stars out, but it's worth a look itself."
+
+[[greeting]]
+when = ["new-moon"]
+text = "Hello. No Moon tonight, so the sky is as dark as it gets all month."
+
+[[greeting]]
+when = ["crescent"]
+text = "Hello. There's a thin Moon tonight, the prettiest shape it makes."
+
+[[greeting]]
+when = ["late"]
+text = "Hello. It's late, so let's keep this gentle and short."
+
+[[greeting]]
+when = ["early"]
+text = "Hello. Early for the stars, but the sky's getting ready."
+
+[[greeting]]
+when = ["friday"]
+text = "Hello. The end of the week: put it down here for a while."
+
+[[greeting]]
+when = ["sunday"]
+text = "Hello. One more quiet evening before the week begins."
+
+[[greeting]]
+when = ["monday"]
+text = "Hello. The first day of the week is done."
+
+[[greeting]]
+when = ["winter"]
+text = "Hello. Long nights this time of year, and plenty of sky in them."
+
+[[greeting]]
+when = ["spring"]
+text = "Hello. The evenings are getting lighter, a little more each night."
+
+[[greeting]]
+when = ["summer"]
+text = "Hello. Short nights this time of year: the sky barely gets dark before it starts to lighten."
+
+[[greeting]]
+when = ["autumn"]
+text = "Hello. The nights are drawing in, so there's more sky each evening."
+
+# When the sky has come all the way round since the first evening: the same
+# stars in the same places at the same hour. Said once a year.
+[round]
+text = "The sky has come all the way round: tonight it's back where it was on {date}, your first evening here."
+person = "That was the night you first named {name}."
+find = "That night you found {find}."
+
+# What the sky did since the last visit, when it's been a while. It says
+# what changed up there, not how long anyone was gone.
+[news]
+risen = "Since you were last here, {name} has come up into the evening sky."
+moon = "The Moon has been all the way round since you were last here."
+
+# The Sun passing an equinox or a solstice in the last few days, named for
+# the user's own hemisphere.
+[turn]
+spring = "The spring equinox was {day}: from now until autumn, the days are longer than the nights."
+longest-day = "The longest day was {day}. From here the nights grow again, and the stars get a little more time."
+autumn = "The autumn equinox was {day}: from now until spring, the nights are longer than the days."
+longest-night = "The longest night was {day}. From here the days lengthen again, a minute or two at a time."
+
+# A person's star, when it's up. Not every night: now and then.
+[star]
+text = "{name}'s star, {star}, is up tonight, {where}."
