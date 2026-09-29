@@ -167,8 +167,17 @@ pub struct Bubble {
     pub more: Option<(f64, &'static str)>,
 }
 
+/// A small, faint reminder of the keys, in a corner.
+#[derive(Clone)]
+pub struct Legend {
+    /// Each row: its keys, drawn as caps, and what they do.
+    pub rows: Vec<(Vec<String>, String)>,
+    pub alpha: f64,
+}
+
 #[derive(Default, Clone)]
 pub struct Frame {
+    pub legend: Option<Legend>,
     pub points: Vec<Point>,
     /// Living things moving about: drawn fresh every frame.
     pub silhouettes: Vec<Silhouette>,
@@ -262,6 +271,55 @@ fn keycap(
         gdk::RGBA::new(0.95, 0.95, 0.98, 0.9 * alpha),
     );
     rect.width()
+}
+
+/// The keys, bottom right: a faint panel, a cap for each key and a word or
+/// two for what it does.
+fn draw_legend(widget: &gtk::Widget, snapshot: &gtk::Snapshot, w: f32, h: f32, l: &Legend) {
+    let a = l.alpha as f32;
+    let (pad, row_h, gap) = (10.0f32, 24.0f32, 8.0f32);
+    let words: Vec<pango::Layout> = l
+        .rows
+        .iter()
+        .map(|(_, what)| layout(widget, what, 12.0, false, None))
+        .collect();
+    // Measure the caps once so the words line up in a column.
+    let caps_w = l
+        .rows
+        .iter()
+        .map(|(keys, _)| {
+            keys.iter()
+                .map(|k| layout(widget, k, 12.0, true, None).pixel_size().0 as f32 + 12.0 + 4.0)
+                .sum::<f32>()
+        })
+        .fold(0.0f32, f32::max);
+    let words_w = words
+        .iter()
+        .map(|l| l.pixel_size().0 as f32)
+        .fold(0.0f32, f32::max);
+    let width = pad * 2.0 + caps_w + gap + words_w;
+    let height = pad * 2.0 + row_h * l.rows.len() as f32 - 4.0;
+    let (x, y) = (w - width - 16.0, h - height - 16.0);
+    panel(
+        snapshot,
+        &graphene::Rect::new(x, y, width, height),
+        10.0,
+        0.6 * a,
+    );
+    for (i, ((keys, _), said)) in l.rows.iter().zip(&words).enumerate() {
+        let ry = y + pad + row_h * i as f32;
+        let mut cx = x + pad;
+        for k in keys {
+            cx += keycap(widget, snapshot, k, cx, ry, 0.8 * a) + 4.0;
+        }
+        text_at(
+            snapshot,
+            said,
+            x + pad + caps_w + gap,
+            ry + 2.0,
+            gdk::RGBA::new(0.86, 0.88, 0.93, 0.65 * a),
+        );
+    }
 }
 
 fn draw_card(widget: &gtk::Widget, snapshot: &gtk::Snapshot, c: &CardView) {
@@ -781,6 +839,11 @@ mod imp {
             }
             if let Some(c) = &frame.compass {
                 draw_compass(widget.upcast_ref(), snapshot, w, h, c);
+            }
+            if let Some(l) = &frame.legend
+                && l.alpha > 0.004
+            {
+                draw_legend(widget.upcast_ref(), snapshot, w, h, l);
             }
             if let Some(c) = &frame.card
                 && c.alpha > 0.004

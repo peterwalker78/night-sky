@@ -193,6 +193,8 @@ pub struct Game {
     pub(crate) last_input: UnixMs,
     /// When Space went down, to tell a tap from a hold.
     pub(crate) space_since: Option<UnixMs>,
+    /// 0-1, eased: how far the keys in the corner are showing.
+    legend_mix: f64,
     /// Key releases wait a moment: X11's auto-repeat sends a release before
     /// every repeated press, and a real release has no press behind it.
     pub(crate) releases: Vec<(gdk::Key, UnixMs)>,
@@ -512,6 +514,7 @@ impl Game {
             finale_turned: false,
             last_input: real_now,
             space_since: None,
+            legend_mix: 0.0,
             releases: Vec::new(),
             esc_armed: 0,
             last_real: real_now,
@@ -2757,6 +2760,7 @@ impl Game {
                 bottom: compact(cam.width, cam.height),
             });
         Frame {
+            legend: self.legend(dt),
             silhouettes: Vec::new(),
             eyepiece,
             card,
@@ -2774,6 +2778,31 @@ impl Game {
             texts,
             veil: 0.0,
         }
+    }
+
+    /// The keys in the corner while looking round the sky, stepping aside
+    /// for anything else that needs the room.
+    fn legend(&mut self, dt: f64) -> Option<crate::view::Legend> {
+        let wanted = self.hunting()
+            && !self.keeping()
+            && !self.winding()
+            && self.card.is_none()
+            && self.talk.prompt.is_none()
+            && self.drawing.is_none()
+            && self.tour.is_none()
+            && self.eye_alpha < 0.05
+            && !compact(self.camera.width, self.camera.height);
+        let target = if wanted { 1.0 } else { 0.0 };
+        self.legend_mix += (target - self.legend_mix) * (1.0 - (-dt / 0.4).exp());
+        (self.legend_mix > 0.01).then(|| crate::view::Legend {
+            rows: vec![
+                (vec!["+".into(), "−".into()], "zoom in and out".into()),
+                (vec!["← ↑ ↓ →".into()], "look around, or drag".into()),
+                (vec!["Space".into()], "carry on; hold to catch".into()),
+                (vec!["?".into()], "all the keys".into()),
+            ],
+            alpha: self.legend_mix,
+        })
     }
 
     /// The card as drawn this frame, rising in, or fading and sinking as
