@@ -361,3 +361,1844 @@ north = 270.0
 degrees = 2.5
 centre = [0.93, 0.583]
 view = 4.6
+
+# Added 29 September 2026: the deep-sky list, stars close up, and constellations
+# in wide field. card_only pictures show in the card rather than over the sky.
+
+
+
+[[image]]
+id = "m1"
+title = "The Crab Nebula (M1)"
+caption = "From the Hubble Space Telescope. The colours pick out different gases; through a small telescope it's a faint grey smudge."
+credit = "NASA, ESA and Allison Loll/Jeff Hester (Arizona State University). Acknowledgement: Davide De Martin (ESA/Hubble)"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/heic0515a/"
+north = 0.0
+degrees = 0.107
+centre = [0.530, 0.484]
+checked = "2026-09-29"
+
+[[image]]
+id = "m2"
+title = "M2"
+caption = "From the Hubble Space Telescope, close in on the crowded heart of the cluster. Through a small telescope it's a round fuzzy glow."
+credit = "ESA/Hubble & NASA, G. Piotto et al."
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/potw1913a/"
+north = 12.8
+degrees = 0.0405
+checked = "2026-09-29"
+
+[[image]]
+id = "m9"
+title = "M9"
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m9/"
+north = -179.8
+degrees = 0.108
+centre = [0.481, 0.524]
+checked = "2026-09-29"
+
+[[image]]
+id = "m10"
+title = "M10"
+credit = "N.A.Sharp, Vanessa Harvey/REU program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m10/"
+north = -2.6
+degrees = 0.553
+checked = "2026-09-29"
+
+[[image]]
+id = "m12"
+title = "M12"
+credit = "REU Program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m12/"
+north = 178.0
+degrees = 0.338
+checked = "2026-09-29"
+
+[[image]]
+id = "m14"
+title = "M14"
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m14/"
+north = -0.8
+degrees = 0.193
+checked = "2026-09-29"
+
+[[image]]
+id = "m15"
+title = "M15"
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m15-kpno-0-9-m/"
+north = 0.0
+degrees = 0.265
+checked = "2026-09-29"
+
+[[image]]
+id = "m16"
+title = "The Eagle Nebula (M16)"
+caption = "A long exposure. The pink is glowing hydrogen, real but too faint for the eye, which sees a grey glow."
+credit = "ESO"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso0926a/"
+north = 0.0
+degrees = 0.535
+centre = [0.522, 0.448]
+checked = "2026-09-29"
+
+[[image]]
+id = "m17"
+title = "The Omega Nebula (M17)"
+caption = "A long exposure. The pink is glowing hydrogen, real but too faint for the eye, which sees a grey glow."
+credit = "ESO/INAF-VST/OmegaCAM. Acknowledgement: OmegaCen/Astro-WISE/Kapteyn Institute"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso1119a/"
+north = 0.1
+degrees = 0.89
+centre = [0.552, 0.527]
+checked = "2026-09-29"
+
+[[image]]
+id = "m18"
+title = "M18"
+credit = "Hillary Mathis, REU program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m18/"
+north = -2.6
+degrees = 0.367
+centre = [0.654, 0.483]
+checked = "2026-09-29"
+
+[[image]]
+id = "m19"
+title = "M19"
+credit = "Doug Williams, REU Program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m19/"
+north = 2.2
+degrees = 0.265
+checked = "2026-09-29"
+
+[[image]]
+id = "m20"
+title = "The Trifid Nebula (M20)"
+caption = "A long exposure. The pink glow and the blue haze of dust are real but too faint for the eye, which sees a grey glow split by dark lanes."
+credit = "ESO"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso0930b/"
+north = 0.1
+degrees = 0.3
+centre = [0.085, 0.604]
+checked = "2026-09-29"
+
+[[image]]
+id = "m21"
+title = "M21"
+credit = "REU program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m21/"
+north = 177.9
+degrees = 0.479
+centre = [0.472, 0.484]
+checked = "2026-09-29"
+
+[[image]]
+id = "m23"
+title = "M23"
+credit = "N.A.Sharp, REU program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m23/"
+north = -2.0
+degrees = 0.578
+centre = [0.454, 0.475]
+checked = "2026-09-29"
+
+[[image]]
+id = "m24"
+title = "The Small Sagittarius Star Cloud (M24)"
+caption = "A long exposure. By eye it looks like a bright knot in the Milky Way."
+credit = "Vanessa Harvey, REU program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m24/"
+north = 0.0
+degrees = 1.112
+centre = [0.642, 0.491]
+checked = "2026-09-29"
+
+[[image]]
+id = "m25"
+title = "M25"
+credit = "Hillary Mathis, Vanessa Harvey, REU program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m25/"
+north = -2.6
+degrees = 0.703
+checked = "2026-09-29"
+
+[[image]]
+id = "m26"
+title = "M26"
+credit = "Hillary Mathis, Vanessa Harvey, REU program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m26/"
+north = -2.6
+degrees = 0.395
+checked = "2026-09-29"
+
+[[image]]
+id = "m27"
+title = "The Dumbbell Nebula (M27)"
+caption = "A long exposure. Through a small telescope it's a grey-green apple core; the colours are too faint for the eye."
+credit = "ESO/I. Appenzeller, W. Seifert, O. Stahl, M. Zamani"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso9846a/"
+north = 0.0
+degrees = 0.113
+checked = "2026-09-29"
+
+[[image]]
+id = "m28"
+title = "M28"
+caption = "From the Hubble Space Telescope, close in on the crowded heart of the cluster. Through a small telescope it's a round fuzzy glow."
+credit = "ESA/Hubble & NASA, J. E. Grindlay et al."
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/potw1910a/"
+north = -49.3
+degrees = 0.0452
+centre = [0.503, 0.250]
+checked = "2026-09-29"
+
+[[image]]
+id = "m29"
+title = "M29"
+credit = "Hillary Mathis/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m29/"
+north = -0.4
+degrees = 0.105
+centre = [0.827, 0.721]
+checked = "2026-09-29"
+
+[[image]]
+id = "m30"
+title = "M30"
+credit = "REU program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m30/"
+north = 0.3
+degrees = 0.302
+checked = "2026-09-29"
+
+[[image]]
+id = "m34"
+title = "M34"
+credit = "REU program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m34/"
+north = -2.5
+degrees = 0.578
+centre = [0.522, 0.570]
+checked = "2026-09-29"
+
+[[image]]
+id = "m36"
+title = "M36"
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m36/"
+north = 0.0
+degrees = 0.34
+centre = [0.478, 0.525]
+checked = "2026-09-29"
+
+[[image]]
+id = "m38"
+title = "M38"
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m38/"
+north = -2.3
+degrees = 0.788
+centre = [0.516, 0.557]
+checked = "2026-09-29"
+
+[[image]]
+id = "m39"
+title = "M39"
+credit = "WIYN/KPNO/NOIRLab/NSF/AURA/H. Schweiker"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m39/"
+north = 0.8
+degrees = 0.775
+centre = [0.552, 0.781]
+checked = "2026-09-29"
+
+[[image]]
+id = "m40"
+title = "Winnecke 4 (M40)"
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m40/"
+north = -1.0
+degrees = 0.171
+centre = [0.545, 0.517]
+checked = "2026-09-29"
+
+[[image]]
+id = "m43"
+title = "De Mairan's Nebula (M43)"
+caption = "A long exposure. The pink is glowing hydrogen, real but too faint for the eye, which sees a grey glow."
+credit = "N.A.Sharp/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m43/"
+north = 0.4
+degrees = 0.116
+checked = "2026-09-29"
+
+[[image]]
+id = "m46"
+title = "M46"
+credit = "N.A.Sharp/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m46/"
+north = -2.0
+degrees = 0.564
+centre = [0.440, 0.532]
+checked = "2026-09-29"
+
+[[image]]
+id = "m47"
+title = "M47"
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m47/"
+north = -2.3
+degrees = 0.676
+checked = "2026-09-29"
+
+[[image]]
+id = "m48"
+title = "M48"
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m48/"
+north = -2.3
+degrees = 0.677
+centre = [0.524, 0.417]
+checked = "2026-09-29"
+
+[[image]]
+id = "m49"
+title = "M49"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m49/"
+north = 0.8
+degrees = 0.103
+centre = [0.544, 0.504]
+checked = "2026-09-29"
+
+[[image]]
+id = "m50"
+title = "M50"
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m50/"
+north = -2.0
+degrees = 0.578
+checked = "2026-09-29"
+
+[[image]]
+id = "m51"
+title = "The Whirlpool Galaxy (M51)"
+caption = "From the Hubble Space Telescope. Through a small telescope it's two soft glows side by side; the spiral arms only show in photographs."
+credit = "NASA, ESA, S. Beckwith (STScI), and The Hubble Heritage Team (STScI/AURA)"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/heic0506a/"
+north = 91.9
+degrees = 0.159
+centre = [0.387, 0.481]
+checked = "2026-09-29"
+
+[[image]]
+id = "m52"
+title = "M52"
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m52/"
+north = -2.6
+degrees = 0.578
+centre = [0.468, 0.536]
+checked = "2026-09-29"
+
+[[image]]
+id = "m53"
+title = "M53"
+credit = "REU Program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m53/"
+north = -1.3
+degrees = 0.246
+checked = "2026-09-29"
+
+[[image]]
+id = "m54"
+title = "M54"
+credit = "REU Program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m54/"
+north = -1.8
+degrees = 0.193
+checked = "2026-09-29"
+
+[[image]]
+id = "m55"
+title = "M55"
+credit = "Hillary Mathis, REU Program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m55/"
+north = -2.5
+degrees = 0.536
+checked = "2026-09-29"
+
+[[image]]
+id = "m56"
+title = "M56"
+caption = "From the Hubble Space Telescope, close in on the crowded heart of the cluster. Through a small telescope it's a round fuzzy glow."
+credit = "NASA & ESA. Acknowledgement: Gilles Chapdelaine"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/potw1234a/"
+north = -120.8
+degrees = 0.058
+centre = [0.530, 0.480]
+checked = "2026-09-29"
+
+[[image]]
+id = "m57"
+title = "The Ring Nebula (M57)"
+caption = "From the Hubble Space Telescope. Through a small telescope it's a little grey smoke ring; the colours are too faint for the eye."
+credit = "NASA, ESA, and C. Robert O’Dell (Vanderbilt University)."
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/heic1310a/"
+north = -11.7
+degrees = 0.035
+checked = "2026-09-29"
+
+[[image]]
+id = "m58"
+title = "M58"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m58/"
+north = -0.8
+degrees = 0.193
+checked = "2026-09-29"
+
+[[image]]
+id = "m59"
+title = "M59"
+caption = "From the Hubble Space Telescope, close in on the galaxy's bright middle. Through a small telescope it's a faint round glow."
+credit = "ESA/Hubble & NASA, P. Cote"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/potw1921a/"
+north = 105.8
+degrees = 0.0522
+checked = "2026-09-29"
+
+[[image]]
+id = "m60"
+title = "M60"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m60/"
+north = -0.8
+degrees = 0.208
+centre = [0.428, 0.588]
+checked = "2026-09-29"
+
+[[image]]
+id = "m61"
+title = "M61"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "Hillary Mathis, N.A.Sharp/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m61/"
+north = -0.9
+degrees = 0.148
+checked = "2026-09-29"
+
+[[image]]
+id = "m62"
+title = "M62"
+caption = "From the Hubble Space Telescope, close in on the crowded heart of the cluster. Through a small telescope it's a round fuzzy glow."
+credit = "ESA/Hubble & NASA, S. Anderson et al."
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/potw1915a/"
+north = 2.9
+degrees = 0.045
+centre = [0.255, 0.520]
+checked = "2026-09-29"
+
+[[image]]
+id = "m63"
+title = "The Sunflower Galaxy (M63)"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "N.A.Sharp/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m63/"
+north = -1.2
+degrees = 0.34
+centre = [0.466, 0.532]
+checked = "2026-09-29"
+
+[[image]]
+id = "m64"
+title = "The Black Eye Galaxy (M64)"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m64/"
+north = -1.3
+degrees = 0.242
+checked = "2026-09-29"
+
+[[image]]
+id = "m65"
+title = "M65"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m65/"
+north = 0.2
+degrees = 0.116
+checked = "2026-09-29"
+
+[[image]]
+id = "m66"
+title = "M66"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m66/"
+north = 0.4
+degrees = 0.132
+centre = [0.505, 0.424]
+checked = "2026-09-29"
+
+[[image]]
+id = "m67"
+title = "M67"
+credit = "Nigel Sharp, Mark Hanna/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m67pump/"
+north = -2.3
+degrees = 0.577
+centre = [0.485, 0.565]
+checked = "2026-09-29"
+
+[[image]]
+id = "m68"
+title = "M68"
+caption = "From the Hubble Space Telescope, close in on the crowded heart of the cluster. Through a small telescope it's a round fuzzy glow."
+credit = "ESA/Hubble & NASA"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/potw1231a/"
+north = -37.6
+degrees = 0.0565
+checked = "2026-09-29"
+
+[[image]]
+id = "m69"
+title = "M69"
+caption = "From the Hubble Space Telescope, close in on the crowded heart of the cluster. Through a small telescope it's a round fuzzy glow."
+credit = "ESA/Hubble & NASA"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/potw1240a/"
+north = -80.8
+degrees = 0.0573
+checked = "2026-09-29"
+
+[[image]]
+id = "m70"
+title = "M70"
+credit = "REU program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m70/"
+north = -1.8
+degrees = 0.132
+checked = "2026-09-29"
+
+[[image]]
+id = "m71"
+title = "M71"
+caption = "From the Hubble Space Telescope, close in on the crowded heart of the cluster. Through a small telescope it's a round fuzzy glow."
+credit = "ESA/Hubble and NASA"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/potw1018a/"
+north = -114.5
+degrees = 0.056
+centre = [0.526, 0.541]
+checked = "2026-09-29"
+
+[[image]]
+id = "m72"
+title = "M72"
+caption = "From the Hubble Space Telescope, close in on the crowded heart of the cluster. Through a small telescope it's a round fuzzy glow."
+credit = "ESA/Hubble & NASA"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/potw1001a/"
+north = -107.1
+degrees = 0.0572
+checked = "2026-09-29"
+
+[[image]]
+id = "m73"
+title = "M73"
+credit = "REU program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m73/"
+north = 0.4
+degrees = 0.17
+centre = [0.405, 0.495]
+checked = "2026-09-29"
+
+[[image]]
+id = "m74"
+title = "The Phantom Galaxy (M74)"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "Todd Boroson/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m74/"
+north = 1.8
+degrees = 0.344
+checked = "2026-09-29"
+
+[[image]]
+id = "m75"
+title = "M75"
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m75/"
+north = -1.9
+degrees = 0.151
+checked = "2026-09-29"
+
+[[image]]
+id = "m76"
+title = "The Little Dumbbell Nebula (M76)"
+caption = "A long exposure. Through a small telescope it's a faint grey patch; the colours are too faint for the eye."
+credit = "KPNO/NOIRLab/NSF/AURA/Adam Block"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m76block/"
+north = 4.8
+degrees = 0.205
+centre = [0.471, 0.468]
+checked = "2026-09-29"
+
+[[image]]
+id = "m77"
+title = "M77"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m77/"
+north = 0.8
+degrees = 0.103
+centre = [0.476, 0.464]
+checked = "2026-09-29"
+
+[[image]]
+id = "m78"
+title = "M78"
+caption = "A long exposure. The blue is starlight reflected off dust; through a small telescope it's a faint grey glow."
+credit = "ESO/Igor Chekalin"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso1105a/"
+north = 1.6
+degrees = 0.574
+centre = [0.437, 0.556]
+checked = "2026-09-29"
+
+[[image]]
+id = "m79"
+title = "M79"
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m79/"
+north = 0.8
+degrees = 0.103
+centre = [0.550, 0.502]
+checked = "2026-09-29"
+
+[[image]]
+id = "m80"
+title = "M80"
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m80/"
+north = -1.1
+degrees = 0.193
+checked = "2026-09-29"
+
+[[image]]
+id = "m82"
+title = "The Cigar Galaxy (M82)"
+caption = "From the Hubble Space Telescope. The red plumes are glowing hydrogen blown out by a burst of star birth; through a small telescope it's a thin grey streak."
+credit = "NASA, ESA and the Hubble Heritage Team (STScI/AURA). Acknowledgment: J. Gallagher (University of Wisconsin), M. Mountain (STScI) and P. Puxley (NSF)."
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/heic0604a/"
+north = -50.1
+degrees = 0.132
+centre = [0.528, 0.482]
+checked = "2026-09-29"
+
+[[image]]
+id = "m83"
+title = "The Southern Pinwheel Galaxy (M83)"
+caption = "A long exposure. Through a small telescope it's a soft round glow with a brighter middle."
+credit = "NASA, ESA, and the Hubble Heritage Team (STScI/AURA). Acknowledgment: W. Blair (STScI/JHU), Carnegie Institution of Washington (Las Campanas Observatory), and NOAO"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/heic1403b/"
+north = -0.1
+degrees = 0.264
+checked = "2026-09-29"
+
+[[image]]
+id = "m84"
+title = "M84"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m84/"
+north = 0.8
+degrees = 0.103
+centre = [0.516, 0.446]
+checked = "2026-09-29"
+
+[[image]]
+id = "m85"
+title = "M85"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m85/"
+north = 1.1
+degrees = 0.104
+centre = [0.592, 0.496]
+checked = "2026-09-29"
+
+[[image]]
+id = "m86"
+title = "M86"
+caption = "From the Hubble Space Telescope, close in on the galaxy's bright middle. Through a small telescope it's a faint round glow."
+credit = "ESA/Hubble & NASA, P. Cote et al."
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/potw1938a/"
+north = -37.7
+degrees = 0.054
+centre = [0.508, 0.552]
+checked = "2026-09-29"
+
+[[image]]
+id = "m87"
+title = "M87"
+caption = "From the Hubble Space Telescope, close in on the galaxy's bright middle. Through a small telescope it's a faint round glow."
+credit = "NASA, ESA, and the Hubble Heritage Team (STScI/AURA). Acknowledgment: P. Cote (Herzberg Institute of Astrophysics) and E. Baltz (Stanford University)"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/heic0815f/"
+north = 11.2
+degrees = 0.0535
+centre = [0.550, 0.502]
+checked = "2026-09-29"
+
+[[image]]
+id = "m88"
+title = "M88"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m88/"
+north = 0.7
+degrees = 0.102
+centre = [0.490, 0.457]
+checked = "2026-09-29"
+
+[[image]]
+id = "m89"
+title = "M89"
+caption = "From the Hubble Space Telescope, close in on the galaxy's bright middle. Through a small telescope it's a faint round glow."
+credit = "ESA/Hubble & NASA, S. Faber et al."
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/potw1902a/"
+north = -129.5
+degrees = 0.0395
+centre = [0.649, 0.153]
+checked = "2026-09-29"
+
+[[image]]
+id = "m90"
+title = "M90"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m90/"
+north = -0.8
+degrees = 0.189
+centre = [0.502, 0.584]
+checked = "2026-09-29"
+
+[[image]]
+id = "m91"
+title = "M91"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m91/"
+north = -0.8
+degrees = 0.193
+checked = "2026-09-29"
+
+[[image]]
+id = "m93"
+title = "M93"
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m93/"
+north = -2.0
+degrees = 0.451
+checked = "2026-09-29"
+
+[[image]]
+id = "m94"
+title = "M94"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "Hillary Mathis, N.A.Sharp/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m94/"
+north = -1.4
+degrees = 0.282
+checked = "2026-09-29"
+
+[[image]]
+id = "m95"
+title = "M95"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m95_2/"
+north = -0.2
+degrees = 0.133
+centre = [0.471, 0.526]
+checked = "2026-09-29"
+
+[[image]]
+id = "m96"
+title = "M96"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "KPNO/NOIRLab/NSF/AURA/Adam Block"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m96block/"
+north = 42.2
+degrees = 0.134
+centre = [0.441, 0.552]
+checked = "2026-09-29"
+
+[[image]]
+id = "m97"
+title = "The Owl Nebula (M97)"
+caption = "A long exposure; the colours are too faint for the eye. Through a small telescope it's a faint grey disc, and on a dark night the owl's two dark eyes show."
+credit = "International Gemini Observatory/NOIRLab/NSF/AURA/Émilie Storer (Collège Charlemagne, QUE)/André-Nicolas Chené (HIA/NRC of Canada)/T. Rector (U.Alaska, Anchorage)."
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/geminiann10008a/"
+north = 25.1
+degrees = 0.0945
+centre = [0.581, 0.409]
+checked = "2026-09-29"
+
+[[image]]
+id = "m98"
+title = "M98"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m98/"
+north = -0.9
+degrees = 0.161
+checked = "2026-09-29"
+
+[[image]]
+id = "m99"
+title = "M99"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m99/"
+north = -1.0
+degrees = 0.128
+checked = "2026-09-29"
+
+[[image]]
+id = "m100"
+title = "M100"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "N.A.Sharp/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m100/"
+north = 0.4
+degrees = 0.223
+centre = [0.516, 0.547]
+checked = "2026-09-29"
+
+[[image]]
+id = "m101"
+title = "The Pinwheel Galaxy (M101)"
+caption = "Hubble's pictures blended with ones from telescopes on the ground. By eye through a telescope it's a large, very faint glow."
+credit = "European Space Agency & NASA. Acknowledgements: Project Investigators for the original Hubble data: K.D. Kuntz (GSFC), F. Bresolin (University of Hawaii), J. Trauger (JPL), J. Mould (NOAO), and Y.-H. Chu (University of Illinois, Urbana). Image processing: Davide De Martin (ESA/Hubble). CFHT image: Canada-France-Hawaii Telescope/J.-C. Cuillandre/Coelum. NOAO image: George Jacoby, Bruce Bohannan, Mark Hanna/NOAO/AURA/NSF"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/heic0602a/"
+north = 3.5
+degrees = 0.22
+checked = "2026-09-29"
+
+[[image]]
+id = "m102"
+title = "M102 (NGC 5866)"
+caption = "From the Hubble Space Telescope. Through a small telescope it's a small bright spindle."
+credit = "NASA, ESA, and The Hubble Heritage Team (STScI/AURA)"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/opo0624b/"
+north = -79.9
+degrees = 0.0537
+centre = [0.498, 0.420]
+checked = "2026-09-29"
+
+[[image]]
+id = "m103"
+title = "M103"
+credit = "Hillary Mathis, N.A.Sharp/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m103/"
+north = -2.8
+degrees = 0.144
+centre = [0.530, 0.514]
+checked = "2026-09-29"
+
+[[image]]
+id = "m104"
+title = "The Sombrero Galaxy (M104)"
+caption = "From the Hubble Space Telescope. A small telescope shows the bright oval and, on a good night, the dark lane of dust."
+credit = "NASA/ESA and The Hubble Heritage Team (STScI/AURA)"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/opo0328a/"
+north = 5.0
+degrees = 0.16
+checked = "2026-09-29"
+
+[[image]]
+id = "m105"
+title = "M105"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m105/"
+north = -0.9
+degrees = 0.214
+centre = [0.866, 0.534]
+checked = "2026-09-29"
+
+[[image]]
+id = "m106"
+title = "M106"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "N.A.Sharp, REU program/NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m106/"
+north = -2.1
+degrees = 0.576
+checked = "2026-09-29"
+
+[[image]]
+id = "m107"
+title = "M107"
+caption = "From the Hubble Space Telescope, close in on the crowded heart of the cluster. Through a small telescope it's a round fuzzy glow."
+credit = "ESA/Hubble & NASA"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/potw1229a/"
+north = -86.7
+degrees = 0.057
+checked = "2026-09-29"
+
+[[image]]
+id = "m108"
+title = "M108"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m108/"
+north = -1.2
+degrees = 0.194
+checked = "2026-09-29"
+
+[[image]]
+id = "m109"
+title = "M109"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m109/"
+north = -1.2
+degrees = 0.194
+checked = "2026-09-29"
+
+[[image]]
+id = "m110"
+title = "M110"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-m110/"
+north = -0.1
+degrees = 0.321
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc7000"
+title = "The North America and Pelican Nebulae (NGC 7000)"
+caption = "A long exposure. The red is glowing hydrogen, far too faint for the eye: under a dark sky it's a pale patch shaped like North America."
+credit = "KPNO/NOIRLab/NSF/AURA/Adam Block"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-n7000mosblock/"
+north = 3.0
+degrees = 4.177
+centre = [0.251, 0.521]
+checked = "2026-09-29"
+
+[[image]]
+id = "veil"
+title = "The Veil Nebula (Cygnus Loop)"
+caption = "A long exposure through a filter that picks out glowing gas. By eye, even through a telescope with a filter, the arcs are faint grey threads."
+credit = "Taavi Niittee"
+licence = "CC0 1.0"
+source = "https://commons.wikimedia.org/wiki/File:Cygnus_loop.jpg"
+card_only = true
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc7293"
+title = "The Helix Nebula (NGC 7293)"
+caption = "A long exposure. Through a telescope it's a large, very faint grey ring; the colours only show in photographs."
+credit = "ESO"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso0907a/"
+north = -0.1
+degrees = 0.467
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc6826"
+title = "The Blinking Planetary (NGC 6826)"
+caption = "From the Hubble Space Telescope, in colours chosen to pick out different gases. Through a small telescope it's a tiny blue-green disc."
+credit = "Bruce Balick (University of Washington), Jason Alexander (University of Washington), Arsen Hajian (U.S. Naval Observatory), Yervant Terzian (Cornell University), Mario Perinotto (University of Florence, Italy), Patrizio Patriarchi (Arcetri Observatory, Italy) and NASA/ESA"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/opo9738d/"
+north = 31.2
+degrees = 0.0093
+centre = [0.466, 0.526]
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc6543"
+title = "The Cat's Eye Nebula (NGC 6543)"
+caption = "From the Hubble Space Telescope, in colours chosen to pick out different gases. Through a small telescope it's a tiny blue-green disc."
+credit = "ESA, NASA, HEIC and The Hubble Heritage Team (STScI/AURA)"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/heic0414a/"
+north = -144.6
+degrees = 0.0195
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc7009"
+title = "The Saturn Nebula (NGC 7009)"
+caption = "From the Hubble Space Telescope, in colours chosen to pick out different gases. Through a small telescope it's a tiny blue-green disc."
+credit = "Bruce Balick (University of Washington), Jason Alexander (University of Washington), Arsen Hajian (U.S. Naval Observatory), Yervant Terzian (Cornell University), Mario Perinotto (University of Florence, Italy), Patrizio Patriarchi (Arcetri Observatory, Italy), NASA/ESA"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/opo9738g/"
+north = 28.1
+degrees = 0.0142
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc3242"
+title = "The Ghost of Jupiter (NGC 3242)"
+caption = "From the Hubble Space Telescope, in colours chosen to pick out different gases. Through a small telescope it's a tiny blue-green disc."
+credit = "Bruce Balick and Jason Alexander (University of Washington), Arsen Hajian (U.S. Naval Observatory), Yervant Terzian (Cornell University), Mario Perinotto (University of Florence), Patrizio Patriarchi (Arcetri Observatory) and NASA/ESA"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/opo9738c3/"
+north = 26.7
+degrees = 0.0092
+centre = [0.497, 0.403]
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc2392"
+title = "The Clown Face Nebula (NGC 2392)"
+caption = "From the Hubble Space Telescope, in colours chosen to pick out different gases. Through a small telescope it's a tiny blue-green disc."
+credit = "NASA, ESA, Andrew Fruchter (STScI), and the ERO team (STScI + ST-ECF)"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/heic9910a/"
+north = -168.4
+degrees = 0.0208
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc7662"
+title = "The Blue Snowball (NGC 7662)"
+caption = "From the Hubble Space Telescope, in colours chosen to pick out different gases. Through a small telescope it's a tiny blue-green disc."
+credit = "Bruce Balick and Jason Alexander (University of Washington), Arsen Hajian (S. Naval Observatory), Yervant Terzian (Cornell University), Mario Perinotto (University of Florence), Patrizio Patriarchi (Arcetri Observatory) and NASA/ESA"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/opo9738c20/"
+north = 106.9
+degrees = 0.0093
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc457"
+title = "The Owl Cluster (NGC 457)"
+credit = "KPNO/NOIRLab/NSF/AURA/Ken and Emilie Siarkiewicz/Adam Block"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-n457siark/"
+north = 78.8
+degrees = 0.298
+centre = [0.407, 0.430]
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc752"
+title = "NGC 752"
+credit = "C messier"
+licence = "CC BY 4.0"
+source = "https://commons.wikimedia.org/wiki/File:NGC_752_60f_GraXpert.jpg"
+card_only = true
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc7789"
+title = "Caroline's Rose (NGC 7789)"
+credit = "Bortle7"
+licence = "CC BY 4.0"
+source = "https://commons.wikimedia.org/wiki/File:Ngc_7789_carolines_rose_2024_10_04_95x180s_iso640_bortle4.jpg"
+card_only = true
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc2237"
+title = "The Rosette Nebula (NGC 2237)"
+caption = "A long exposure. The red is glowing hydrogen, far too faint for the eye: through a telescope with a filter it's a pale grey ring."
+credit = "CTIO/NOIRLab/DOE/NSF/AURA. Image processing: T.A. Rector (University of Alaska Anchorage/NSF NOIRLab), D. de Martin & M. Zamani (NSF NOIRLab)"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noirlab2424a/"
+north = 0.0
+degrees = 1.579
+centre = [0.458, 0.592]
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc2264"
+title = "The Christmas Tree Cluster and Cone Nebula (NGC 2264)"
+caption = "A long exposure. The pink is glowing hydrogen, real but too faint for the eye, which sees a grey glow."
+credit = "ESO"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso0848a/"
+north = 1.6
+degrees = 0.555
+centre = [0.522, 0.072]
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc4565"
+title = "The Needle Galaxy (NGC 4565)"
+caption = "A long exposure. Through a small telescope it's a long thin streak of light."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-02286/"
+north = -1.4
+degrees = 0.312
+centre = [0.458, 0.534]
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc4631"
+title = "The Whale Galaxy (NGC 4631)"
+caption = "A long exposure. Through a small telescope it's a long thin streak of light."
+credit = "KPNO/NOIRLab/NSF/AURA/John Vickery and Jim Matthes/Adam Block"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-n4631vickery/"
+north = -29.3
+degrees = 0.205
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc2403"
+title = "NGC 2403"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "KPNO/NOIRLab/NSF/AURA/M. T. Patterson (New Mexico State University)Image processing: T.A. Rector (University of Alaska Anchorage/NSF NOIRLab), M. Zamani & D. de Martin (NSF NOIRLab)"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/iotw2221a/"
+north = -0.3
+degrees = 0.482
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc7331"
+title = "NGC 7331"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "NOIRLab/NSF/AURA"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-02325/"
+north = -1.9
+degrees = 0.171
+centre = [0.533, 0.493]
+checked = "2026-09-29"
+
+[[image]]
+id = "ic4665"
+title = "The Summer Beehive (IC 4665)"
+credit = "C messier"
+licence = "CC BY 4.0"
+source = "https://commons.wikimedia.org/wiki/File:IC_4665_GraXpert.jpg"
+card_only = true
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc6633"
+title = "NGC 6633"
+credit = "Estrellas Compartidas"
+licence = "CC BY-SA 4.0"
+source = "https://commons.wikimedia.org/wiki/File:NGC_6633_(28062025).png"
+card_only = true
+checked = "2026-09-29"
+
+[[image]]
+id = "ic4756"
+title = "Graff's Cluster (IC 4756)"
+credit = "Giuseppe Donatiello"
+licence = "CC0 1.0"
+source = "https://commons.wikimedia.org/wiki/File:IC_4756_(Giuseppe_Donatiello).jpg"
+card_only = true
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc663"
+title = "NGC 663"
+credit = "KPNO/NOIRLab/NSF/AURA/Peter and Suzie Erickson/Adam Block"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/noao-n663erickson/"
+north = -163.9
+degrees = 0.206
+centre = [0.505, 0.342]
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc253"
+title = "The Sculptor Galaxy (NGC 253)"
+caption = "A long exposure. Through binoculars it's a long pale streak."
+credit = "ESO/INAF-VST. Acknowledgement: A. Grado/L. Limatola/INAF-Capodimonte Observatory"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso1152a/"
+north = 0.0
+degrees = 0.676
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc5128"
+title = "Centaurus A (NGC 5128)"
+caption = "A long exposure. Through a small telescope it's a round glow cut across by a dark lane of dust."
+credit = "ESO"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso1221a/"
+north = 0.0
+degrees = 0.565
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc2070"
+title = "The Tarantula Nebula (30 Doradus)"
+caption = "A long exposure. The pink is glowing hydrogen, real but too faint for the eye, which sees a grey glow."
+credit = "ESO/R. Fosbury (ST-ECF)"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso0650a/"
+north = -0.1
+degrees = 1.04
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc362"
+title = "NGC 362"
+caption = "From the Hubble Space Telescope, close in on the crowded heart of the cluster. Through a small telescope it's a round fuzzy glow."
+credit = "ESA/Hubble & NASA"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/potw1643a/"
+north = -160.0
+degrees = 0.0438
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc6397"
+title = "NGC 6397"
+credit = "ESO"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso0425a/"
+north = 0.0
+degrees = 0.263
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc6752"
+title = "NGC 6752"
+credit = "ESO"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso1323a/"
+north = 0.0
+degrees = 0.543
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc3532"
+title = "The Wishing Well Cluster (NGC 3532)"
+credit = "ESO/G. Beccari"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso1439a/"
+north = 0.0
+degrees = 0.572
+centre = [0.482, 0.451]
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc2516"
+title = "The Southern Beehive (NGC 2516)"
+credit = "G Furtado"
+licence = "CC BY-SA 4.0"
+source = "https://commons.wikimedia.org/wiki/File:NGC_2516.jpg"
+card_only = true
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc3766"
+title = "NGC 3766"
+credit = "ESO"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso1326a/"
+north = 0.0
+degrees = 0.417
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc4945"
+title = "NGC 4945"
+caption = "A long exposure. Through a small telescope it's a long faint streak."
+credit = "ESO"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso0931a/"
+north = 0.0
+degrees = 0.366
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc55"
+title = "The String of Pearls Galaxy (NGC 55)"
+caption = "A long exposure. Through a small telescope it's a long faint streak."
+credit = "ESO"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso0914a/"
+north = 0.0
+degrees = 0.581
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc300"
+title = "The Sculptor Pinwheel Galaxy (NGC 300)"
+caption = "A long exposure. Through a small telescope it's a large, very faint glow."
+credit = "ESO"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso1037a/"
+north = -0.1
+degrees = 0.504
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc3918"
+title = "The Blue Planetary (NGC 3918)"
+caption = "From the Hubble Space Telescope, in colours chosen to pick out different gases. Through a small telescope it's a tiny blue-green disc."
+credit = "Howard Bond (Space Telescope Science Institute), Robin Ciardullo (Pennsylvania State University) and NASA/ESA"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/opo9738e/"
+north = -101.9
+degrees = 0.0095
+centre = [0.553, 0.459]
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc2808"
+title = "NGC 2808"
+caption = "From the Hubble Space Telescope, close in on the crowded heart of the cluster. Through a small telescope it's a round fuzzy glow."
+credit = "European Space Agency, NASA, G. Piotto (University of Padua, Italy) and A. Sarajedini (University of Florida, USA). Acknowledgement: Davide de Martin (ESA/Hubble)"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/heic0708a/"
+north = 25.5
+degrees = 0.0535
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc3201"
+title = "NGC 3201"
+credit = "ESO"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/ngc3201/"
+north = -0.1
+degrees = 0.266
+checked = "2026-09-29"
+
+[[image]]
+id = "ic2944"
+title = "The Running Chicken Nebula (IC 2944)"
+caption = "A long exposure. The pink is glowing hydrogen, real but too faint for the eye, which sees a grey glow."
+credit = "ESO/VPHAS+ team. Acknowledgement: CASU"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso2320a/"
+north = 0.0
+degrees = 2.5
+centre = [0.360, 0.591]
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc1851"
+title = "NGC 1851"
+credit = "International Gemini Observatory, Alan McConnachie (Herzberg Institute of Astrophysics) and T.A. Rector (University of Alaska Anchorage)"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/gemini-2013-ngc1851-legacy/"
+card_only = true
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc6744"
+title = "NGC 6744"
+caption = "A long exposure. Through a small telescope it's a large, faint oval glow."
+credit = "ESO"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso1118a/"
+north = 90.0
+degrees = 0.351
+checked = "2026-09-29"
+
+[[image]]
+id = "ngc1365"
+title = "The Great Barred Spiral (NGC 1365)"
+caption = "A long exposure. Through a small telescope it's a faint oval glow; the detail only shows in photographs."
+credit = "Dark Energy Survey/DOE/FNAL/DECam/CTIO/NOIRLab/NSF/AURA. Image processing: Travis Rector (University of Alaska Anchorage/NSF NOIRLab), Jen Miller (Gemini Observatory/NSF NOIRLab), Mahdi Zamani & Davide de Martin (NSF NOIRLab)"
+licence = "CC BY 4.0"
+source = "https://noirlab.edu/public/images/iotw2127a/"
+north = 0.0
+degrees = 0.247
+checked = "2026-09-29"
+
+
+[[image]]
+id = "alpha-centauri"
+title = "Alpha Centauri A and B"
+caption = "From the Hubble Space Telescope. To the eye the two stars merge into one; the spikes are made by the telescope."
+credit = "ESA/Hubble & NASA"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/potw1635a/"
+card_only = true
+checked = "2026-09-29"
+
+[[image]]
+id = "coalsack"
+title = "The Coalsack and the Southern Cross"
+caption = "A long exposure with a camera lens. By eye the Coalsack is a dark hole in the Milky Way beside the Cross; the colours of the stars are real."
+credit = "ESO/S. Brunier"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/b06/"
+north = 0.0
+degrees = 17.736
+centre = [0.639, 0.667]
+checked = "2026-09-29"
+
+[[image]]
+id = "betelgeuse"
+title = "The surface of Betelgeuse, December 2019"
+caption = "Betelgeuse's own face, taken by ESO's Very Large Telescope during its Great Dimming, when a cloud of dust it had thrown off hid part of it. It is so far away that it looks smaller than a grain of sand seen from a kilometre off."
+credit = "ESO/M. Montargès et al."
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso2003a/"
+card_only = true
+checked = "2026-09-29"
+
+[[image]]
+id = "antares"
+title = "The surface of Antares"
+caption = "Built up by ESO's Very Large Telescope Interferometer from infrared light: the first detailed map of another star's surface. The colours show brightness, not what the eye would see."
+credit = "ESO/K. Ohnaka"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/eso1726a/"
+card_only = true
+checked = "2026-09-29"
+
+[[image]]
+id = "sirius"
+title = "Sirius A and its companion, Sirius B"
+caption = "From the Hubble Space Telescope, overexposed so that faint Sirius B, a white dwarf, shows as the small dot at lower left. The spikes and rings are made by the telescope."
+credit = "NASA, ESA, H. Bond (STScI), and M. Barstow (University of Leicester)"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/heic0516a/"
+card_only = true
+checked = "2026-09-29"
+
+[[image]]
+id = "polaris"
+title = "Polaris and its companion, Polaris B"
+caption = "From the Hubble Space Telescope. The faint dot at lower right is Polaris B, a smaller companion star."
+credit = "NASA, ESA, N. Evans (Harvard-Smithsonian CfA), and H. Bond (STScI)"
+licence = "CC BY 4.0"
+source = "https://esahubble.org/images/opo0602c/"
+card_only = true
+checked = "2026-09-29"
+
+[[image]]
+id = "vega"
+title = "Vega"
+caption = "The spikes are made by the telescope, not by the star."
+credit = "Giuseppe Donatiello"
+licence = "CC0 1.0"
+source = "https://commons.wikimedia.org/wiki/File:Vega_(55196444951).jpg"
+card_only = true
+checked = "2026-09-29"
+
+[[image]]
+id = "fomalhaut"
+title = "The dust rings around Fomalhaut"
+caption = "Seen in infrared by the James Webb Space Telescope: three nested belts of warm dust around the star, which is masked out in the middle. No eye or ordinary telescope can see them."
+credit = "NASA, ESA, CSA, A. Pagan (STScI), A. Gáspár (University of Arizona)"
+licence = "CC BY 4.0"
+source = "https://esawebb.org/images/weic2312a/"
+card_only = true
+checked = "2026-09-29"
+
+[[image]]
+id = "sadr"
+title = "Sadr and the Gamma Cygni Nebula"
+caption = "A long exposure. The red is glowing hydrogen around Sadr, the bright star, far too faint for the eye."
+credit = "Giuseppe Donatiello"
+licence = "CC0 1.0"
+source = "https://commons.wikimedia.org/wiki/File:Gamma_Cygni_Nebula_(Sadr_Region)_(Giuseppe_Donatiello).jpg"
+card_only = true
+checked = "2026-09-29"
+
+
+[[image]]
+id = "and"
+title = "Andromeda"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:AndromedaCC.jpg"
+card_only = true
+constellation = "And"
+checked = "2026-09-29"
+
+[[image]]
+id = "aql"
+title = "Aquila"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:AquilaCC.jpg"
+card_only = true
+constellation = "Aql"
+checked = "2026-09-29"
+
+[[image]]
+id = "ari"
+title = "Aries"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:AriesCC.jpg"
+card_only = true
+constellation = "Ari"
+checked = "2026-09-29"
+
+[[image]]
+id = "aur"
+title = "Auriga"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:AurigaCC.jpg"
+card_only = true
+constellation = "Aur"
+checked = "2026-09-29"
+
+[[image]]
+id = "boo"
+title = "Boötes"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:BootesCC.jpg"
+card_only = true
+constellation = "Boo"
+checked = "2026-09-29"
+
+[[image]]
+id = "cma"
+title = "Canis Major"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:CanisMajorCC.jpg"
+card_only = true
+constellation = "CMa"
+checked = "2026-09-29"
+
+[[image]]
+id = "car"
+title = "Carina"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:Constellation_Carina.jpg"
+card_only = true
+constellation = "Car"
+checked = "2026-09-29"
+
+[[image]]
+id = "cas"
+title = "Cassiopeia"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:CassiopeiaCC.jpg"
+card_only = true
+constellation = "Cas"
+checked = "2026-09-29"
+
+[[image]]
+id = "cen"
+title = "Centaurus"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:Constellation_Centaurus.jpg"
+card_only = true
+constellation = "Cen"
+checked = "2026-09-29"
+
+[[image]]
+id = "cet"
+title = "Cetus"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:CetusCC.jpg"
+card_only = true
+constellation = "Cet"
+checked = "2026-09-29"
+
+[[image]]
+id = "crb"
+title = "Corona Borealis"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:CoronaBorealisCC.jpg"
+card_only = true
+constellation = "CrB"
+checked = "2026-09-29"
+
+[[image]]
+id = "crv"
+title = "Corvus"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:CorvusCC.jpg"
+card_only = true
+constellation = "Crv"
+checked = "2026-09-29"
+
+[[image]]
+id = "cru"
+title = "Crux, the Southern Cross"
+caption = "A long exposure with a camera lens, turned so that north is to the left: the Cross lies on its side, with the dark Coalsack below it and the pink Carina Nebula at the top."
+credit = "ESO/Y. Beletsky"
+licence = "CC BY 4.0"
+source = "https://www.eso.org/public/images/yb_southern_cross_cc/"
+card_only = true
+constellation = "Cru"
+checked = "2026-09-29"
+
+[[image]]
+id = "cyg"
+title = "Cygnus"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:CygnusCC.jpg"
+card_only = true
+constellation = "Cyg"
+checked = "2026-09-29"
+
+[[image]]
+id = "eri"
+title = "Eridanus"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:EridanusCC.jpg"
+card_only = true
+constellation = "Eri"
+checked = "2026-09-29"
+
+[[image]]
+id = "gem"
+title = "Gemini"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:GeminiCC.jpg"
+card_only = true
+constellation = "Gem"
+checked = "2026-09-29"
+
+[[image]]
+id = "leo"
+title = "Leo"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:LeoCC.jpg"
+card_only = true
+constellation = "Leo"
+checked = "2026-09-29"
+
+[[image]]
+id = "lyr"
+title = "Lyra"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:LyraCC.jpg"
+card_only = true
+constellation = "Lyr"
+checked = "2026-09-29"
+
+[[image]]
+id = "ori"
+title = "Orion"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:OrionCC.jpg"
+card_only = true
+constellation = "Ori"
+checked = "2026-09-29"
+
+[[image]]
+id = "peg"
+title = "Pegasus"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:PegasusCC.jpg"
+card_only = true
+constellation = "Peg"
+checked = "2026-09-29"
+
+[[image]]
+id = "per"
+title = "Perseus"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:PerseusCC.jpg"
+card_only = true
+constellation = "Per"
+checked = "2026-09-29"
+
+[[image]]
+id = "sgr"
+title = "Sagittarius"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:SagittariusCC.jpg"
+card_only = true
+constellation = "Sgr"
+checked = "2026-09-29"
+
+[[image]]
+id = "sco"
+title = "Scorpius"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:ScorpiusCC.jpg"
+card_only = true
+constellation = "Sco"
+checked = "2026-09-29"
+
+[[image]]
+id = "tau"
+title = "Taurus"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:TaurusCC.jpg"
+card_only = true
+constellation = "Tau"
+checked = "2026-09-29"
+
+[[image]]
+id = "uma"
+title = "Ursa Major"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:UrsaMajorCC.jpg"
+card_only = true
+constellation = "UMa"
+checked = "2026-09-29"
+
+[[image]]
+id = "umi"
+title = "Ursa Minor"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:UrsaMinorCC.jpg"
+card_only = true
+constellation = "UMi"
+checked = "2026-09-29"
+
+[[image]]
+id = "vir"
+title = "Virgo"
+caption = "A photograph with a camera lens; the thin lines joining the stars and the name are drawn on."
+credit = "Till Credner"
+licence = "CC BY-SA 3.0"
+source = "https://commons.wikimedia.org/wiki/File:VirgoCC.jpg"
+card_only = true
+constellation = "Vir"
+checked = "2026-09-29"

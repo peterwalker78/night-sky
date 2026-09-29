@@ -244,12 +244,16 @@ shortens the visit itself, `--place=LAT,LON` stands somewhere else, and
 
 ## The photographs
 
-Once something has been found, zooming in on it lets a real photograph take
-over from the dots, at its true size on the sky and turned as it sits there
-tonight, with the view following it as the sky turns; the Moon and Mercury
-wear tonight's real phase. The 44 pictures come from NASA (public
-domain), ESA/Hubble, ESO and NOIRLab/NSF/AURA (CC BY 4.0), and a few from
-Wikimedia Commons (CC0, public domain, CC BY 2.0/4.0 and CC BY-SA 4.0).
+Zooming in on a planet, the Moon, a cluster, a nebula or a galaxy lets a real
+photograph take over from the dots, at its true size on the sky and turned as
+it sits there tonight, with the view following it as the sky turns; the Moon
+and Mercury wear tonight's real phase. Nearly every object in the deep-sky
+list has one. Constellations and a few stars (Betelgeuse's surface, Sirius
+and its companion, Fomalhaut's dust rings) have a photograph in their card
+instead. There are over 200 pictures, from NASA (public domain), ESA/Hubble,
+ESA/Webb, ESO and NOIRLab/NSF/AURA (CC BY 4.0), and Wikimedia Commons (CC0,
+public domain, CC BY and CC BY-SA), among them Till Credner's wide-field
+constellation photographs (CC BY-SA 3.0), which carry thin drawn lines.
 Each one's credit shows while it's in view, and every title, credit, licence and source
 page is in [`app/data/images/credits.toml`](app/data/images/credits.toml) and
 in Settings. The pictures are cropped and resized; the CC BY-SA ones stay
