@@ -33,6 +33,11 @@
   <url type="homepage">https://github.com/peterwalker78/westering</url>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.3.0" date="2026-09-29">
+      <description>
+        <p>Every evening shows its three parts: set it down, look up, wind down. Winding down is chosen, and ends outside or in bed.</p>
+      </description>
+    </release>
     <release version="0.2.1" date="2026-09-28">
       <description>
         <p>Constellation figures from Stellarium's modern set, and hints for what's under the pointer.</p>
