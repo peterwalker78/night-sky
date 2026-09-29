@@ -72,8 +72,9 @@ pub struct Music {
     pub quiet: bool,
 }
 
-/// How loud the music sits at its fullest: well under anything else.
-pub const FULL: f64 = 0.7;
+/// How loud the music sits at its fullest. The tracks are levelled gently
+/// (-20 LUFS), so this can be the whole of it.
+pub const FULL: f64 = 1.0;
 
 impl Music {
     /// Every style, each in an order that depends on `seed`, so each night

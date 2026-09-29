@@ -434,9 +434,11 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
             } else {
                 pace
             };
-            if real - last_frame.get() >= interval {
+            let urgent = game.borrow().urgent;
+            if urgent || real - last_frame.get() >= interval {
                 last_frame.set(real);
                 let mut g = game.borrow_mut();
+                g.urgent = false;
                 g.focused = window.is_active();
                 g.panel_open = !on_sky;
                 // The panels over the sky fit the window, down to a small tile.

@@ -152,11 +152,19 @@ fn paint(
 /// out flying. One way of drawing it means no jump between the two.
 pub const FLYING: (f64, f64) = (100.0, 100.0);
 
-/// `moving` false draws it at rest, without breathing or bobbing.
-pub fn render_flying(wisp: &mut Wisp, now: f64, scale: f64, moving: bool) -> Option<gdk::Texture> {
-    paint(FLYING, scale, |c| {
-        wisp.draw(now, moving, true, c);
-    })
+/// `moving` false draws it at rest, without breathing or bobbing. Also
+/// returns how soon, in milliseconds, the wisp wants drawing again.
+pub fn render_flying(
+    wisp: &mut Wisp,
+    now: f64,
+    scale: f64,
+    moving: bool,
+) -> Option<(gdk::Texture, Option<f64>)> {
+    let mut next = None;
+    let texture = paint(FLYING, scale, |c| {
+        next = wisp.draw(now, moving, true, c);
+    })?;
+    Some((texture, next))
 }
 
 /// The empty moss, while the wisp is away from it.

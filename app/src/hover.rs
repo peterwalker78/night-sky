@@ -63,6 +63,7 @@ impl Game {
             self.pointer = Some((x, y, real));
             // Looking around with the pointer is being busy with the sky.
             self.last_input = real;
+            self.urgent = true;
         }
     }
 

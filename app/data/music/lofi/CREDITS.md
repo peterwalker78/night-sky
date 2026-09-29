@@ -3,7 +3,7 @@
 Every track here is dedicated to the public domain under
 [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/): free to use,
 change and share, with no conditions. Credit is given anyway, with thanks.
-Each was converted to Opus at 32 kbps and levelled to -23 LUFS.
+Each was converted to Opus at 32 kbps and levelled to -20 LUFS (-23 in the audio, with +3 dB in the Opus header).
 
 | File | Title | By | Source |
 | --- | --- | --- | --- |

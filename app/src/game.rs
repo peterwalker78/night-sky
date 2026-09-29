@@ -195,6 +195,8 @@ pub struct Game {
     pub(crate) last_input: UnixMs,
     /// When Space went down, to tell a tap from a hold.
     pub(crate) space_since: Option<UnixMs>,
+    /// Something the user did wants drawing now.
+    pub urgent: bool,
     /// After a story or a walk, the ring rests until the view moves on.
     pub(crate) ring_resting: bool,
     /// Which of tonight's finds have been seen: caught with the card up
@@ -528,6 +530,7 @@ impl Game {
             finale_turned: false,
             last_input: real_now,
             space_since: None,
+            urgent: false,
             ring_resting: false,
             viewed,
             told_tab: false,
@@ -924,6 +927,8 @@ impl Game {
 
     pub(crate) fn input(&mut self, real: UnixMs) {
         self.last_input = real;
+        // Whatever the user does shows at once, not at the next paced frame.
+        self.urgent = true;
     }
 
     /// Looking around with the mouse, rather than the keyboard and the
@@ -1810,11 +1815,19 @@ impl Game {
         // Unfocused, or keeping company, the sky and ground change slowly:
         // they're drawn a few times a second, while the wisp and anything
         // alive keep moving smoothly on top.
-        let every = if self.keeping() { 250 } else { 125 };
-        let quiet = (!self.focused || self.keeping())
-            && !self.winding()
-            && self.wisp_motion() < 2
-            && !self.wants_fast_frames(real);
+        // The sky and ground change slowly: at rest they're drawn a few
+        // times a second (fewer unfocused, fewer still keeping company),
+        // while the wisp and anything alive move smoothly on top.
+        let every = if self.keeping() {
+            250
+        } else if !self.focused {
+            125
+        } else {
+            66
+        };
+        let pointing = self.pointer.is_some_and(|(_, _, at)| real - at < 400);
+        let quiet =
+            !self.winding() && !pointing && self.wisp_motion() < 2 && !self.wants_fast_frames(real);
         if quiet
             && let Some(c) = &self.cached
             && real - c.at < every
@@ -2490,9 +2503,19 @@ impl Game {
         let algol = self
             .algol
             .map(|k| (k, westering_core::tours::algol_magnitude(now)));
+        // Stars well outside the view are passed over with one dot product
+        // in their own frame, before the turn into the horizon's.
+        let half_diag =
+            (cam.width.hypot(cam.height) / 2.0 + 80.0) / (ppd * 180.0 / std::f64::consts::PI);
+        let reach = (2.0 * (half_diag / 2.0).atan()).min(std::f64::consts::PI);
+        let cos_reach = reach.cos() - 0.02;
+        let ahead = apply(&transpose(hz), from_alt_az(cam.alt, cam.az));
         for (k, star) in self.prepared.iter().enumerate() {
             if star.mag > shown {
                 break;
+            }
+            if dot3(star.dir, ahead) < cos_reach {
+                continue;
             }
             let (mag, star_light) = match algol {
                 Some((a, m)) if a == k => (m, light(m)),
@@ -3321,14 +3344,10 @@ impl Game {
         }
         if fast || self.wisp_motion() == 2 {
             16
-        } else if self.wisp_motion() == 1
-            || self.leaving_card.is_some()
-            || self.card.as_ref().is_some_and(|c| real - c.shown < 600)
-            || self.pointer.is_some_and(|(_, _, at)| real - at < 5_000)
-        {
-            33
         } else {
-            66
+            // At rest the wisp still breathes at 30 frames a second; only
+            // every other frame draws the sky (see `tick`).
+            33
         }
     }
 

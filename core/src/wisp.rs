@@ -288,6 +288,11 @@ pub struct Wisp {
     season: Option<Season>,
     /// Breathing in time with someone: the breath's phase, 0 to 1.
     paced: Option<f64>,
+    /// The breath's swell is left to whoever shows the picture, who scales
+    /// it every frame; the picture itself is drawn at rest size.
+    breath_outside: bool,
+    /// The breath's pace as last drawn, slowed for sleep and night.
+    breath_slow: f64,
     humming: bool,
     last_note: f64,
 }
@@ -344,6 +349,8 @@ impl Wisp {
             body: (1.0, 1.0),
             season: None,
             paced: None,
+            breath_outside: false,
+            breath_slow: 1.0,
             humming: false,
             last_note: 0.0,
         }
@@ -353,6 +360,30 @@ impl Wisp {
     /// breath, in over the first two fifths), or its own when none.
     pub fn breathe_with(&mut self, phase: Option<f64>) {
         self.paced = phase;
+    }
+
+    /// Leaves the breath's swell to the caller, who asks `breath_scale`
+    /// each frame, so the picture needn't be drawn again for it.
+    pub fn set_breath_outside(&mut self, outside: bool) {
+        self.breath_outside = outside;
+    }
+
+    /// How big the wisp is with this moment's breath, as a factor near 1,
+    /// running on from the last drawing without drawing again.
+    pub fn breath_scale(&self, now: f64) -> f64 {
+        let phase = match self.paced {
+            Some(p) => p,
+            None => {
+                let since = self.last_tick.map_or(0.0, |t| (now - t).max(0.0));
+                (self.breath + since / (self.breath_ms * self.breath_slow)).fract()
+            }
+        };
+        let depth = if self.paced.is_some() {
+            BREATH_DEPTH * 3.0
+        } else {
+            BREATH_DEPTH
+        };
+        1.0 + breathing(phase) * depth * (1.0 - self.sleep * 0.5)
     }
 
     /// Humming along to music: now and then a note drifts up.
@@ -677,11 +708,17 @@ fn draw(wisp: &mut Wisp, now: f64, moving: bool, dark: bool, cr: &mut dyn Canvas
             * (1.0 + (NIGHT_BREATH - 1.0) * wisp.night_mix)
             * (1.0 + 0.15 * wisp.sleepy);
         // Kept as a running phase, so a changing pace never skips a beat.
+        wisp.breath_slow = slow;
         wisp.breath = match wisp.paced {
             Some(p) => p,
             None => (wisp.breath + dt / (wisp.breath_ms * slow)).fract(),
         };
-        let breath = breathing(wisp.breath);
+        // Swelling with the breath is the caller's, when it's asked for.
+        let breath = if wisp.breath_outside {
+            0.0
+        } else {
+            breathing(wisp.breath)
+        };
         // Breathing with someone, it breathes deeper, so it's easy to follow.
         let depth = if wisp.paced.is_some() {
             BREATH_DEPTH * 3.0

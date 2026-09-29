@@ -101,6 +101,8 @@ pub struct Guide {
     lines: Lines,
     /// The moss as last drawn: when, at what scale.
     moss: Option<(UnixMs, f64, gtk::gdk::Texture)>,
+    /// The wisp's picture as last drawn: when it's next due, at what scale.
+    wisp_drawn: Option<(UnixMs, f64, gtk::gdk::Texture)>,
 }
 
 /// Whether a line waits: while a card is up only its own line speaks, and
@@ -110,6 +112,9 @@ fn waiting((card_up, asking): (bool, bool), l: &Line) -> bool {
         || (asking && l.aim != Aim::Prompt && l.aim != Aim::Stay)
 }
 
+/// How often, at the least, the wisp's picture is drawn afresh when it
+/// hasn't said: its breath runs smoothly between, as a scale.
+const WISP_REDRAW_MS: UnixMs = 66;
 /// How long someone can look around without finding anything before the
 /// wisp offers to help.
 const STUCK_MS: UnixMs = 35_000;
@@ -141,6 +146,7 @@ impl Guide {
 
     pub fn new(real: UnixMs) -> Guide {
         let mut wisp = Wisp::new(FLYING.0, FLYING.1);
+        wisp.set_breath_outside(true);
         // It wakes as the sky arrives.
         wisp.update(0.05, Mode::Away, Trend::Steady, false, true, false);
         Guide {
@@ -166,6 +172,7 @@ impl Guide {
             idle_spot: None,
             lines: Lines::bundled(),
             moss: None,
+            wisp_drawn: None,
         }
     }
 }
@@ -1327,13 +1334,38 @@ impl Game {
         self.guide.wisp.set_body(bw, bh);
         // Behind a page opened over the sky the frames come slowly, so the
         // wisp rests still rather than breathing and bobbing in jerks.
-        if let Some(texture) = render_flying(
-            &mut self.guide.wisp,
-            real as f64,
-            self.guide.scale,
-            !self.panel_open,
-        ) {
-            let (sw, sh) = (FLYING.0 * SIZE, FLYING.1 * SIZE);
+        // The picture is drawn a few times a second, or every frame while it
+        // flies or does something; in between, its breath is a scale of the
+        // same picture on the GPU, so it breathes smoothly for next to nothing.
+        let busy = self.guide.flight.speed() > 12.0
+            || self.guide.flight.wobbling()
+            || self.guide.wisp.gesturing(real as f64);
+        // The wisp says itself how soon it needs drawing again: a few times
+        // a second at rest, quickly for a blink or a change of mood.
+        let stale = self
+            .guide
+            .wisp_drawn
+            .as_ref()
+            .is_none_or(|(due, scale, _)| real >= *due || *scale != self.guide.scale);
+        if busy || stale || self.panel_open {
+            self.guide.wisp_drawn = render_flying(
+                &mut self.guide.wisp,
+                real as f64,
+                self.guide.scale,
+                !self.panel_open,
+            )
+            .map(|(t, next)| {
+                let wait = next.map_or(WISP_REDRAW_MS, |ms| (ms as UnixMs).min(WISP_REDRAW_MS * 4));
+                (real + wait, self.guide.scale, t)
+            });
+        }
+        if let Some((_, _, texture)) = self.guide.wisp_drawn.clone() {
+            let breath = if self.panel_open {
+                1.0
+            } else {
+                self.guide.wisp.breath_scale(real as f64)
+            };
+            let (sw, sh) = (FLYING.0 * SIZE * breath, FLYING.1 * SIZE * breath);
             sprites.push(Sprite {
                 texture,
                 x: fx - sw / 2.0,

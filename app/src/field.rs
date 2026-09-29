@@ -14,7 +14,6 @@ pub struct Field {
     pub pitch: f32,
     base: Vec<Rgb>,
     light: Vec<Rgb>,
-    bytes: Vec<u8>,
     tone: Vec<u8>,
 }
 
@@ -30,7 +29,6 @@ impl Field {
             pitch: 5.0,
             base: Vec::new(),
             light: Vec::new(),
-            bytes: Vec::new(),
             // Soft shoulder: faint light stays linear, bright light saturates gently.
             tone: (0..=(TONE_STEPS * TONE_MAX) as usize)
                 .map(|i| ((1.0 - (-1.5 * i as f32 / TONE_STEPS).exp()) * 255.0 + 0.5) as u8)
@@ -51,7 +49,6 @@ impl Field {
         let n = cols * rows;
         self.base = vec![[0.0; 3]; n];
         self.light = vec![[0.0; 3]; n];
-        self.bytes = vec![0; n * 3];
         true
     }
 
@@ -195,17 +192,18 @@ impl Field {
     pub fn texture(&mut self, gain: f32) -> gdk::Texture {
         let last = self.tone.len() - 1;
         let scale = gain * TONE_STEPS;
+        // Straight into the texture's own buffer: no copy afterwards.
+        let mut bytes = vec![0u8; self.light.len() * 3];
         for (cell, out) in self
             .light
             .iter()
-            .zip(self.bytes.as_chunks_mut::<3>().0.iter_mut())
+            .zip(bytes.as_chunks_mut::<3>().0.iter_mut())
         {
-            for k in 0..3 {
-                let i = ((cell[k] * scale) as usize).min(last);
-                out[k] = self.tone[i];
+            for (o, &value) in out.iter_mut().zip(cell) {
+                *o = self.tone[((value * scale) as usize).min(last)];
             }
         }
-        let bytes = glib::Bytes::from(&self.bytes[..]);
+        let bytes = glib::Bytes::from_owned(bytes);
         gdk::MemoryTexture::new(
             self.cols as i32,
             self.rows as i32,

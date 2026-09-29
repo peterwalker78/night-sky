@@ -9,6 +9,6 @@ edition = "2024"
 license = "GPL-3.0-or-later"
 
 [profile.release]
-lto = "thin"
-codegen-units = 4
+lto = "fat"
+codegen-units = 1
 strip = true
