@@ -461,6 +461,7 @@ mod tests {
             "plan-opposition",
             "plan-pairing",
             "plan-season",
+            "day",
         ];
         for q in bundled() {
             assert!(

@@ -10,6 +10,8 @@ use std::rc::Rc;
 
 pub struct Tonight {
     pub root: gtk::Revealer,
+    title: gtk::Label,
+    hint: gtk::Label,
     rows: gtk::Box,
     shown: RefCell<Vec<Row>>,
 }
@@ -41,6 +43,8 @@ impl Tonight {
         panel.append(&hint);
         Rc::new(Tonight {
             root,
+            title,
+            hint,
             rows,
             shown: RefCell::new(Vec::new()),
         })
@@ -48,11 +52,17 @@ impl Tonight {
 
     /// Refreshes the list from the game; cheap when nothing changed.
     pub fn sync(&self, game: &Rc<RefCell<Game>>) {
-        let (visible, rows) = {
+        let (visible, rows, day) = {
             let g = game.borrow();
-            (g.show_tonight(), g.tonight_rows(wall_clock()))
+            (g.show_tonight(), g.tonight_rows(wall_clock()), g.by_day())
         };
         show(&self.root, visible);
+        // By day it's today's list, and a click opens a find rather than
+        // turning to it.
+        if day {
+            self.title.set_text("TODAY");
+            self.hint.set_text("Click one, or press Tab, to see it");
+        }
         if !visible || *self.shown.borrow() == rows {
             return;
         }

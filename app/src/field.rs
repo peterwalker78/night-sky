@@ -122,10 +122,11 @@ impl Field {
         }
     }
 
-    /// A soft round glow, `radius` in pixels.
+    /// A soft round glow, `radius` in pixels. It fades to nothing before
+    /// the edge of the square it's worked out over.
     pub fn glow(&mut self, x: f64, y: f64, radius: f64, color: Rgb, amount: f32) {
         let p = self.pitch as f64;
-        let reach = (radius / p).ceil() as isize + 1;
+        let reach = (radius * 1.6 / p).ceil() as isize + 1;
         let (cc, cr) = (
             (x / p - 0.5).round() as isize,
             (y / p - 0.5).round() as isize,

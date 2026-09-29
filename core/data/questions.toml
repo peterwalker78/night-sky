@@ -11,6 +11,8 @@
 #            person             someone already named on earlier nights
 #            plan-moon, plan-shower, plan-opposition, plan-pairing,
 #            plan-season        a real sky event ahead
+#            day                asked by day, looking down at the ground: small
+#                               things to do today rather than to look back on
 # answer:  name (a person), text, or plan
 # ask:     for plans, whether the answer is "what" to do or "who" with
 # needs:   "weights" if it only makes sense when weights were set down tonight
@@ -261,3 +263,47 @@ on = "plan-season"
 answer = "plan"
 ask = "what"
 text = "Orion is back in the evening sky by December. What would you like to have started by the time it returns?"
+
+# By day: small things to do before tonight.
+
+[[question]]
+id = "day-few-words"
+thread = "people"
+on = "day"
+answer = "name"
+text = "Who could you send a few words to before tonight, just to say you thought of them?"
+
+[[question]]
+id = "day-easier"
+thread = "people"
+on = "day"
+answer = "name"
+text = "Who made today a little easier, even in a small way?"
+
+[[question]]
+id = "day-good-turn"
+thread = "people"
+on = "day"
+answer = "text"
+text = "Is there someone you could do a small good turn for this afternoon? What would it be?"
+
+[[question]]
+id = "day-later"
+thread = "plans"
+on = "day"
+answer = "text"
+text = "What's one small thing to look forward to later today?"
+
+[[question]]
+id = "day-sundown"
+thread = "plans"
+on = "day"
+answer = "text"
+text = "When the Sun goes down tonight, what would you like to be doing?"
+
+[[question]]
+id = "day-tomorrow"
+thread = "plans"
+on = "day"
+answer = "text"
+text = "What could you do this evening that tomorrow's you would be glad of?"

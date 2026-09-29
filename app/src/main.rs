@@ -4,6 +4,7 @@
 mod book;
 mod camera;
 mod course;
+mod day;
 mod drawing;
 mod eyepiece;
 mod field;

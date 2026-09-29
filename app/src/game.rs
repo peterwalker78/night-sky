@@ -222,6 +222,9 @@ pub struct Game {
     pub(crate) plan_marks: Vec<(String, PlanWhere)>,
     /// Keeping the user company in the background.
     pub(crate) keep: crate::keep::Keep,
+    /// A visit while the Sun is up, looking down at the ground.
+    pub(crate) day: Option<crate::day::Day>,
+    pub(crate) ground: westering_core::ground::Ground,
 }
 
 /// Where a planned sky event happens.
@@ -330,10 +333,22 @@ impl Game {
             journal,
         } = options;
         let now = clock.sky(real_now);
-        let night = night_key(night_of(now, offset_s));
-        let mut finds = tonight(&sky, observer, now, offset_s, &|id| {
-            journal.times_found_before(id, &night)
-        });
+        let ground = westering_core::ground::Ground::bundled();
+        let by_day = crate::day::is_day(observer, now);
+        // A day visit belongs to today, and shares its page with tonight.
+        let night = if by_day {
+            westering_core::questions::key_of(now, offset_s)
+        } else {
+            night_key(night_of(now, offset_s))
+        };
+        let day = by_day.then(|| crate::day::Day::new(&ground, observer, now, offset_s, &night));
+        let mut finds = if by_day {
+            Vec::new()
+        } else {
+            tonight(&sky, observer, now, offset_s, &|id| {
+                journal.times_found_before(id, &night)
+            })
+        };
         // In the small hours, a shorter evening.
         if late(now, offset_s) {
             finds.truncate(LATE_FINDS);
@@ -342,8 +357,11 @@ impl Game {
             .iter()
             .map(|f| journal.found_on(&f.id, &night))
             .collect();
-        let still = caught.iter().filter(|c| !**c).count();
-        let mut session = Session::new(real_now, timings, still, true);
+        let still = match &day {
+            Some(d) => d.finds.len(),
+            None => caught.iter().filter(|c| !**c).count(),
+        };
+        let mut session = Session::new(real_now, timings, still, !by_day);
         if still == 0 {
             session.found_one(real_now);
         }
@@ -476,6 +494,8 @@ impl Game {
             offered_wind_down: false,
             plan_marks,
             keep: crate::keep::Keep::new(),
+            day,
+            ground,
         };
         game.arrive(real_now);
         game
@@ -494,6 +514,10 @@ impl Game {
 
     /// The first view and the line that names the night.
     fn arrive(&mut self, real: UnixMs) {
+        if self.by_day() {
+            self.day_arrival(real);
+            return;
+        }
         let now = self.clock.sky(real);
         let first = self
             .finds
@@ -793,11 +817,11 @@ impl Game {
         self.guide.scale = scale;
     }
 
-    fn input(&mut self, real: UnixMs) {
+    pub(crate) fn input(&mut self, real: UnixMs) {
         self.last_input = real;
     }
 
-    fn toggle_music(&mut self, real: UnixMs) {
+    pub(crate) fn toggle_music(&mut self, real: UnixMs) {
         let quiet = !self.journal.settings.quiet;
         self.journal.settings.quiet = quiet;
         if let Err(e) = self.journal.save_settings() {
@@ -837,7 +861,11 @@ impl Game {
                 gdk::Key::k | gdk::Key::K => self.toggle_company(real),
                 gdk::Key::w | gdk::Key::W => {
                     self.stop_company(real);
-                    self.wind_down(real);
+                    if self.by_day() {
+                        self.day_end(real);
+                    } else {
+                        self.wind_down(real);
+                    }
                 }
                 gdk::Key::Return | gdk::Key::KP_Enter => return self.guide_next(real),
                 gdk::Key::m | gdk::Key::M => self.toggle_music(real),
@@ -875,6 +903,9 @@ impl Game {
                 self.answer_chip(n as usize - 1, real);
                 return true;
             }
+        }
+        if self.by_day() {
+            return self.day_key(key, real);
         }
         let arrow = matches!(
             key,
@@ -1037,6 +1068,10 @@ impl Game {
             }
             return;
         }
+        if self.by_day() {
+            self.day_click(x, y, real);
+            return;
+        }
         if self.click_hovered(x, y, real) {
             return;
         }
@@ -1085,6 +1120,13 @@ impl Game {
 
     /// Turns the view towards find `i`, and says what to look for.
     pub fn turn_to(&mut self, i: usize, real: UnixMs) {
+        if self.by_day() {
+            if self.card.is_some() {
+                self.dismiss_card(real);
+            }
+            self.day_open(i, real);
+            return;
+        }
         if i >= self.finds.len() || !self.hunting() {
             return;
         }
@@ -1146,6 +1188,9 @@ impl Game {
 
     /// Tonight's finds for the list: what, where, and whether found.
     pub fn tonight_rows(&self, real: UnixMs) -> Vec<Row> {
+        if self.by_day() {
+            return self.day_rows();
+        }
         let now = self.sky_now(real);
         let hz = horizon(self.observer, now);
         let prec = precession(now);
@@ -1178,6 +1223,9 @@ impl Game {
     }
 
     pub fn show_tonight(&self) -> bool {
+        if self.by_day() {
+            return self.day_list_shows();
+        }
         matches!(self.session.phase(), Phase::Hunt)
             && !self.keeping()
             && !self.finds.is_empty()
@@ -1403,6 +1451,13 @@ impl Game {
         }
         self.card = None;
         self.guide_card_gone(real);
+        if self.by_day() {
+            if self.session.all_found() {
+                self.guide_all_found(real);
+            }
+            self.day_card_gone(real);
+            return;
+        }
         if let Some(fov) = self.catch.fov_before.take() {
             self.look = Some(Look {
                 az: self.camera.az,
@@ -1423,6 +1478,14 @@ impl Game {
         let dt = ((real - self.last_real) as f64 / 1000.0).clamp(0.0, 0.25);
         self.last_real = real;
         self.settle_releases(real);
+        if self.by_day() {
+            self.company_tick(real, true);
+            if !self.keeping() {
+                self.tick_talk(real);
+            }
+            self.guide_tick(real);
+            return self.day_frame(real);
+        }
         // One thing at a time: the evening begins once the wisp has had
         // its say.
         let greeting = self.session.phase() == Phase::Arrival && self.wisp_busy(real);
@@ -1538,7 +1601,7 @@ impl Game {
 
     /// Where the evening is, and what to do now.
     pub fn evening(&self, real: UnixMs) -> Option<Evening> {
-        if self.keeping() {
+        if self.keeping() || self.by_day() {
             return None;
         }
         let (step, now) = match self.session.phase() {
@@ -2362,6 +2425,37 @@ impl Game {
         }
         self.marks.extend(embers);
         let eyepiece = self.eyepiece(now, hz, prec);
+        let card = self.card_view(real);
+        let compass = (matches!(
+            self.session.phase(),
+            Phase::Arrival | Phase::Weights | Phase::Hunt | Phase::Dimming
+        ) && self.keep.mix < 0.5)
+            .then(|| crate::view::Compass {
+                heading: cam.az,
+                alpha: brightness.max(0.5),
+            });
+        Frame {
+            eyepiece,
+            card,
+            compass,
+            points: std::mem::take(&mut self.points),
+            marks: std::mem::take(&mut self.marks),
+            lines,
+            sprites,
+            bubble,
+            texture: Some(frame_texture),
+            cols: self.field.cols,
+            rows: self.field.rows,
+            pitch: self.field.pitch,
+            background: [0.012, 0.014, 0.024],
+            texts,
+            veil: 0.0,
+        }
+    }
+
+    /// The card as drawn this frame, rising in, or fading and sinking as
+    /// it's put away.
+    pub(crate) fn card_view(&mut self, real: UnixMs) -> Option<crate::view::CardView> {
         let rise = |age: UnixMs| (1.0 - smoothstep(age as f64 / 450.0)) * 14.0;
         let card = self.card.as_ref().map(|c| crate::view::CardView {
             x: c.x,
@@ -2395,7 +2489,7 @@ impl Game {
             }
             (None, None) => None,
         };
-        let card = card.or_else(|| {
+        card.or_else(|| {
             let (c, at) = self.leaving_card.as_ref()?;
             let f = (real - at) as f64 / 260.0;
             if f >= 1.0 {
@@ -2406,32 +2500,7 @@ impl Game {
             c.alpha *= 1.0 - smoothstep(f);
             c.y += smoothstep(f) * 10.0;
             Some(c)
-        });
-        let compass = (matches!(
-            self.session.phase(),
-            Phase::Arrival | Phase::Weights | Phase::Hunt | Phase::Dimming
-        ) && self.keep.mix < 0.5)
-            .then(|| crate::view::Compass {
-                heading: cam.az,
-                alpha: brightness.max(0.5),
-            });
-        Frame {
-            eyepiece,
-            card,
-            compass,
-            points: std::mem::take(&mut self.points),
-            marks: std::mem::take(&mut self.marks),
-            lines,
-            sprites,
-            bubble,
-            texture: Some(frame_texture),
-            cols: self.field.cols,
-            rows: self.field.rows,
-            pitch: self.field.pitch,
-            background: [0.012, 0.014, 0.024],
-            texts,
-            veil: 0.0,
-        }
+        })
     }
 
     /// The moment the time-lapse hands back to the present: a dip to dark.
@@ -2636,7 +2705,7 @@ impl Game {
     }
 
     /// The caption, the card, the hint, the last line and tonight's dots.
-    fn words(&self, real: UnixMs, brightness: f64) -> Vec<Text> {
+    pub(crate) fn words(&self, real: UnixMs, brightness: f64) -> Vec<Text> {
         let mut out = Vec::new();
         let (w, h) = (self.camera.width, self.camera.height);
         let text_light = brightness.max(0.55);
@@ -2712,7 +2781,7 @@ impl Game {
             Phase::LightsOut | Phase::Over => 0.6 * b / dim,
             _ => 0.6 + 0.4 * ((b - dim) / (1.0 - dim)).max(0.0),
         };
-        level * self.company_music(real)
+        level * self.company_music(real) * self.day_music(real)
     }
 
     pub fn quiet(&self) -> bool {

@@ -126,3 +126,22 @@ people = [
 risen = "{name} has come up since you put me on, {where}."
 late = "It's getting late. Whenever you're ready, W winds down and I'll see you off to bed."
 closing = "That's been a good long while. I'll wind down now, and the music with me."
+
+# By day, looking down at the ground instead of up at the stars.
+[day]
+first = [
+  "Hello. I'm the wisp. The stars are out of sight while the Sun is up, so by day we look down instead.",
+  "Everything here is true where you are today: where the Sun is, how long your shadow falls, and a few small things on the ground this time of year.",
+]
+hello = [
+  "Hello. No stars yet, so let's look down for a change.",
+  "Hello. A few minutes with the ground under your feet, then back to your day.",
+  "Hello. The sky's busy being blue, so let's see what's down here.",
+  "Hello. A short look at today, then off you go.",
+]
+list = "Today's finds are listed here. Click one, or press Tab, and I'll show you."
+done = "That's today, all of it. W takes you back to your day whenever you're ready."
+ending = "Go well."
+outside = "If you can, step outside for five minutes: the Sun is {where}, and your shadow is {length}, pointing {toward}."
+dusk = "If you can, step outside for five minutes before the light goes: it'll be dark by about {time}."
+help = "Click anything on the ground, or pick from the list, to hear about it. Tab goes to the next one, Space puts a card away, K keeps you company in the background, and W goes back to your day."

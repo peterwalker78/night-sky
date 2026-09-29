@@ -1,0 +1,693 @@
+# What's on the ground: small true things to find while the Sun is up, when
+# the view looks down at the earth instead of up at the sky. Each one is
+# offered only in the months when it's really there to be found.
+#
+# name:    the everyday name shown in the list
+# where:   where to look for it
+# shape:   the outline drawn in dots: leaf, acorn, seed, mushroom, feather,
+#          flower, web, bird, snowflake, bud, stone, drop, tree, worm, bee,
+#          ant, moss, cloud
+# months:  when it's true in the northern temperate zone; the app shifts these
+#          by six months in the south. [] means any month.
+# zone:    "temperate" (roughly 35 to 60 degrees of latitude, either
+#          hemisphere, with the shift) or "any" (true almost anywhere on
+#          Earth, any month; months is always [])
+# north:   true for things only true of the northern hemisphere
+# fact:    shown the first time it's found
+# more:    one or two more facts, for later visits
+# thread:  people (who is there for you), plans (something ahead), or
+#          perspective (slow time, change, rest)
+# mirror:  the thought it leaves you with, turned from the ground back to the
+#          everyday
+
+# Late winter
+
+[[thing]]
+id = "snowdrops"
+name = "Snowdrops"
+where = "under trees and on verges"
+shape = "flower"
+months = [1, 2, 3]
+zone = "temperate"
+fact = "Snowdrops flower in late winter, often with frost still on the ground. In many places they're among the first flowers of the year."
+more = [
+  "Galantamine, a medicine used for Alzheimer's disease, was first found in snowdrops.",
+  "On a cold day the flower hangs closed; in sunshine its outer petals lift and spread.",
+]
+thread = "plans"
+mirror = "Snowdrops come up while everything still looks like winter. Something good is usually on its way before we can see it."
+
+[[thing]]
+id = "catkins"
+name = "Catkins"
+where = "on bare branches"
+shape = "flower"
+months = [1, 2, 3]
+zone = "temperate"
+fact = "Catkins are strings of tiny flowers with no petals. Their pollen travels on the wind, so trees like hazel and alder open them before the leaves are out to get in the way."
+more = [
+  "On a hazel, the female flowers are tiny red tufts on the same twigs, easy to miss.",
+]
+thread = "perspective"
+mirror = "Hazel lets its catkins go before it has a single leaf, and the rest comes in its own time. Not everything has to arrive at once."
+
+[[thing]]
+id = "winter-buds"
+name = "Buds on bare twigs"
+where = "on a branch"
+shape = "bud"
+months = [11, 12, 1, 2, 3]
+zone = "temperate"
+fact = "Trees make next spring's buds the summer before. Inside each one are tiny folded leaves, and sometimes flowers, wrapped in scales against the cold."
+more = [
+  "The bud at a twig's tip leaves a ring of scars each spring, so you can count back along the twig, year by year.",
+]
+thread = "plans"
+mirror = "Every bare twig is already holding next spring, folded up small. Most of us are carrying a few plans like that, waiting for the weather."
+
+[[thing]]
+id = "frost"
+name = "Frost"
+where = "on grass and cold surfaces"
+shape = "snowflake"
+months = [11, 12, 1, 2, 3]
+zone = "temperate"
+fact = "Frost forms when water vapour turns straight to ice on surfaces colder than freezing, most often after clear, still nights."
+more = [
+  "The ground can freeze even when the air at head height stays above zero.",
+  "Frost lasts longest in shade, so on a sunny morning you can trace where the sunlight hasn't reached yet.",
+]
+thread = "perspective"
+mirror = "Frost goes first where the sun reaches and lasts longest in the shade. Hard days tend to thaw the same way, from the sunny side in."
+
+[[thing]]
+id = "snowflakes"
+name = "Snowflakes"
+where = "in the air"
+shape = "snowflake"
+months = [12, 1, 2]
+zone = "temperate"
+fact = "Where it snows, the flakes are almost always six-sided, because of the way water molecules fit together as they freeze."
+more = [
+  "Fresh snow is mostly air, which is why a street goes so quiet under it.",
+]
+thread = "people"
+mirror = "One snowflake is almost nothing, and enough of them quiet a whole street. The people who keep us going mostly do it the same way, a little at a time, often."
+
+[[thing]]
+id = "empty-nests"
+name = "Old nests"
+where = "in bare trees and hedges"
+shape = "bird"
+months = [11, 12, 1, 2]
+zone = "temperate"
+fact = "Once the leaves are down, last summer's nests show up in the branches. Many small birds build a fresh nest each year rather than use an old one."
+more = [
+  "Some birds line their nests with moss, feathers and hair. A long-tailed tit's nest can hold well over a thousand feathers.",
+]
+thread = "people"
+mirror = "Every old nest in a bare tree was a great many trips back and forth for someone else. Somebody made trips like that for you, once."
+
+[[thing]]
+id = "robin-song"
+name = "A robin singing"
+where = "on a branch"
+shape = "bird"
+months = [10, 11, 12, 1, 2]
+zone = "temperate"
+north = true
+fact = "In much of Europe, the robin is one of the few birds still singing in winter. Females sing too, each holding a winter patch of her own."
+more = [
+  "Robins often follow gardeners, waiting for worms and grubs turned up by a spade.",
+]
+thread = "people"
+mirror = "A robin keeps singing through the months when most birds go quiet. Most of us know someone who does the same through a long winter."
+
+[[thing]]
+id = "winter-flocks"
+name = "Small birds in a flock"
+where = "in the trees"
+shape = "bird"
+months = [11, 12, 1, 2]
+zone = "temperate"
+fact = "In winter many small birds feed in mixed flocks of several kinds. With more eyes about, food is found sooner and danger is spotted earlier."
+more = [
+  "A small bird can lose up to a tenth of its weight on a cold night just keeping warm, and spends much of a short day eating it back.",
+]
+thread = "people"
+mirror = "Small birds get through winter by feeding together, each keeping an eye out for the rest. Most of us have a few people doing that for us without ever saying so."
+
+[[thing]]
+id = "evergreens"
+name = "Evergreen needles"
+where = "on a conifer"
+shape = "tree"
+months = [12, 1, 2]
+zone = "temperate"
+fact = "Conifers keep their needles through winter. A waxy coat and a narrow shape let them lose very little water while the ground is frozen."
+more = [
+  "Evergreen doesn't mean never shedding: a pine drops its old needles a few at a time, each after a few years on the tree.",
+]
+thread = "perspective"
+mirror = "Pine needles get through winter by doing very little: losing as little as they can, and waiting. Some seasons ask no more than that."
+
+[[thing]]
+id = "winter-berries"
+name = "Winter berries"
+where = "in hedges and shrubs"
+shape = "seed"
+months = [10, 11, 12, 1]
+zone = "temperate"
+fact = "Many shrubs hold bright berries into winter. Birds that eat them carry the seeds away and drop them far from the parent plant."
+more = [
+  "Only female holly trees have berries; they need a male holly somewhere nearby.",
+]
+thread = "people"
+mirror = "Holly seeds end up in places the tree will never see, carried by birds it fed. Kindness travels the same way, a long way from where it started."
+
+# Spring
+
+[[thing]]
+id = "frogspawn"
+name = "Frogspawn"
+where = "in shallow ponds"
+shape = "drop"
+months = [2, 3, 4]
+zone = "temperate"
+north = true
+fact = "In much of Europe, common frogs lay their spawn in early spring. A single clump can hold one or two thousand eggs."
+more = [
+  "Many frogs and toads come back to breed in the same pond year after year.",
+]
+thread = "plans"
+mirror = "A clump of frogspawn is a thousand small beginnings, and most of them don't look like much yet. Good things ahead often start out that way."
+
+[[thing]]
+id = "nest-building"
+name = "Birds carrying twigs"
+where = "in the air"
+shape = "bird"
+months = [2, 3, 4, 5]
+zone = "temperate"
+fact = "In early spring many birds start carrying twigs, moss and grass. A pair of small birds may make hundreds of trips to build one nest."
+more = [
+  "In much of Europe, rooks nest together in treetop rookeries, and often mend last year's nests rather than start again.",
+]
+thread = "plans"
+mirror = "A beakful of moss at a time, and a nest gets built. Most things worth having are put together like that, one small load after another."
+
+[[thing]]
+id = "daffodils"
+name = "Daffodils"
+where = "in gardens and on verges"
+shape = "flower"
+months = [2, 3, 4]
+zone = "temperate"
+fact = "Daffodils grow from bulbs that store last year's food underground, which lets them flower early, before grass and trees grow up around them."
+more = [
+  "A daffodil bulb starts forming next spring's flower inside itself during the summer before.",
+]
+thread = "plans"
+mirror = "Each daffodil bulb begins next spring's flower in summer, long before anyone thinks of it. A good plan can be quietly under way well before it shows."
+
+[[thing]]
+id = "woodland-flowers"
+name = "Woodland flowers"
+where = "on the woodland floor"
+shape = "flower"
+months = [3, 4, 5]
+zone = "temperate"
+fact = "Many woodland flowers bloom in spring, in the few weeks before the trees come into leaf and shade the ground."
+more = [
+  "Once the trees are in full leaf, only a small share of the sunlight reaches the woodland floor.",
+]
+thread = "perspective"
+mirror = "Woodland flowers make the most of the short bright spell before the trees close over. Even a busy season usually has a window like that in it somewhere."
+
+[[thing]]
+id = "blossom"
+name = "Blossom"
+where = "on fruit trees"
+shape = "flower"
+months = [3, 4, 5]
+zone = "temperate"
+fact = "Fruit trees like cherry, plum and apple blossom in spring. Bees and other insects carry pollen between the flowers so that fruit can form."
+more = [
+  "Many apple trees can't set fruit with their own pollen, and need it brought from another variety nearby.",
+  "In Japan, cherry blossom is forecast as it moves north each spring; records of it in Kyoto go back more than a thousand years.",
+]
+thread = "people"
+mirror = "Most apples need pollen carried over from another tree. Most of what we manage has a bit of someone else in it too."
+
+[[thing]]
+id = "bumblebee-queens"
+name = "A big bumblebee"
+where = "low over the ground"
+shape = "bee"
+months = [3, 4, 5]
+zone = "temperate"
+fact = "The big bumblebees of early spring are usually queens that spent the winter alone underground. Flying low and slow, they're looking for somewhere to start a nest."
+more = [
+  "Bumblebees can shiver their flight muscles to warm up, so they fly in cooler weather than many insects.",
+]
+thread = "plans"
+mirror = "A bumblebee queen wakes alone in spring with a whole colony still ahead of her. Plenty of big things start with one small search for the right place."
+
+[[thing]]
+id = "swallows-return"
+name = "Swallows"
+where = "in the air"
+shape = "bird"
+months = [4, 5]
+zone = "temperate"
+north = true
+fact = "Swallows and martins in much of Europe spend the winter in Africa and come back in spring, often to the same area, sometimes to the same nest."
+more = [
+  "The journey can be around ten thousand kilometres, flown mostly by day, catching insects on the way.",
+]
+thread = "people"
+mirror = "Swallows cross half the world and still find the same barn. Most of us have a place and a few people like that, easy to find again from anywhere."
+
+[[thing]]
+id = "dandelion-clocks"
+name = "Dandelion clocks"
+where = "in the grass"
+shape = "seed"
+months = [4, 5, 6, 7, 8, 9]
+zone = "temperate"
+fact = "Each dandelion seed flies on a tiny parachute. Air passing through its bristles makes a steady ring of swirling air above it that helps hold it up."
+more = [
+  "On a good breeze the seeds can drift for kilometres, though most land close by.",
+]
+thread = "plans"
+mirror = "A dandelion seed needs only a breath of wind and somewhere to land. Small plans often travel further than they look."
+
+[[thing]]
+id = "lawn-daisies"
+name = "Daisies"
+where = "in short grass"
+shape = "flower"
+months = [3, 4, 5, 6, 7, 8, 9, 10]
+zone = "temperate"
+fact = "The name daisy comes from day's eye: the flower closes at night and in dull weather, and opens again in the light."
+more = [
+  "What looks like one flower is really many: each yellow dot in the middle and each white ray is a tiny flower of its own.",
+]
+thread = "perspective"
+mirror = "Daisies close up every evening and open again in the morning, without any fuss. Evenings can be for closing up, too."
+
+# Summer
+
+[[thing]]
+id = "honeybees"
+name = "Honeybees"
+where = "on flowers"
+shape = "bee"
+months = [4, 5, 6, 7, 8, 9]
+zone = "temperate"
+fact = "A honeybee that finds good flowers tells her nestmates where they are with a waggle dance, which gives the direction and roughly how far."
+more = [
+  "In her whole life, a worker bee makes about a twelfth of a teaspoon of honey.",
+]
+thread = "people"
+mirror = "One bee makes a twelfth of a teaspoon of honey, and the hive lives on all of it together. Most good things are shared out like that, a little from everyone."
+
+[[thing]]
+id = "swifts"
+name = "Swifts"
+where = "high in the air"
+shape = "bird"
+months = [5, 6, 7, 8]
+zone = "temperate"
+north = true
+fact = "Common swifts can stay in the air for ten months at a stretch, eating and drinking on the wing, and are thought to sleep up there too."
+more = [
+  "In much of Europe, swifts arrive in late spring and are gone again by late summer, here for only a few months.",
+]
+thread = "perspective"
+mirror = "Swifts can stay up for months, and still come down in the end to rest. Even the busiest stretch has a landing somewhere in it."
+
+[[thing]]
+id = "shady-trees"
+name = "A tree in full leaf"
+where = "overhead"
+shape = "tree"
+months = [6, 7, 8]
+zone = "temperate"
+fact = "A large tree can draw up more than a hundred litres of water on a summer day and breathe it out through its leaves."
+more = [
+  "The air in the shade of trees can be a few degrees cooler than in an open street nearby.",
+]
+thread = "people"
+mirror = "A big tree cools the air for anyone who stops underneath, whether or not they notice. Most of us have spent a good while in someone's shade like that."
+
+[[thing]]
+id = "thunderclouds"
+name = "Thunderclouds"
+where = "in the sky"
+shape = "cloud"
+months = [5, 6, 7, 8]
+zone = "temperate"
+fact = "Summer thunderclouds build when warm, damp air rises fast. The tallest can tower higher than airliners fly."
+more = [
+  "Count the seconds from flash to thunder and divide by three for roughly how many kilometres away the storm is.",
+]
+thread = "perspective"
+mirror = "Thunderstorms, however loud, usually pass. Most of the storms in a day do too."
+
+[[thing]]
+id = "moulted-feathers"
+name = "A feather"
+where = "on the ground"
+shape = "feather"
+months = [7, 8, 9]
+zone = "temperate"
+fact = "Many birds replace their feathers once a year after the nesting season, most a few at a time so they can still fly, so late summer is a good time to find one."
+more = [
+  "The barbs of a feather are held together by tiny hooks, and a bird zips them back up when it preens.",
+]
+thread = "perspective"
+mirror = "A bird swaps its old feathers for new ones a few at a time, and keeps flying all the while. Change can go slowly like that and still get somewhere."
+
+# Late summer and autumn
+
+[[thing]]
+id = "blackberries"
+name = "Blackberries"
+where = "in hedges and brambles"
+shape = "seed"
+months = [8, 9]
+zone = "temperate"
+fact = "Each blackberry is a cluster of tiny fruits, and every one of them holds its own seed."
+more = [
+  "A bramble often has flowers, green berries and ripe black ones on it all at once.",
+]
+thread = "people"
+mirror = "Brambles ripen a few berries at a time, so there's always something for whoever comes by next. Some people keep their door open like that."
+
+[[thing]]
+id = "winged-seeds"
+name = "Winged seeds"
+where = "falling from trees"
+shape = "seed"
+months = [9, 10, 11]
+zone = "temperate"
+fact = "Many maple and sycamore seeds have a wing that makes them spin as they fall. Spinning slows them down, so the wind can carry them further from the parent tree."
+more = [
+  "Ash seeds have wings too, and often hang on the tree in bunches well into winter.",
+]
+thread = "plans"
+mirror = "A sycamore seed spins so it can land beyond the shade of the tree it came from. Some of the best plans take us a little way off."
+
+[[thing]]
+id = "garden-spiders"
+name = "Spiders' webs"
+where = "between stems and on fences"
+shape = "web"
+months = [8, 9, 10]
+zone = "temperate"
+fact = "Orb-web spiders are easiest to spot in late summer and autumn, when they're full grown. Many take down their web and spin a new one every day, often eating the old silk."
+more = [
+  "Weight for weight, some spider silk is stronger than steel.",
+]
+thread = "perspective"
+mirror = "A garden spider takes down yesterday's web and spins a new one each morning. Each day can start fresh like that, without carrying all of the last one."
+
+[[thing]]
+id = "gossamer"
+name = "Gossamer"
+where = "across grass and hedges"
+shape = "web"
+months = [9, 10, 11]
+zone = "temperate"
+fact = "Small spiders travel by letting out a thread of silk and drifting away on the air. On some autumn mornings whole fields shine with the threads they leave."
+more = [
+  "Darwin saw hundreds of tiny spiders land on the Beagle's rigging when the ship was about sixty miles off the coast of South America.",
+]
+thread = "plans"
+mirror = "A spider no bigger than a pinhead lets out one thread and lets the air take it somewhere new. Small beginnings can go a very long way."
+
+[[thing]]
+id = "acorns"
+name = "Acorns"
+where = "under an oak"
+shape = "acorn"
+months = [9, 10]
+zone = "temperate"
+fact = "Jays and squirrels bury acorns to eat in winter, and forget some of them. That's how a lot of oaks get planted."
+more = [
+  "Oaks have mast years, when trees across a whole region drop far more acorns than usual, all at once.",
+]
+thread = "plans"
+mirror = "Many oaks grew from acorns a jay buried and never came back for. Some of what we plant now will come up for other people, years from now."
+
+[[thing]]
+id = "turning-leaves"
+name = "Leaves turning"
+where = "on the trees"
+shape = "leaf"
+months = [9, 10, 11]
+zone = "temperate"
+fact = "The yellows and oranges of autumn were in the leaf all summer, hidden by green. As the tree draws the green back in, they show through."
+more = [
+  "The reds are different: many trees make them fresh in autumn, most strongly after bright days and cool nights.",
+]
+thread = "perspective"
+mirror = "The gold was in the leaf all summer, under the green. Some things only show once the busy season ends."
+
+[[thing]]
+id = "mushrooms"
+name = "Mushrooms"
+where = "in grass and on old wood"
+shape = "mushroom"
+months = [9, 10, 11]
+zone = "temperate"
+fact = "A mushroom is only the fruiting part of a fungus. Most of it is a web of fine threads in the soil or wood, which can live for years."
+more = [
+  "Most plants partner with fungi at their roots, swapping sugars for water and minerals that the fungal threads gather.",
+]
+thread = "people"
+mirror = "A mushroom is the small part you see of something spread out underground. A lot of the people who hold us up are like that, mostly out of sight."
+
+[[thing]]
+id = "ivy-flowers"
+name = "Ivy flowers"
+where = "on walls and old trees"
+shape = "flower"
+months = [9, 10, 11]
+zone = "temperate"
+north = true
+fact = "In much of Europe, ivy flowers in autumn, when little else does, and is one of the last big sources of nectar for bees, wasps and hoverflies before winter."
+more = [
+  "Its black berries ripen in late winter, when most other fruit has been eaten.",
+]
+thread = "people"
+mirror = "Ivy flowers when almost nothing else does, just when the bees need it. Some people have a knack for turning up at exactly that moment."
+
+[[thing]]
+id = "geese"
+name = "Geese flying over"
+where = "in the sky"
+shape = "bird"
+months = [9, 10, 11, 2, 3]
+zone = "temperate"
+fact = "Geese fly in a V partly because each bird gets a little lift from the air stirred up by the one ahead. The lead bird changes from time to time."
+more = [
+  "Geese call to each other as they fly, and families often stay together through their first winter.",
+]
+thread = "people"
+mirror = "Geese take turns at the front, so no one bird does all the hard flying. Most of us are carried some of the way by someone, and carry them back."
+
+[[thing]]
+id = "fallen-leaves"
+name = "Fallen leaves"
+where = "on the ground"
+shape = "leaf"
+months = [10, 11, 12]
+zone = "temperate"
+fact = "Fungi, bacteria, worms and tiny animals break fallen leaves down, and within a year or a few, depending on the leaf, much of it has become soil."
+more = [
+  "A layer of fallen leaves shelters insects and other small animals through the winter.",
+]
+thread = "perspective"
+mirror = "Old leaves turn into the ground that next year's grow from. Even the worn-out days go into something."
+
+# Any month, almost anywhere
+
+[[thing]]
+id = "soil"
+name = "A handful of soil"
+where = "on the ground"
+shape = "stone"
+months = []
+zone = "any"
+fact = "A teaspoon of healthy soil can hold billions of microbes, many of them kinds that have never been named."
+more = [
+  "It can take centuries for a few centimetres of topsoil to form.",
+]
+thread = "perspective"
+mirror = "A few centimetres of soil can take centuries to build, and nearly everything grows from it. The slow, unseen things tend to hold the rest up."
+
+[[thing]]
+id = "roots"
+name = "Tree roots"
+where = "at the foot of a tree"
+shape = "tree"
+months = []
+zone = "any"
+fact = "Most of a tree's roots are in the top metre or so of soil, and they often spread wider than its branches."
+more = [
+  "Fungi link the roots of neighbouring plants, and can move water and nutrients between them.",
+]
+thread = "people"
+mirror = "A tree's roots reach further than its branches and touch the roots of trees nearby. Most of us are more connected than we look from above ground."
+
+[[thing]]
+id = "earthworms"
+name = "Earthworms"
+where = "in damp soil"
+shape = "worm"
+months = []
+zone = "any"
+fact = "Earthworms pull fallen leaves down into their burrows and mix the soil as they go, a crumb at a time."
+more = [
+  "Charles Darwin studied earthworms on and off for about forty years; his last book was about them.",
+]
+thread = "perspective"
+mirror = "Earthworms move the ground a crumb at a time, and over the years they reshape whole fields. Small, steady days add up the same way."
+
+[[thing]]
+id = "ants"
+name = "An ant trail"
+where = "on the ground"
+shape = "ant"
+months = []
+zone = "any"
+fact = "Ants follow scent trails laid by their nestmates. A trail grows stronger as more ants use it, and fades once the food runs out."
+more = [
+  "Nearly all the ants you see out and about are female workers, and in many nests they are all sisters.",
+]
+thread = "people"
+mirror = "An ant trail gets stronger every time another ant walks it. The way to a friend works like that too: the more it's used, the easier it is to find."
+
+[[thing]]
+id = "moss"
+name = "Moss"
+where = "on stones, walls and bark"
+shape = "moss"
+months = []
+zone = "any"
+fact = "Mosses have no roots or flowers. They take in water over their whole surface, and many can dry out completely and turn green again after rain."
+more = [
+  "Mosses were among the first plants to live on land, hundreds of millions of years ago.",
+]
+thread = "perspective"
+mirror = "Moss can dry right out and turn green again with the next rain. Resting isn't the same as stopping."
+
+[[thing]]
+id = "dew"
+name = "Dew"
+where = "on grass and leaves"
+shape = "drop"
+months = []
+zone = "any"
+fact = "Dew forms on clear, calm nights, when grass and leaves cool below the air around them and water vapour settles on them as drops."
+more = [
+  "In some dry places, plants and insects get much of their water from dew and fog.",
+]
+thread = "plans"
+mirror = "Dew arrives overnight without anyone doing a thing. Tomorrow will bring a few small good things the same way."
+
+[[thing]]
+id = "rain"
+name = "Raindrops"
+where = "in the air and in puddles"
+shape = "drop"
+months = []
+zone = "any"
+fact = "Raindrops aren't tear-shaped. Small ones are round, and bigger ones flatten underneath as they fall, more like a bun."
+more = [
+  "The smell after rain on dry ground comes partly from geosmin, made by soil bacteria. People can smell it at tiny amounts.",
+]
+thread = "plans"
+mirror = "Rain always stops in the end, and the air after it smells of earth. There's often something good in the hour after a hard one."
+
+[[thing]]
+id = "clouds"
+name = "Clouds"
+where = "in the sky"
+shape = "cloud"
+months = []
+zone = "any"
+fact = "An ordinary fluffy cloud can hold hundreds of tonnes of water. It floats because the droplets are tiny and spread through a huge space."
+more = [
+  "In 1802 Luke Howard, a chemist in London, gave clouds the Latin names still used around the world today.",
+]
+thread = "plans"
+mirror = "No cloud ever looks quite the same twice. Tomorrow's sky will have some in it that nobody has seen before."
+
+[[thing]]
+id = "stones"
+name = "Pebbles"
+where = "on a path or a beach"
+shape = "stone"
+months = []
+zone = "any"
+fact = "A pebble gets its round shape from years of being knocked against other stones by water, each knock taking off a little."
+more = [
+  "The stone in an ordinary pebble is often millions of years old, far older than anything living around it.",
+]
+thread = "perspective"
+mirror = "The pebbles on a path were rounded over more years than anyone could count. Today is a very small part of a very long time."
+
+[[thing]]
+id = "tree-rings"
+name = "Rings in a stump"
+where = "on a cut log or stump"
+shape = "tree"
+months = []
+zone = "any"
+fact = "Trees in places with seasons add one ring a year: paler wood grown fast in spring, darker, denser wood later on. Wide rings usually mean good growing years."
+more = [
+  "Many tropical trees, which grow all year round, have no clear rings at all.",
+]
+thread = "people"
+mirror = "A stump keeps its thin years and its wide years side by side. The people who stood with us in the lean ones are part of the grain too."
+
+# The day's own finds, worked out from where the Sun and Moon really are.
+# Placeholders: {where} {length} {toward} {phase} {change} {daylight}
+
+[day.sun]
+name = "The Sun"
+fact = "The Sun is {where}. Its light takes a little over eight minutes to get here, so the light on your hands now left it eight minutes ago. Never look straight at it."
+more = [
+  "The Sun is about 150 million kilometres away, and more than a hundred Earths would fit across it.",
+  "Nearly all the energy in your food started as sunlight caught by a leaf.",
+]
+mirror = "All of today's warmth set out from the Sun before it reached you. Plenty of good things are already on their way like that."
+
+[day.shadow]
+name = "Your shadow"
+fact = "Outside right now, your shadow would be {length}, pointing {toward}. Shadows are shortest around the middle of the day and longest near sunrise and sunset."
+more = [
+  "The stone here is casting its real shadow for this minute, where you are.",
+  "Sundials tell the time from a shadow's direction, and the season from its length.",
+]
+mirror = "A shadow only falls because there's light behind you. Even a long one means the Sun is out."
+
+[day.moon]
+name = "The Moon by day"
+fact = "The Moon is out in daylight, {where}: {phase}. It's up in the day for part of most days of the month, and most people never notice."
+more = [
+  "The daytime Moon looks pale because the blue sky's light is added to it.",
+]
+mirror = "The Moon is up by day more often than anyone looks. Some of the steadiest things in a life are like that: there whether or not we notice."
+
+[day.year]
+name = "The turning year"
+fact = "{change} There are {daylight} today."
+more = [
+  "The days change fastest around the equinoxes and hardly at all around the solstices.",
+]
+longer = "The days are growing, a little each morning and evening. Then one evening it's still light at a time that was dark not long ago."
+shorter = "The days are shrinking now, and the nights growing: more time for the stars, and for rest."

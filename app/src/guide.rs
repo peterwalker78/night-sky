@@ -54,6 +54,8 @@ pub enum Aim {
     Moon(usize),
     /// The evening's guide, top left.
     Evening,
+    /// Something at a place on the screen, in pixels.
+    Spot(f64, f64),
 }
 
 #[derive(Clone)]
@@ -132,6 +134,10 @@ fn number(n: usize) -> String {
 }
 
 impl Guide {
+    pub(crate) fn lines(&self) -> &Lines {
+        &self.lines
+    }
+
     pub fn new(real: UnixMs) -> Guide {
         let mut wisp = Wisp::new(FLYING.0, FLYING.1);
         // It wakes as the sky arrives.
@@ -163,11 +169,11 @@ impl Guide {
 }
 
 impl Game {
-    fn seen(&self, key: &str) -> bool {
+    pub(crate) fn seen(&self, key: &str) -> bool {
         self.journal.settings.seen.iter().any(|k| k == key)
     }
 
-    fn mark_seen(&mut self, key: &str) {
+    pub(crate) fn mark_seen(&mut self, key: &str) {
         if !self.seen(key) {
             self.journal.settings.seen.push(key.to_owned());
             if let Err(e) = self.journal.save_settings() {
@@ -600,6 +606,11 @@ impl Game {
     }
 
     pub(crate) fn guide_all_found(&mut self, real: UnixMs) {
+        if self.by_day() {
+            let done = self.guide.lines.day.done.clone();
+            self.say_at(Aim::Near(0.4, 0.4), done, real + 400, 9_000);
+            return;
+        }
         self.guide.cheer_until = real + 5_000;
         if self.say_once(
             "tomorrow",
@@ -637,7 +648,7 @@ impl Game {
     pub(crate) fn guide_question(&mut self, real: UnixMs) {
         let (plan, name) = match &self.talk.flow {
             Some(Flow::Question { chosen, .. }) => (
-                chosen.question.thread == "plans",
+                chosen.question.answer == westering_core::questions::AnswerKind::Plan,
                 chosen.question.answer == westering_core::questions::AnswerKind::Name,
             ),
             _ => (false, false),
@@ -839,6 +850,7 @@ impl Game {
         }
         // A long look: offer to wind down, once.
         if hunting
+            && !self.by_day()
             && self.session.in_phase(real) > self.session.timings.hunt_most * 4 / 5
             && !self.offered_wind_down()
         {
@@ -1037,6 +1049,7 @@ impl Game {
                     _ => ((cx - 120.0, cy - 60.0), None),
                 }
             }
+            Aim::Spot(x, y) => (beside(x, y), Some((x, y))),
             Aim::Moon(f) => match self.moon_spot(f) {
                 Some((x, y, _)) => {
                     // Hover just off the place, towards the middle of the disc.

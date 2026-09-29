@@ -76,6 +76,9 @@ impl Game {
     /// Whether a click where the pointer is would do something, for the
     /// pointer's shape.
     pub fn clickable_at(&self, x: f64, y: f64, real: UnixMs) -> bool {
+        if self.by_day() {
+            return self.day_at(x, y).is_some();
+        }
         if !self.hinting() {
             return false;
         }

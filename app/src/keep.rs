@@ -152,7 +152,11 @@ impl Game {
                 let text = lines.closing.clone();
                 self.stop_company(real);
                 self.say_at(Aim::Home, text, real, 8_000);
-                self.wind_down(real);
+                if self.by_day() {
+                    self.day_end(real);
+                } else {
+                    self.wind_down(real);
+                }
                 return;
             }
         };

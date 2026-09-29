@@ -48,8 +48,22 @@ struct StarLine {
     text: String,
 }
 
+/// What the wisp says by day.
+#[derive(Deserialize)]
+pub struct DayLines {
+    pub first: Vec<String>,
+    pub hello: Vec<String>,
+    pub list: String,
+    pub done: String,
+    pub ending: String,
+    pub outside: String,
+    pub dusk: String,
+    pub help: String,
+}
+
 #[derive(Deserialize)]
 pub struct Lines {
+    pub day: DayLines,
     greeting: Vec<Greeting>,
     pub round: Round,
     pub news: News,

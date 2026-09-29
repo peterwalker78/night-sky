@@ -70,6 +70,16 @@ way round to where it was on your first evening, and when the Sun passes an
 equinox or solstice. After a while away it tells you what has come up in the
 sky since, never how long you were gone.
 
+**By day, it looks down.** While the Sun is up there are no stars to find, so
+the view turns to the ground under a daylit sky, drawn in the same dots.
+Everything there is true where you are, today: the Sun where it really is, a
+standing stone casting this minute's shadow (and how long yours would be), the
+Moon if it's out by day, how much longer or shorter today is than yesterday,
+and three small things on the ground at this time of year, like acorns, frost,
+swallows or a spider's web, for your hemisphere. It takes a few minutes, may
+ask one small question about the day ahead, and then sends you back to your
+day with a nudge to step outside.
+
 **Or just keep it running.** Press `K`, or choose Keep me company in the menu,
 and the evening pauses. The sky settles back, the music plays on, and the
 window can be as small as you like: tiled into a corner, or behind everything

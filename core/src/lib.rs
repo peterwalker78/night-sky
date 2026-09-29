@@ -12,6 +12,7 @@ pub mod events;
 pub mod figures;
 pub mod finale;
 pub mod finds;
+pub mod ground;
 pub mod journal;
 pub mod journey;
 pub mod jupiter;
