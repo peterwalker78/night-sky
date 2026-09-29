@@ -51,8 +51,8 @@ Every evening has the same three parts, shown at the top left: **set it down**
 story, now and then a small question about your life), and **wind down**,
 when you choose. The wisp asks whether you'd like a few slow breaths and a
 moment to think back over the day: if so, it breathes with you (in for four,
-out for six) while a ring swells and settles, then offers three short lines
-to think over, one at a time. Nothing is written or kept. Then the screen
+out for six) while a ring swells and settles, then offers one short line to
+think over. Nothing is written or kept. Then the screen
 dims, you say whether the night ends outside or in bed, and the sky
 time-lapses your weights down behind the horizon. `K` at any point keeps you
 company instead. Going
@@ -62,7 +62,7 @@ something from tonight worth keeping.
 **The wisp keeps you company.** It sits on a tuft of moss on the horizon: the
 same wisp that lives in the [Glimmerwood](https://github.com/peterwalker78/glimmerwood)
 browser, out for the night. On your first visit it shows you around. After
-that it keeps quiet unless you seem stuck or ask, with `?` or a click on it. It
+that it keeps quiet unless you ask, with `?` or a click on it. It
 brightens when you catch something, and falls asleep when the lights go out.
 It listens while you write, glows when you name someone, and keeps you soft
 company while you set a worry down. Its breath slows with the evening, and its
