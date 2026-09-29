@@ -266,6 +266,21 @@ mod tests {
     }
 
     #[test]
+    fn a_story_ending_names_who_it_is_about() {
+        // The last card is read on its own, so it can't lean on "he" or
+        // "the two" from the cards before.
+        for story in Tours::bundled().stories {
+            let first = story.mirror.split_whitespace().next().unwrap_or("");
+            assert!(
+                !["He", "She", "They", "It", "It's", "Its", "This", "That"].contains(&first),
+                "{}: {}",
+                story.id,
+                story.mirror
+            );
+        }
+    }
+
+    #[test]
     fn stories_never_name_the_feeling_either() {
         let t = Tours::bundled();
         for story in &t.stories {

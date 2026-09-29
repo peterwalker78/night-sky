@@ -264,9 +264,9 @@ impl Game {
             .to_owned(),
         );
         let text = if count == 0 {
-            "Anything heavy on your mind tonight? Write it down and it'll hang low in the west, where the turning sky will take it down."
+            "Is anything weighing on you tonight? Write it in a few words and it becomes a star low in the west of this sky. At the end of tonight's visit you'll watch it set: a way of putting it down for the night."
         } else {
-            "It's hung in the west. Anything else? Or that's all."
+            "It's waiting low in the west to set. Anything else on your mind, or is that all?"
         };
         self.talk.flow = Some(Flow::Weight { count, offered });
         self.set_prompt(Some(Prompt {
@@ -291,12 +291,12 @@ impl Game {
         // and why.
         self.set_prompt(Some(Prompt {
             text: format!(
-                "“{words}” is the warm star in the ring. Hang it low in the west: the sky turns that way, and before the night's out it will set, and you'll watch it go."
+                "“{words}” is now the warm star in the ring. Move it low over the western horizon: stars there are the next to set, so at the end of tonight's visit you'll watch it go down."
             ),
             placeholder: String::new(),
-            chips: vec!["Hang it here".into()],
+            chips: vec!["Leave it here".into()],
             entry: false,
-            hint: "Arrows to move it · Enter to hang it here".into(),
+            hint: "Arrows move it · Enter leaves it here".into(),
             names: false,
             chip_keys: vec!["Enter".into()],
         }));
@@ -492,7 +492,7 @@ impl Game {
                 self.remember_asked(&format!("look-back:{id}"));
                 self.talk.flow = Some(Flow::LookBack { weight: id });
                 self.set_prompt(Some(Prompt {
-                    text: format!("On {date}{found}, you set down “{text}”. How does it sit now?"),
+                    text: format!("On {date}{found}, you wrote down “{text}” as something on your mind. How does it feel now?"),
                     placeholder: String::new(),
                     chips: LOOKS.iter().map(|s| (*s).to_owned()).collect(),
                     entry: false,
@@ -861,11 +861,11 @@ impl Game {
             .last()
             .and_then(|id| self.journal.plans.iter().find(|p| p.id == *id));
         let line = if let Some(name) = named {
-            format!("{name} was part of tonight. Sleep well.")
+            format!("You thought of {name} tonight. Sleep well.")
         } else if let Some(plan) = planned {
             format!("Something to look forward to: {}. Sleep well.", plan.what)
         } else if !self.page.weights.is_empty() {
-            "Tonight's weights have gone down with the sky. Sleep well.".to_owned()
+            "What you set down tonight has gone down with the sky. Sleep well.".to_owned()
         } else {
             "The sky will keep turning while you sleep. Goodnight.".to_owned()
         };

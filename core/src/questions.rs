@@ -473,6 +473,25 @@ mod tests {
     }
 
     #[test]
+    fn every_question_says_what_it_is_about() {
+        // Read on its own, a question has to name what it's talking about:
+        // no opening on a bare "it" or "this" that only makes sense if you
+        // already know what was just caught.
+        for q in bundled() {
+            let first = q.text.split_whitespace().next().unwrap_or("");
+            assert!(
+                ![
+                    "It", "It's", "Its", "This", "They", "These", "Gone", "Often", "Back"
+                ]
+                .contains(&first),
+                "{}: {}",
+                q.id,
+                q.text
+            );
+        }
+    }
+
+    #[test]
     fn the_first_night_asks_one_and_two_is_the_most() {
         let bank = bundled();
         let mut c = ctx("2026-10-01", &[], &[]);

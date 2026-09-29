@@ -47,7 +47,7 @@ const PILLARS: [(&str, &str); 4] = [
     ),
     (
         "Setting it down",
-        "Write what's weighing on you, hang it in the west, and watch it set with the sky.",
+        "Write down what's weighing on you. It becomes a star low in the west, and at the end of the visit you watch it set.",
     ),
 ];
 

@@ -602,13 +602,15 @@ impl Game {
             Target::Showpiece(p) => match self.sky.lists.showpieces[p].kind {
                 Kind::Cluster => "Look for a little knot of faint stars.",
                 Kind::Galaxy | Kind::Nebula => "Look for a faint smudge of light.",
-                Kind::Double => "It looks like one star; close up it's two.",
+                Kind::Double => "It looks like a single star, but close up it's two.",
                 _ => "Look for a single star.",
             },
             Target::Meteor(_) => "Watch the sky, and press Space the moment one flies.",
             Target::Figure(_) => "Look for its shape; put the ring in the middle of it.",
             Target::Hop(_) => "Start from a star you know, and hop from star to star.",
-            Target::Story(_) => "It starts at this star: hold Space when it's in the ring.",
+            Target::Story(_) => {
+                "Tonight's story starts at the star I'm showing you: hold Space when it's in the ring."
+            }
             Target::MoonWalk if self.moon_find().is_some_and(|m| !self.caught[m]) => {
                 "Catch the Moon first, then hold Space on it again to go closer."
             }
@@ -1425,7 +1427,10 @@ impl Game {
                 if self.talk.caring
                     && let Some(p) = self.journal.person_on(pole)
                 {
-                    last.line = format!("{} would pick up. {}", p.name, last.line);
+                    last.line = format!(
+                        "{} would pick up if you rang, any time. {}",
+                        p.name, last.line
+                    );
                 }
                 self.handoff = Some(last);
                 self.caption = None;
@@ -1474,7 +1479,7 @@ impl Game {
     pub fn evening(&self, real: UnixMs) -> Option<Evening> {
         let (step, now) = match self.session.phase() {
             Phase::Arrival => return None,
-            Phase::Weights if self.placing() => (0, "Arrows move it, Enter hangs it in the west"),
+            Phase::Weights if self.placing() => (0, "Arrows move it, Enter leaves it there to set"),
             Phase::Weights => (
                 0,
                 "Write down what's on your mind, or choose Nothing tonight",
@@ -1502,7 +1507,7 @@ impl Game {
             Phase::Dimming if self.talk.prompt.is_some() => (2, "Choose how tonight ends"),
             Phase::Dimming => (2, "The screen is dimming: let your eyes and mind settle"),
             Phase::Finale if !self.session.last_line(real) => {
-                (2, "Watch the west: the sky is taking the day down")
+                (2, "Watch the west: what you set down tonight is setting")
             }
             Phase::Finale => (2, "That's all for tonight"),
             Phase::LightsOut | Phase::Over => return None,

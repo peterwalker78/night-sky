@@ -280,7 +280,7 @@ impl Game {
         self.say_once(
             "weights",
             Aim::Prompt,
-            "Each evening starts here. A worry written down is easier to put down, and I'll hang yours low in the west. Only you will ever see it.",
+            "Each evening starts here. A worry written down is easier to put down. Yours becomes a star in the west of this sky, and you'll watch it set at the end. Only you will ever see it.",
             real,
             30_000,
         );
@@ -291,7 +291,7 @@ impl Game {
         self.say_once(
             "placing",
             Aim::Ring,
-            "Things written down are easier to put down. When the sky sets tonight, that goes with it.",
+            "Stars low in the west are the next to set. At the end of tonight's visit, you'll watch this one go down.",
             real,
             12_000,
         );
@@ -350,7 +350,7 @@ impl Game {
         if self.say_once(
             "caught",
             Aim::Card,
-            "Lovely. Each one comes with something true about it. Space puts the card away, and Tab turns you to the next.",
+            "Lovely. Every find comes with a card saying something true about it. Space puts the card away, and Tab turns you to the next find.",
             real + 600,
             9_000,
         ) {
@@ -459,7 +459,7 @@ impl Game {
         self.say_once(
             "look-back",
             Aim::Prompt,
-            "Now and then I'll bring back something you set down a while ago. Most weights change shape once they're written down; it helps to notice when one has.",
+            "Now and then I'll bring back a worry you set down a while ago. Worries often change shape once they're written down, and it helps to notice when one has.",
             real + 400,
             11_000,
         );
@@ -492,10 +492,12 @@ impl Game {
     /// A word after an old weight has been looked at again.
     pub(crate) fn guide_looked_back(&mut self, chip: usize, real: UnixMs) {
         let line = match chip {
-            0 | 3 => "Good. Whatever helped with that is worth remembering.",
-            1 => "Some things take longer. It can stay in the west as long as it needs.",
+            0 | 3 => "Good. Whatever helped lighten it is worth remembering.",
+            1 => {
+                "Some things take longer to lighten. You can set it down again any night you like."
+            }
             _ => {
-                "If you'd like, the logbook can help you chart a small course for it. Only if you want to."
+                "If you'd like, the logbook can help you chart a small plan for it: find it there and choose Chart a course. Only if you want to."
             }
         };
         self.say_at(Aim::Near(0.3, 0.55), line, real + 500, 8_000);
@@ -551,7 +553,7 @@ impl Game {
                 } else {
                     self.say_at(
                         Aim::Weights,
-                        "Watch the west. The sky takes tonight's weights down with it.",
+                        "Watch the west: the turning sky is taking down what you set down tonight.",
                         real + 800,
                         9_000,
                     );
@@ -613,7 +615,7 @@ impl Game {
             self.set_offered_wind_down();
             self.say_at(
                 Aim::Evening,
-                "It's getting late. When you're ready, W winds down, or Wind down up here.",
+                "It's getting late. When you're ready to wind down, press W, or choose Wind down up here.",
                 real,
                 10_000,
             );

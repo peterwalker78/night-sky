@@ -325,7 +325,7 @@ impl Game {
                         name: weight.text.clone(),
                         kind: "Set down tonight".into(),
                         more: Some(
-                            "Hung low in the west, where the turning sky will take it down before the night is out."
+                            "Something you set down tonight. At the end of the visit you'll watch it set in the west."
                                 .into(),
                         ),
                         find: None,

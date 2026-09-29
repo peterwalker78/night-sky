@@ -10,7 +10,7 @@
 id = "hunter-scorpion"
 title = "The hunter and the scorpion"
 anchor = 2061
-mirror = "The sky never lets the two share the same night. Some things are worth keeping apart like that: the day's work and the evening's rest."
+mirror = "Orion and the Scorpion are never up on the same night. Some things are worth keeping apart like that: the day's work and the evening's rest."
 lines = [
   { hr = 2061, say = "In Greek myth, Orion was a great hunter who boasted he could kill any animal on Earth." },
   { hr = 1903, say = "So the Earth sent a scorpion to stop him, and the gods set them both among the stars, far apart." },
@@ -34,7 +34,7 @@ lines = [
 id = "great-bear"
 title = "The Great Bear"
 anchor = 4301
-mirror = "The bears circle the pole all year and never set. Some people are like that too: there in every season, whether or not we look up."
+mirror = "The Great Bear and the Little Bear circle the pole all year and never set. Some people are like that too: there in every season, whether or not we look up."
 lines = [
   { hr = 4301, say = "Zeus loved the nymph Callisto, and in her jealousy Hera turned her into a bear." },
   { hr = 424, say = "Years later her son Arcas nearly hunted her, so Zeus lifted them both into the sky; in one telling Arcas became the Little Bear." },
@@ -47,7 +47,7 @@ title = "One shape, many names"
 anchor = 4905
 # The Plough alone: the seven stars the story is about.
 figure = [[4301, 4295], [4295, 4554], [4554, 4660], [4660, 4301], [4660, 4905], [4905, 5054], [5054, 5191]]
-mirror = "Seven stars, and every people who looked up saw something of their own. What a day looks like depends a lot on what we look for in it."
+mirror = "The same seven stars, and every people who looked up saw something of their own in them. What a day looks like depends a lot on what we look for in it."
 lines = [
   { hr = 4295, say = "In Britain these seven stars are the Plough; in North America they're the Big Dipper." },
   { hr = 4905, say = "In much of Europe they were a wagon, and in India they are the Saptarishi, seven wise men." },
@@ -60,7 +60,7 @@ title = "The weaver and the cowherd"
 anchor = 7001
 # The Summer Triangle: Vega, Altair and Deneb.
 figure = [[7001, 7557], [7557, 7924], [7924, 7001]]
-mirror = "One night a year, and they make it count. Is there someone you only see now and then, who'd be glad to hear from you?"
+mirror = "The weaver and the cowherd get one night a year together, and they make it count. Is there someone you only see now and then, who'd be glad to hear from you?"
 lines = [
   { hr = 7001, say = "In a story told across China, Korea and Japan, Vega is a weaver girl who fell in love with a cowherd, Altair." },
   { hr = 7557, say = "Her mother, a goddess, drew a river between them: the Milky Way." },
@@ -71,7 +71,7 @@ lines = [
 id = "orpheus-lyre"
 title = "Orpheus's lyre"
 anchor = 7001
-mirror = "He lost her by turning round to check. Some things can be trusted to be there without looking back; tonight, the day can stay behind you."
+mirror = "Orpheus lost Eurydice by turning round to check she was there. Some things can be trusted without looking back; tonight, the day can stay behind you."
 lines = [
   { hr = 7001, say = "Lyra is the lyre of Orpheus, whose music could charm animals, trees and even stones." },
   { say = "He played his way into the underworld to bring back his wife, Eurydice, and lost her by looking back too soon." },
@@ -116,7 +116,7 @@ id = "seven-sisters"
 title = "The Seven Sisters"
 anchor = 1165
 pattern = false
-mirror = "Most people see six; the seventh only shows once your eyes have settled. Some good things are like that: they need you to slow down first."
+mirror = "Most people see six of the Seven Sisters; the seventh only shows once your eyes have settled. Some good things are like that: they need you to slow down first."
 lines = [
   { showpiece = "pleiades", say = "Almost every people on Earth has a story for the Pleiades. To the Greeks they were seven sisters, daughters of Atlas." },
   { showpiece = "pleiades", say = "In Japan they are Subaru, and six of them shine on the car maker's badge." },
@@ -149,7 +149,7 @@ lines = [
 id = "arcturus-fair"
 title = "The star that opened a fair"
 anchor = 5340
-mirror = "Light from 1893 opened a fair in 1933. A lot of what holds us up today was lit by someone, years ago."
+mirror = "Light thought to have left Arcturus in 1893 opened a fair in 1933. A lot of what holds us up today was lit by someone, years ago."
 lines = [
   { hr = 5340, say = "Arcturus means guardian of the bear: it follows the Great Bear round the pole." },
   { hr = 5340, say = "In 1933 its light, focused onto a photocell, switched on the lights of the Chicago World's Fair." },
@@ -183,7 +183,7 @@ id = "magellanic"
 title = "Two small galaxies"
 anchor = 472
 pattern = false
-mirror = "Two small galaxies keep ours company the whole way round. Company makes a long road shorter."
+mirror = "The Magellanic Clouds, two small galaxies, keep ours company the whole way round. Company makes a long road shorter."
 lines = [
   { showpiece = "lmc", say = "The Magellanic Clouds are named after Magellan's voyage of 1519, but people of the southern hemisphere knew them long before, and the Persian astronomer al-Sufi wrote of the larger one in 964." },
   { showpiece = "lmc", say = "They are small galaxies circling our own." },
@@ -194,7 +194,7 @@ lines = [
 id = "andromeda-galaxy"
 title = "The little cloud"
 anchor = 337
-mirror = "One measurement, and the universe was far bigger than anyone had thought. Most worries look smaller once you see how big everything else is."
+mirror = "One measurement of the Andromeda Galaxy, and the universe was far bigger than anyone had thought. Most worries look smaller once you see how big everything else is."
 lines = [
   { showpiece = "andromeda", say = "In 964 al-Sufi described a small cloud in Andromeda." },
   { showpiece = "andromeda", say = "In the 1920s Edwin Hubble measured its distance and showed it was a whole galaxy of its own, far beyond ours: the universe suddenly got much bigger." },
@@ -205,7 +205,7 @@ lines = [
 id = "hercules"
 title = "Hercules and the dragon"
 anchor = 6406
-mirror = "The message will take 25,000 years to land. Some things are worth doing even if we never see where they end up."
+mirror = "The Arecibo message will take 25,000 years to reach M13. Some things are worth doing even if we never see where they end up."
 lines = [
   { hr = 6406, say = "Hercules hangs upside down in our sky, kneeling, with a foot near the Dragon's head." },
   { showpiece = "m13", say = "In his side is M13, several hundred thousand stars in a ball." },
@@ -216,7 +216,7 @@ lines = [
 id = "eagle"
 title = "Zeus's eagle"
 anchor = 7557
-mirror = "Even a star spinning that fast holds together. Busy days do too, and this part of the day is for slowing down."
+mirror = "Altair spins that fast and still holds together. Busy days do too, and this part of the day is for slowing down."
 lines = [
   { hr = 7557, say = "Aquila is the eagle that carried Zeus's thunderbolts, and carried the shepherd boy Ganymede up to Olympus." },
   { hr = 7557, say = "Altair spins so fast, once in under eight hours, that it bulges at its middle." },
@@ -236,7 +236,7 @@ lines = [
 id = "goat-star"
 title = "The little she-goat"
 anchor = 1708
-mirror = "One point of light turns out to be four stars keeping each other company. Most of us are held up by more than we can see."
+mirror = "Capella's one point of light turns out to be four stars keeping each other company. Most of us are held up by more than we can see."
 lines = [
   { hr = 1708, say = "Capella means little she-goat. In Greek myth it's Amalthea, the goat who fed the infant Zeus." },
   { hr = 1708, say = "It looks like one yellow star, but it's two giant stars close together, with a pair of small dim ones further out." },
