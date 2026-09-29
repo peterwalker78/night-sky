@@ -158,7 +158,9 @@ button.evening-button {
 button.evening-button:hover { background: rgba(240, 214, 168, 0.14); color: #f3dcae; }
 button.evening-button:disabled { color: rgba(220, 225, 240, 0.4); }
 button.evening-button.current:disabled { color: #f3dcae; }
-.evening-now { font-size: 12px; color: rgba(220, 225, 240, 0.72); }
+.evening-now { font-size: 12px; color: rgba(220, 225, 240, 0.62); transition: color 500ms ease-out; }
+.evening-now.yours { color: #f3dcae; }
+.evening-step { transition: color 400ms ease-out; }
 .tonight-title { font-size: 11px; font-weight: 600; letter-spacing: 2px; color: rgba(240, 214, 168, 0.8); margin: 0 8px 4px 8px; }
 .tonight-hint { font-size: 11px; color: rgba(220, 225, 240, 0.42); margin: 6px 8px 0 8px; }
 button.find-row {
@@ -236,13 +238,27 @@ pub fn confirm(
     buttons.append(&go);
     card.append(&buttons);
     shade.append(&card);
-    host.add_overlay(&shade);
+    // Fades in, and out again before it's taken away.
+    let wrap = fading(&shade);
+    host.add_overlay(&wrap);
+    {
+        let wrap = wrap.clone();
+        glib::idle_add_local_once(move || show(&wrap, true));
+    }
 
     let from = from.clone().upcast::<gtk::Widget>();
     let close: Rc<dyn Fn()> = {
-        let (host, shade, from) = (host.clone(), shade.clone(), from.clone());
+        let (host, wrap, from) = (host.clone(), wrap.clone(), from.clone());
+        let closed = Cell::new(false);
         Rc::new(move || {
-            host.remove_overlay(&shade);
+            if closed.replace(true) {
+                return;
+            }
+            show(&wrap, false);
+            let (host, wrap) = (host.clone(), wrap.clone());
+            glib::timeout_add_local_once(std::time::Duration::from_millis(260), move || {
+                host.remove_overlay(&wrap);
+            });
             from.grab_focus();
         })
     };
@@ -296,6 +312,26 @@ pub fn trash(tooltip: &str) -> gtk::Button {
     b
 }
 
+/// A revealer that fades its child in and out, taking no clicks while
+/// hidden.
+pub fn fading(child: &impl IsA<gtk::Widget>) -> gtk::Revealer {
+    let r = gtk::Revealer::new();
+    r.set_transition_type(gtk::RevealerTransitionType::Crossfade);
+    r.set_transition_duration(220);
+    r.set_child(Some(child));
+    r.set_reveal_child(false);
+    r.set_can_target(false);
+    r
+}
+
+/// Shows or hides a fading revealer.
+pub fn show(r: &gtk::Revealer, on: bool) {
+    if r.reveals_child() != on {
+        r.set_reveal_child(on);
+    }
+    r.set_can_target(on);
+}
+
 pub fn install_css() {
     let provider = gtk::CssProvider::new();
     provider.load_from_string(CSS);
@@ -338,7 +374,8 @@ pub fn label(text: &str, class: &str) -> gtk::Label {
 }
 
 pub struct PromptBar {
-    pub root: gtk::Box,
+    /// Fades the prompt in and out.
+    pub root: gtk::Revealer,
     text: gtk::Label,
     chips: gtk::FlowBox,
     entry: gtk::Entry,
@@ -350,13 +387,13 @@ pub struct PromptBar {
 
 impl PromptBar {
     pub fn new(game: &Rc<RefCell<Game>>) -> Rc<PromptBar> {
-        let root = gtk::Box::new(gtk::Orientation::Vertical, 10);
-        root.add_css_class("prompt");
+        let panel = gtk::Box::new(gtk::Orientation::Vertical, 10);
+        panel.add_css_class("prompt");
+        panel.set_width_request(560);
+        let root = fading(&panel);
         root.set_halign(gtk::Align::Center);
         root.set_valign(gtk::Align::End);
         root.set_margin_bottom(84);
-        root.set_width_request(560);
-        root.set_visible(false);
         let text = label("", "prompt-text");
         text.set_max_width_chars(60);
         let chips = gtk::FlowBox::new();
@@ -368,11 +405,11 @@ impl PromptBar {
         let entry = gtk::Entry::new();
         let names = gtk::Box::new(gtk::Orientation::Horizontal, 6);
         let hint = label("", "hint");
-        root.append(&text);
-        root.append(&entry);
-        root.append(&names);
-        root.append(&chips);
-        root.append(&hint);
+        panel.append(&text);
+        panel.append(&entry);
+        panel.append(&names);
+        panel.append(&chips);
+        panel.append(&hint);
         let bar = Rc::new(PromptBar {
             root,
             text,
@@ -462,7 +499,7 @@ impl PromptBar {
             self.chips.remove(&child);
         }
         let Some(p) = prompt else {
-            self.root.set_visible(false);
+            show(&self.root, false);
             *self.showing.borrow_mut() = None;
             return true;
         };
@@ -497,7 +534,7 @@ impl PromptBar {
         };
         self.hint.set_text(&hint);
         self.hint.set_visible(!hint.is_empty());
-        self.root.set_visible(true);
+        show(&self.root, true);
         if p.entry {
             self.entry.grab_focus();
         }

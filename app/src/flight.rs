@@ -163,6 +163,10 @@ impl Flight {
         self.embers.retain(|e| t - e.born < e.life);
     }
 
+    pub fn has_embers(&self) -> bool {
+        !self.embers.is_empty()
+    }
+
     /// Settles straight onto a spot, without flying there.
     pub fn place(&mut self, x: f64, y: f64) {
         self.x = x;

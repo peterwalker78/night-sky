@@ -33,6 +33,8 @@ pub struct Evening {
     /// 0 setting things down, 1 looking up, 2 winding down.
     pub step: usize,
     pub now: String,
+    /// The wisp has finished and it's over to the user.
+    pub yours: bool,
 }
 
 /// One line of the Tonight list.
@@ -206,6 +208,9 @@ pub struct Game {
     /// The star pattern being shown, and how far it has faded in.
     pub(crate) pattern: Option<Vec<(u16, u16)>>,
     pub(crate) pattern_alpha: f64,
+    /// The card as last drawn, and one on its way out with when it went.
+    shown_card: Option<crate::view::CardView>,
+    leaving_card: Option<(crate::view::CardView, UnixMs)>,
     /// Where the pointer is over the sky, and when it last moved.
     pub(crate) pointer: Option<(f64, f64, UnixMs)>,
     pub(crate) hovered: Option<crate::hover::Hovered>,
@@ -448,6 +453,8 @@ impl Game {
             marks: Vec::new(),
             pattern: None,
             pattern_alpha: 0.0,
+            shown_card: None,
+            leaving_card: None,
             pointer: None,
             hovered: None,
             ending: None,
@@ -880,6 +887,8 @@ impl Game {
             gdk::Key::Return | gdk::Key::KP_Enter => {
                 if self.card.is_some() {
                     self.dismiss_card(real);
+                } else if !self.guide_next(real) {
+                    return false;
                 }
             }
             gdk::Key::Tab => {
@@ -980,6 +989,10 @@ impl Game {
     /// A click on something turns the view to it.
     pub fn click(&mut self, x: f64, y: f64, real: UnixMs) {
         self.input(real);
+        if self.on_bubble(x, y) {
+            self.guide_next(real);
+            return;
+        }
         if self.on_wisp(x, y) {
             // With more to say, a click hurries it on; otherwise it helps.
             if !self.guide_next(real) {
@@ -1351,6 +1364,7 @@ impl Game {
             return;
         }
         self.card = None;
+        self.guide_card_gone(real);
         if let Some(fov) = self.catch.fov_before.take() {
             self.look = Some(Look {
                 az: self.camera.az,
@@ -1512,9 +1526,18 @@ impl Game {
             Phase::Finale => (2, "That's all for tonight"),
             Phase::LightsOut | Phase::Over => return None,
         };
+        // When the wisp has nothing more to say and something is asked of
+        // the user, say so: it's their turn.
+        let yours =
+            !self.wisp_busy(real) && matches!(self.session.phase(), Phase::Weights | Phase::Hunt);
         Some(Evening {
             step,
-            now: now.to_owned(),
+            now: if yours {
+                format!("Your turn: {now}")
+            } else {
+                now.to_owned()
+            },
+            yours,
         })
     }
 
@@ -2282,9 +2305,10 @@ impl Game {
         }
         self.marks.extend(embers);
         let eyepiece = self.eyepiece(now, hz, prec);
+        let rise = |age: UnixMs| (1.0 - smoothstep(age as f64 / 450.0)) * 14.0;
         let card = self.card.as_ref().map(|c| crate::view::CardView {
             x: c.x,
-            y: (self.camera.height / 2.0 - 70.0).max(70.0),
+            y: (self.camera.height / 2.0 - 70.0).max(70.0) + rise(real - c.shown),
             kicker: c.kicker.clone(),
             title: c.title.clone(),
             body: c.body.clone(),
@@ -2299,7 +2323,32 @@ impl Game {
                     ("Tab".into(), "next".into()),
                 ],
             },
-            alpha: envelope(real - c.shown, 600, 600_000, 800),
+            alpha: envelope(real - c.shown, 350, 600_000, 800),
+        });
+        // A card put away fades and sinks rather than vanishing.
+        let card = match (card, self.shown_card.take()) {
+            (Some(c), _) => {
+                self.leaving_card = None;
+                self.shown_card = Some(c.clone());
+                Some(c)
+            }
+            (None, Some(last)) => {
+                self.leaving_card = Some((last, real));
+                None
+            }
+            (None, None) => None,
+        };
+        let card = card.or_else(|| {
+            let (c, at) = self.leaving_card.as_ref()?;
+            let f = (real - at) as f64 / 260.0;
+            if f >= 1.0 {
+                self.leaving_card = None;
+                return None;
+            }
+            let mut c = c.clone();
+            c.alpha *= 1.0 - smoothstep(f);
+            c.y += smoothstep(f) * 10.0;
+            Some(c)
         });
         let compass = matches!(
             self.session.phase(),
@@ -2604,6 +2653,22 @@ impl Game {
 
     pub(crate) fn calm(&self) -> bool {
         self.journal.settings.calm
+    }
+
+    /// How often to draw, in milliseconds: smooth while anything moves,
+    /// half pace while the wisp hovers or something fades, slow at rest.
+    pub fn frame_ms(&self, real: UnixMs) -> i64 {
+        if self.wants_fast_frames(real) || self.wisp_motion() == 2 {
+            16
+        } else if self.wisp_motion() == 1
+            || self.leaving_card.is_some()
+            || self.card.as_ref().is_some_and(|c| real - c.shown < 600)
+            || self.pointer.is_some_and(|(_, _, at)| real - at < 5_000)
+        {
+            33
+        } else {
+            66
+        }
     }
 
     /// Keeps the frame clock's pace honest: fast while things move, slow at rest.

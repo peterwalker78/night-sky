@@ -392,18 +392,15 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
         let go = go.clone();
         view.add_tick_callback(move |view, _clock| {
             let real = wall_clock();
-            let fast = game.borrow().wants_fast_frames(real);
+            let pace = game.borrow().frame_ms(real);
             let on_sky = !sheet.reveals_child();
             let interval = if !window.is_active() {
                 200
             } else if !on_sky {
                 // Still turning behind the panel, gently.
                 100
-            } else if fast {
-                16
             } else {
-                // At rest the sky only twinkles, slowly.
-                66
+                pace
             };
             if real - last_frame.get() >= interval {
                 last_frame.set(real);

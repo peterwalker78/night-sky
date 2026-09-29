@@ -3,26 +3,27 @@
 //! the view towards one.
 
 use crate::game::{Game, Row};
-use crate::ui::{clear, label, wall_clock};
+use crate::ui::{clear, fading, label, show, wall_clock};
 use gtk::prelude::*;
 use std::cell::RefCell;
 use std::rc::Rc;
 
 pub struct Tonight {
-    pub root: gtk::Box,
+    pub root: gtk::Revealer,
     rows: gtk::Box,
     shown: RefCell<Vec<Row>>,
 }
 
 impl Tonight {
     pub fn new() -> Rc<Tonight> {
-        let root = gtk::Box::new(gtk::Orientation::Vertical, 4);
-        root.add_css_class("tonight");
+        let panel = gtk::Box::new(gtk::Orientation::Vertical, 4);
+        panel.add_css_class("tonight");
+        panel.set_width_request(270);
+        let root = fading(&panel);
         root.set_halign(gtk::Align::End);
         root.set_valign(gtk::Align::Start);
         root.set_margin_top(14);
         root.set_margin_end(14);
-        root.set_width_request(270);
         let title = label("TONIGHT", "tonight-title");
         let hint = label(
             "Click one, or press Tab, to turn towards it",
@@ -35,10 +36,9 @@ impl Tonight {
         scroll.set_propagate_natural_height(true);
         scroll.set_max_content_height(560);
         scroll.set_child(Some(&rows));
-        root.append(&title);
-        root.append(&scroll);
-        root.append(&hint);
-        root.set_visible(false);
+        panel.append(&title);
+        panel.append(&scroll);
+        panel.append(&hint);
         Rc::new(Tonight {
             root,
             rows,
@@ -52,7 +52,7 @@ impl Tonight {
             let g = game.borrow();
             (g.show_tonight(), g.tonight_rows(wall_clock()))
         };
-        self.root.set_visible(visible);
+        show(&self.root, visible);
         if !visible || *self.shown.borrow() == rows {
             return;
         }
@@ -97,7 +97,7 @@ impl Tonight {
 /// The evening's three parts at the top left, the one it's at lit, and a
 /// line saying what to do now. Wind down can be chosen from here.
 pub struct EveningGuide {
-    pub root: gtk::Box,
+    pub root: gtk::Revealer,
     steps: [gtk::Widget; 3],
     now: gtk::Label,
     shown: RefCell<Option<crate::game::Evening>>,
@@ -105,8 +105,9 @@ pub struct EveningGuide {
 
 impl EveningGuide {
     pub fn new(game: &Rc<RefCell<Game>>) -> Rc<EveningGuide> {
-        let root = gtk::Box::new(gtk::Orientation::Vertical, 4);
-        root.add_css_class("evening");
+        let panel = gtk::Box::new(gtk::Orientation::Vertical, 4);
+        panel.add_css_class("evening");
+        let root = fading(&panel);
         root.set_halign(gtk::Align::Start);
         root.set_valign(gtk::Align::Start);
         root.set_margin_start(66);
@@ -139,9 +140,8 @@ impl EveningGuide {
         let now = label("", "evening-now");
         now.set_max_width_chars(40);
         now.set_width_chars(34);
-        root.append(&row);
-        root.append(&now);
-        root.set_visible(false);
+        panel.append(&row);
+        panel.append(&now);
         Rc::new(EveningGuide {
             root,
             steps: [set_down.upcast(), look_up.upcast(), wind.upcast()],
@@ -157,9 +157,14 @@ impl EveningGuide {
             return;
         }
         match &evening {
-            None => self.root.set_visible(false),
+            None => show(&self.root, false),
             Some(e) => {
-                self.root.set_visible(true);
+                show(&self.root, true);
+                if e.yours {
+                    self.now.add_css_class("yours");
+                } else {
+                    self.now.remove_css_class("yours");
+                }
                 for (k, w) in self.steps.iter().enumerate() {
                     w.remove_css_class("current");
                     w.remove_css_class("done");

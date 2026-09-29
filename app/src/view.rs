@@ -79,6 +79,7 @@ pub struct Line {
 }
 
 /// The card for something just caught.
+#[derive(Clone)]
 pub struct CardView {
     pub x: f64,
     pub y: f64,
@@ -136,8 +137,8 @@ pub struct Bubble {
     /// A small tail down towards the wisp on its moss.
     pub tail: bool,
     /// The wisp has more to say: three dots at the foot, running, keyed
-    /// by the time in seconds.
-    pub more: Option<f64>,
+    /// by the time in seconds, and how to hear it.
+    pub more: Option<(f64, &'static str)>,
 }
 
 #[derive(Default)]
@@ -609,8 +610,23 @@ mod imp {
                 snapshot.translate(&graphene::Point::new(rect.x() + pad, rect.y() + pad));
                 snapshot.append_layout(&layout, &gdk::RGBA::new(1.0, 0.96, 0.88, 0.95 * a));
                 snapshot.restore();
-                if let Some(t) = b.more {
-                    // Three dots, each brightening in turn: there's more.
+                if let Some((t, how)) = b.more {
+                    // Says so in words, beside three dots brightening in turn.
+                    let more = widget.create_pango_layout(Some(how));
+                    let mut small = widget
+                        .pango_context()
+                        .font_description()
+                        .unwrap_or_default();
+                    small.set_absolute_size(11.0 * pango::SCALE as f64);
+                    more.set_font_description(Some(&small));
+                    let (mw, mh) = more.pixel_size();
+                    snapshot.save();
+                    snapshot.translate(&graphene::Point::new(
+                        rect.x() + rect.width() - pad - 28.0 - mw as f32,
+                        rect.y() + rect.height() - 12.0 - mh as f32 / 2.0,
+                    ));
+                    snapshot.append_layout(&more, &gdk::RGBA::new(1.0, 0.9, 0.72, 0.55 * a));
+                    snapshot.restore();
                     for k in 0..3 {
                         let phase = ((t * 1.6 - k as f64 * 0.22).rem_euclid(1.0)
                             * std::f64::consts::TAU)

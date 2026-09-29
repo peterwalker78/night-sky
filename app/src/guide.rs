@@ -70,19 +70,37 @@ pub struct Guide {
     /// Where it's going, and until when it has something to do there.
     aim: Aim,
     busy_until: UnixMs,
-    /// A little flight of its own now and then, when nothing's going on.
-    next_wander: UnixMs,
-    wander: Option<(f64, f64, UnixMs)>,
+    /// Which side of a thing it hovers on (+1 right, -1 left), kept until
+    /// the thing is well over to the other side, so it doesn't dart about.
+    side: std::cell::Cell<f64>,
+    /// Where it's making for, eased, so a target that moves or jumps is
+    /// followed smoothly.
+    goal: Option<(f64, f64)>,
+    /// Where the last bubble was, for a click on it.
+    pub(crate) bubble_at: Option<(f64, f64, f64, f64)>,
+    /// When it last had nothing more to say, for the hand-over.
+    pub(crate) done_at: UnixMs,
     /// When it arrived at what it's pointing at, for the glow round it.
     pointing_since: Option<UnixMs>,
     last_frame: UnixMs,
 }
 
+/// Whether a line waits: while a card is up only its own line speaks, and
+/// while a question is asked only lines about the question do.
+fn waiting((card_up, asking): (bool, bool), l: &Line) -> bool {
+    (card_up && l.aim != Aim::Card && l.aim != Aim::Stay)
+        || (asking && l.aim != Aim::Prompt && l.aim != Aim::Stay)
+}
+
 /// How long someone can look around without finding anything before the
 /// wisp offers to help.
 const STUCK_MS: UnixMs = 35_000;
-/// Long enough to read a line before another replaces it.
-const READ_MS: UnixMs = 6_000;
+/// How long a line stays up: long enough to read it at an easy pace.
+fn read_time(text: &str) -> UnixMs {
+    (1_400 + 55 * text.chars().count() as UnixMs).clamp(3_500, 12_000)
+}
+/// The pause between one line and the next.
+const BREATH_MS: UnixMs = 700;
 const NUDGE_EVERY_MS: UnixMs = 90_000;
 /// How long it lingers after speaking before it drifts home.
 const LINGER_MS: UnixMs = 5_000;
@@ -114,8 +132,10 @@ impl Guide {
             flight: Flight::new(-100.0, -100.0),
             aim: Aim::Home,
             busy_until: 0,
-            next_wander: real + 40_000,
-            wander: None,
+            side: std::cell::Cell::new(1.0),
+            goal: None,
+            bubble_at: None,
+            done_at: real,
             pointing_since: None,
             last_frame: real,
         }
@@ -141,11 +161,14 @@ impl Game {
         self.say_at(Aim::Stay, text, real, hold);
     }
 
-    /// Flies somewhere and says something. A line already showing gets a
-    /// fair chance to be read first (at least `READ_MS`), then gives way.
+    /// Flies somewhere and says something. A line already showing is read
+    /// in full first, then gives way.
     pub(crate) fn say_at(&mut self, aim: Aim, text: impl Into<String>, real: UnixMs, hold: UnixMs) {
+        let text = text.into();
+        // Up at least long enough to read; longer when it's waiting on the user.
+        let hold = hold.max(read_time(&text));
         let line = Line {
-            text: text.into(),
+            text,
             shown: real,
             hold,
             aim,
@@ -159,8 +182,8 @@ impl Game {
             // Follow whatever is showing or waiting, each read in turn.
             let last = self.guide.queue.last_mut().or(self.guide.line.as_mut());
             if let Some(last) = last {
-                last.hold = last.hold.min(READ_MS);
-                let start = last.shown + last.hold + 900;
+                last.hold = read_time(&last.text);
+                let start = last.shown + last.hold + BREATH_MS;
                 self.guide.queue.retain(|l| l.text != line.text);
                 self.guide.queue.push(Line {
                     shown: start.max(real),
@@ -168,7 +191,13 @@ impl Game {
                 });
             }
         } else {
-            self.guide.queue.clear();
+            // Anything already waiting follows this line rather than being
+            // dropped for it.
+            let after = line.shown.max(real) + line.hold + BREATH_MS;
+            self.guide.queue.retain(|l| l.text != line.text);
+            for l in &mut self.guide.queue {
+                l.shown = l.shown.max(after);
+            }
             self.guide.line = Some(line);
         }
     }
@@ -199,18 +228,90 @@ impl Game {
         self.guide.busy_until = self.guide.busy_until.max(real + linger);
     }
 
-    /// Hurries on to the next line waiting, if there is one.
+    /// Hurries on to the next line waiting, if there is one; with none,
+    /// puts the line showing away. Says whether there was anything to do.
     pub(crate) fn guide_next(&mut self, real: UnixMs) -> bool {
-        if self.guide.queue.is_empty() {
-            return false;
-        }
-        let mut next = self.guide.queue.remove(0);
+        let held = self.held_back();
+        let free = self.guide.queue.iter().position(|l| !waiting(held, l));
+        let Some(i) = free else {
+            let showing = self
+                .guide
+                .line
+                .as_ref()
+                .is_some_and(|l| real >= l.shown && real - l.shown < l.hold);
+            if showing && let Some(l) = &mut self.guide.line {
+                // Let it fade from where it is.
+                l.hold = real - l.shown;
+            }
+            return showing;
+        };
+        let mut next = self.guide.queue.remove(i);
         next.shown = real;
-        for (k, later) in self.guide.queue.iter_mut().enumerate() {
-            later.shown = later.shown.min(real + (k as UnixMs + 1) * (READ_MS + 900));
+        let mut at = real + read_time(&next.text) + BREATH_MS;
+        for later in self.guide.queue.iter_mut().filter(|l| !waiting(held, l)) {
+            later.shown = later.shown.min(at);
+            at += read_time(&later.text) + BREATH_MS;
         }
         self.guide.line = Some(next);
         true
+    }
+
+    /// What the wisp is holding its tongue for: a card that's up, and a
+    /// question being asked.
+    fn held_back(&self) -> (bool, bool) {
+        let asking =
+            self.talk.prompt.is_some() && matches!(self.talk.flow, Some(Flow::Question { .. }));
+        (self.card.is_some(), asking)
+    }
+
+    /// Whether the wisp has more to say now, rather than later.
+    fn more_now(&self) -> bool {
+        let held = self.held_back();
+        self.talk.pending.is_some() || self.guide.queue.iter().any(|l| !waiting(held, l))
+    }
+
+    /// Whether the wisp is saying something, or has more on the way.
+    pub(crate) fn wisp_busy(&self, real: UnixMs) -> bool {
+        self.more_now()
+            || self
+                .guide
+                .line
+                .as_ref()
+                .is_some_and(|l| real < l.shown + l.hold + BREATH_MS)
+    }
+
+    /// How much the wisp is moving, for the frame rate: 2 flying, 1 out
+    /// and hovering, 0 settled on its moss.
+    pub(crate) fn wisp_motion(&self) -> u8 {
+        if self.guide.flight.speed() > 12.0 || self.guide.flight.has_embers() {
+            2
+        } else if !self.guide.flight.home {
+            1
+        } else {
+            0
+        }
+    }
+
+    /// Whether a point is on the wisp's bubble.
+    pub(crate) fn on_bubble(&self, x: f64, y: f64) -> bool {
+        self.guide
+            .bubble_at
+            .is_some_and(|(bx, by, bw, bh)| x >= bx && x <= bx + bw && y >= by && y <= by + bh)
+    }
+
+    /// A card has been put away: what the wisp was saying about it is done.
+    pub(crate) fn guide_card_gone(&mut self, real: UnixMs) {
+        self.guide.queue.retain(|l| l.aim != Aim::Card);
+        if let Some(l) = &mut self.guide.line
+            && l.aim == Aim::Card
+            && real - l.shown < l.hold
+        {
+            l.hold = real - l.shown;
+        }
+        if self.guide.aim == Aim::Card {
+            self.guide.aim = Aim::Home;
+            self.guide.pointing_since = None;
+        }
     }
 
     pub(crate) fn hush(&mut self) {
@@ -662,19 +763,28 @@ impl Game {
         let (w, h) = (self.camera.width, self.camera.height);
         let (cx, cy) = (w / 2.0, h / 2.0);
         let beside = |px: f64, py: f64| {
-            // Hover off to the side nearer the middle of the screen.
-            let dx = if px > cx { -110.0 } else { 110.0 };
+            // Hover off to the side nearer the middle of the screen, keeping
+            // to the side it's on until the thing is well past the middle.
+            if px > cx + 90.0 {
+                self.guide.side.set(-1.0);
+            } else if px < cx - 90.0 {
+                self.guide.side.set(1.0);
+            }
+            let dx = 110.0 * self.guide.side.get();
             (
                 (px + dx).clamp(60.0, w - 60.0),
                 (py - 45.0).clamp(60.0, h - 80.0),
             )
         };
+        // Something off the screen is pointed at from the nearest edge.
+        let edge = |x: f64, y: f64| (x.clamp(70.0, w - 70.0), y.clamp(90.0, h - 110.0));
         Some(match aim {
             Aim::Stay => return None,
             Aim::Home => (self.home_spot(), None),
             Aim::Near(fx, fy) => ((w * fx, h * fy), None),
             Aim::List => ((w - 330.0, 110.0), Some((w - 270.0, 70.0))),
-            Aim::Compass => ((cx - 350.0, 44.0), Some((cx - 250.0, 28.0))),
+            // Below the strip, clear of the evening's guide at the top left.
+            Aim::Compass => ((cx - 290.0, 100.0), Some((cx - 200.0, 30.0))),
             Aim::Evening => ((150.0, 130.0), Some((120.0, 40.0))),
             // Above the prompt's left end, so the words sit clear of it.
             Aim::Prompt => ((cx - 330.0, h - 360.0), Some((cx - 250.0, h - 250.0))),
@@ -704,7 +814,11 @@ impl Game {
                     Some((x, y)) if self.camera.on_screen(x, y, -40.0) => {
                         (beside(x, y), Some((x, y)))
                     }
-                    _ => ((cx - 120.0, cy - 60.0), Some((cx, cy))),
+                    Some((x, y)) => {
+                        let (ex, ey) = edge(x, y);
+                        (beside(ex, ey), Some((ex, ey)))
+                    }
+                    None => ((cx - 120.0, cy - 60.0), None),
                 }
             }
             Aim::Sky(ra, dec) => {
@@ -770,12 +884,44 @@ impl Game {
             .guide
             .line
             .as_ref()
-            .is_none_or(|l| real - l.shown > l.hold + 1_400);
-        // A line that waited too long has probably stopped being true.
-        self.guide.queue.retain(|l| real - l.shown < 8_000);
-        if finished && !self.guide.queue.is_empty() {
-            let next = self.guide.queue.remove(0);
-            if next.shown <= real {
+            .is_none_or(|l| real - l.shown > l.hold + BREATH_MS);
+        // While a card is up or a question is being asked, lines about
+        // anything else wait their turn rather than talking over it.
+        let prompt_up = self.talk.prompt.is_some();
+        let held = self.held_back();
+        let waits = |l: &Line| waiting(held, l);
+        for l in &mut self.guide.queue {
+            if waits(l) {
+                l.shown = l.shown.max(real);
+            }
+        }
+        // A line that waited too long has probably stopped being true, and
+        // one about a prompt that's gone is over.
+        self.guide
+            .queue
+            .retain(|l| real - l.shown < 8_000 && (prompt_up || l.aim != Aim::Prompt));
+        if !prompt_up
+            && let Some(l) = &mut self.guide.line
+            && l.aim == Aim::Prompt
+            && real - l.shown < l.hold
+        {
+            l.hold = real - l.shown;
+            // What was waiting for it can follow straight on.
+            let mut at = real + BREATH_MS;
+            for later in self.guide.queue.iter_mut() {
+                later.shown = later.shown.min(at);
+                at += read_time(&later.text) + BREATH_MS;
+            }
+        }
+        // The first line free to go: a card's own line goes ahead of ones
+        // waiting for it to be put away.
+        let free = self.guide.queue.iter().position(|l| !waits(l));
+        if finished && let Some(i) = free {
+            let mut next = self.guide.queue.remove(i);
+            if next.shown <= real || i > 0 {
+                // Due, or promoted past lines that are waiting: it goes
+                // now, and is read from now.
+                next.shown = real;
                 self.guide.line = Some(next);
             } else {
                 self.guide.queue.insert(0, next);
@@ -785,39 +931,25 @@ impl Game {
             .guide
             .line
             .as_ref()
-            .filter(|l| real >= l.shown && real - l.shown < l.hold + 900)
+            .filter(|l| real >= l.shown && real - l.shown < l.hold + BREATH_MS)
             .map(|l| l.aim);
         if let Some(aim) = speaking {
             if aim != Aim::Stay && aim != self.guide.aim {
                 self.guide.aim = aim;
                 self.guide.pointing_since = None;
             }
-            self.guide.busy_until = real + LINGER_MS;
+            // Between lines of the same run it stays where it is.
+            self.guide.busy_until = real + LINGER_MS.min(2_000);
         }
 
-        // Nothing to say for a while: home, with a little flight now and then.
-        if real > self.guide.busy_until && self.guide.aim != Aim::Home {
+        // Nothing more to say: home to its moss, and it's the user's turn.
+        // It never flies off on its own, so when it's out, it's showing
+        // you something.
+        let busy = self.wisp_busy(real);
+        if !busy && real > self.guide.busy_until && self.guide.aim != Aim::Home {
             self.guide.aim = Aim::Home;
             self.guide.pointing_since = None;
-        }
-        if self.guide.aim == Aim::Home
-            && self.hunting()
-            && self.card.is_none()
-            && self.talk.prompt.is_none()
-            && real > self.guide.next_wander
-        {
-            let (w, h) = (self.camera.width, self.camera.height);
-            let pick = (real % 997) as f64 / 997.0;
-            self.guide.wander = Some((
-                w * (0.08 + 0.2 * pick),
-                h * (0.45 + 0.2 * (1.0 - pick)),
-                real + 3_500,
-            ));
-            self.guide.next_wander = real + 30_000 + (real % 20_000);
-        }
-        let wandering = self.guide.wander.filter(|&(_, _, until)| real < until);
-        if wandering.is_none() {
-            self.guide.wander = None;
+            self.guide.done_at = real;
         }
 
         // With calm motion on, the wisp keeps to its moss and speaks from there.
@@ -826,14 +958,28 @@ impl Game {
         } else {
             self.guide.aim
         };
-        let wandering = if self.calm() { None } else { wandering };
-        let (goal, pointing) = match (self.resolve(aim), wandering) {
-            (Some(_), Some((wx, wy, _))) if aim == Aim::Home => ((wx, wy), None),
-            (Some(g), _) => g,
-            (None, _) => ((self.guide.flight.x, self.guide.flight.y), None),
+        let (target, pointing) = match self.resolve(aim) {
+            Some(g) => g,
+            None => ((self.guide.flight.x, self.guide.flight.y), None),
         };
+        // Ease the goal itself, so a thing that drifts or jumps across the
+        // screen is followed without a lurch.
+        let eased = match self.guide.goal {
+            Some((gx, gy)) if aim != Aim::Home => {
+                let k = 1.0 - (-dt / 0.18).exp();
+                (gx + (target.0 - gx) * k, gy + (target.1 - gy) * k)
+            }
+            _ => target,
+        };
+        self.guide.goal = Some(eased);
+        let goal = eased;
         let home = self.home_spot();
-        if self.guide.flight.x < -50.0 {
+        // Until the window has its size there's nowhere to be; after that,
+        // at home it sits on the moss wherever the moss has moved to.
+        if self.camera.height < 100.0 {
+            return (Vec::new(), None, Vec::new());
+        }
+        if self.guide.flight.x < -50.0 || (self.guide.flight.home && aim == Aim::Home) {
             self.guide.flight.place(home.0, home.1);
         }
         let at_home_goal = (goal.0 - home.0).abs() < 1.0 && (goal.1 - home.1).abs() < 1.0;
@@ -920,13 +1066,13 @@ impl Game {
 
         // More waiting to be said: dots in the bubble, or over the wisp
         // between lines, so a pause doesn't read as the end.
-        let more = !self.guide.queue.is_empty() || self.talk.pending.is_some();
+        let more = self.more_now();
         let between = more
             && self
                 .guide
                 .line
                 .as_ref()
-                .is_none_or(|l| real - l.shown > l.hold + 900);
+                .is_none_or(|l| real - l.shown > l.hold + BREATH_MS);
         if between {
             let t = real as f64 / 1000.0;
             for k in 0..3 {
@@ -943,10 +1089,12 @@ impl Game {
             }
         }
         let bubble = self.guide.line.as_ref().and_then(|l| {
-            let a = envelope(real - l.shown, 500, l.hold, 900);
+            let a = envelope(real - l.shown, 350, l.hold, 450);
             if a <= 0.0 {
                 return None;
             }
+            // It rises a little as it appears, and sinks as it goes.
+            let lift = (1.0 - a) * 8.0;
             let width = 300.0;
             let w = self.camera.width;
             let (x, bottom, tail) = if settled {
@@ -960,6 +1108,7 @@ impl Game {
                 };
                 (x.max(10.0), (fy - 26.0).max(150.0), false)
             };
+            let bottom = bottom + lift;
             Some(Bubble {
                 x,
                 bottom,
@@ -967,8 +1116,24 @@ impl Game {
                 width,
                 alpha: a * alpha.min(1.0),
                 tail,
-                more: more.then_some(real as f64 / 1000.0),
+                // Enter belongs to a card or a prompt while one is up.
+                more: more.then_some((
+                    real as f64 / 1000.0,
+                    if self.card.is_some() || self.talk.prompt.is_some() {
+                        "click me for more"
+                    } else {
+                        "Enter for more"
+                    },
+                )),
             })
+        });
+        // Where the bubble sits, roughly, for a click on it.
+        self.guide.bubble_at = bubble.as_ref().map(|b| {
+            let lines = (b.text.chars().count() as f64 * 7.6 / b.width)
+                .ceil()
+                .max(1.0);
+            let h = lines * 20.0 + 28.0 + if b.more.is_some() { 14.0 } else { 0.0 };
+            (b.x, b.bottom - h, b.width + 28.0, h)
         });
         (sprites, bubble, points)
     }
