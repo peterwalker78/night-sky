@@ -2446,8 +2446,7 @@ impl Game {
         let lines = self.pattern_lines(real, hz, dt);
         self.draw_reticle(real, tempo);
 
-        // Keeping company, the sky settles back.
-        let brightness = self.session.brightness(real) * (1.0 - 0.45 * self.keep.mix);
+        let brightness = self.session.brightness(real);
         let veil = self.finale_veil(real);
         let frame_texture = self.field.texture((brightness * (1.0 - veil)) as f32 * 1.0);
         let mut texts = if self.keeping() {

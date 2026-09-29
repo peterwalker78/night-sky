@@ -26,6 +26,8 @@ use westering_core::wisp::Season;
 pub const SUN_UP: f64 = 1.0;
 /// How long the ending lasts before the window closes.
 const ENDING_MS: UnixMs = 16_000;
+/// How much richer than their mix the day's colours are drawn.
+const SATURATION: f32 = 1.45;
 /// A day visit ends by itself after this long.
 const LONGEST_MS: UnixMs = 20 * MINUTE;
 
@@ -768,7 +770,7 @@ impl Game {
         self.field.begin();
         self.day_draw(real);
         let arrive = self.session.brightness(real);
-        let gain = arrive * (1.0 - self.day_fade(real)) * (1.0 - 0.45 * self.keep.mix);
+        let gain = arrive * (1.0 - self.day_fade(real));
         let texture = self.field.texture(gain as f32);
         let mut texts = self.words(real, gain.max(0.6));
         if let Some(i) = self.pointer.and_then(|(x, y, _)| self.day_at(x, y))
@@ -857,6 +859,13 @@ impl Game {
             }
         }
         self.day_scenery(light);
+        // Daylight colours, a little richer than the mixing leaves them.
+        for cell in self.field.base_mut() {
+            let grey = (cell[0] + cell[1] + cell[2]) / 3.0;
+            for k in cell.iter_mut() {
+                *k = (grey + (*k - grey) * SATURATION).max(0.0);
+            }
+        }
     }
 
     /// What moves or matters: the Sun, the Moon, drifting clouds, the stone

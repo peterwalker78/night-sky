@@ -83,7 +83,7 @@ ask one small question about the day ahead, and then sends you back to your
 day with a nudge to step outside.
 
 **Or just keep it running.** Press `K`, or choose Keep me company in the menu,
-and the evening pauses. The sky settles back, the music plays on, and the
+and the evening pauses. The sky stays as it is, the music plays on, and the
 window can be as small as you like: tiled into a corner, or behind everything
 else. The wisp hums along, and the track playing is named at the top. Every
 half hour or so it looks in with a word about looking after yourself: a sip

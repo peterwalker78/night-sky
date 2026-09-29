@@ -1,5 +1,5 @@
 //! Keeping someone company in the background. The evening holds where it
-//! is, the sky settles back and dims, the music plays on, and every half
+//! is, the sky carries on as it was, the music plays on, and every half
 //! hour or so the wisp looks in with a word. If the window is out of sight
 //! the music softens for a moment instead, and the word waits for when
 //! it's seen. It works in a window of any size: everything but the sky,
