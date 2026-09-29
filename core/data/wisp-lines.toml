@@ -88,6 +88,9 @@ find = "That night you found {find}."
 [news]
 risen = "Since you were last here, {name} has come up into the evening sky."
 moon = "The Moon has been all the way round since you were last here."
+# As the sky darkens after sunset, more comes out.
+darker-one = "It's getting darker, and something else is out now: it's on the list."
+darker-many = "It's getting darker, and more is coming out: {n} more things on the list."
 
 # The Sun passing an equinox or a solstice in the last few days, named for
 # the user's own hemisphere.

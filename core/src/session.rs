@@ -183,6 +183,14 @@ impl Session {
             .flatten()
     }
 
+    /// More to find than there was: the sky has darkened and more is out.
+    pub fn add_finds(&mut self, n: usize) {
+        self.finds += n;
+        if self.found < self.finds {
+            self.all_found_at = None;
+        }
+    }
+
     pub fn found_one(&mut self, now: UnixMs) {
         self.found += 1;
         if self.found >= self.finds && self.all_found_at.is_none() {
@@ -334,6 +342,18 @@ mod tests {
         assert_eq!(s.phase(), Phase::Hunt);
         let changes = run_until(&mut s, 3 * HOUR, 4 * HOUR);
         assert!(changes[0].0 >= 3 * HOUR + 5 * MINUTE, "{changes:?}");
+    }
+
+    #[test]
+    fn more_to_find_keeps_the_evening_going() {
+        let mut s = Session::new(0, Timings::STANDARD, 1, false);
+        run_until(&mut s, 0, 10_000);
+        s.found_one(20_000);
+        assert!(s.all_found());
+        s.add_finds(2);
+        assert!(!s.all_found());
+        let changes = run_until(&mut s, 20_000, 20 * MINUTE);
+        assert!(changes.is_empty(), "{changes:?}");
     }
 
     #[test]

@@ -31,6 +31,10 @@ pub struct Round {
 pub struct News {
     pub risen: String,
     pub moon: String,
+    #[serde(rename = "darker-one")]
+    pub darker_one: String,
+    #[serde(rename = "darker-many")]
+    pub darker_many: String,
 }
 
 #[derive(Deserialize)]

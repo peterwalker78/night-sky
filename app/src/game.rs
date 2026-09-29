@@ -234,6 +234,8 @@ pub struct Game {
     pub(crate) day: Option<crate::day::Day>,
     /// Whether the window has the keyboard.
     pub focused: bool,
+    /// When to see again whether the darkening sky has more to find.
+    next_look_again: UnixMs,
     /// Whether a page (the logbook, the menu) is open over the sky.
     pub panel_open: bool,
     /// The last full frame, for drawing the wisp over while little else
@@ -524,6 +526,7 @@ impl Game {
             day,
             ground,
             focused: true,
+            next_look_again: 0,
             panel_open: false,
             cached: None,
             sprite_brightness: 1.0,
@@ -1599,6 +1602,47 @@ impl Game {
         frame
     }
 
+    /// Twilight: every couple of minutes, what's bright enough to find is
+    /// worked out again, and anything newly out joins the list.
+    fn more_as_it_darkens(&mut self, real: UnixMs) {
+        if real < self.next_look_again {
+            return;
+        }
+        self.next_look_again = real + 2 * westering_core::time::MINUTE;
+        let now = self.sky_now(real);
+        if !matches!(self.session.phase(), Phase::Weights | Phase::Hunt)
+            || westering_core::sky::sun_altitude(self.observer, now) < -18.0
+        {
+            return;
+        }
+        let most = if late(now, self.offset_s) {
+            LATE_FINDS
+        } else {
+            westering_core::finds::MOST
+        };
+        let fresh = tonight(&self.sky, self.observer, now, self.offset_s, &|id| {
+            self.journal.times_found_before(id, &self.night)
+        });
+        let mut added = 0;
+        for find in fresh {
+            if self.finds.len() >= most {
+                break;
+            }
+            if self.finds.iter().any(|f| f.id == find.id) {
+                continue;
+            }
+            let caught = self.journal.found_on(&find.id, &self.night);
+            added += usize::from(!caught);
+            self.finds.push(find);
+            self.caught.push(caught);
+            self.steps.push(0);
+        }
+        if added > 0 {
+            self.session.add_finds(added);
+            self.guide_darker(added, real);
+        }
+    }
+
     /// Everything that isn't drawing: the arc of the visit, company, what's
     /// being asked and what the wisp is up to.
     fn logic(&mut self, real: UnixMs) {
@@ -1613,6 +1657,9 @@ impl Game {
             }
             if self.session.phase() == Phase::Over {
                 self.quit = true;
+            }
+            if !self.keeping() {
+                self.more_as_it_darkens(real);
             }
         }
         self.company_tick(real, true);

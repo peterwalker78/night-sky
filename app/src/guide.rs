@@ -654,6 +654,17 @@ impl Game {
         );
     }
 
+    /// More has come out as the sky darkened.
+    pub(crate) fn guide_darker(&mut self, n: usize, real: UnixMs) {
+        let news = &self.guide.lines.news;
+        let text = if n == 1 {
+            news.darker_one.clone()
+        } else {
+            news.darker_many.replace("{n}", &number(n).to_lowercase())
+        };
+        self.say_at(Aim::List, text, real, 8_000);
+    }
+
     pub(crate) fn guide_meteor_left(&mut self, real: UnixMs) {
         self.say_at(
             Aim::Near(0.5, 0.3),
