@@ -279,7 +279,8 @@ impl Game {
         }
         // Facing south, east is on the left: turning clockwise is rightwards.
         let x = w / 2.0 + rel / 95.0 * (w / 2.0 - 30.0);
-        let y = hy - alt.clamp(0.0, 75.0) / 75.0 * (hy - 40.0);
+        // Below the horizon it's below the horizon: the hills hide it.
+        let y = hy - alt.clamp(-20.0, 75.0) / 75.0 * (hy - 40.0);
         Some((x, y))
     }
 
@@ -891,9 +892,22 @@ impl Game {
                 );
             }
         }
+        // The Sun, and its glow, only where there's sky: a low Sun sinks
+        // behind the hills rather than shining through them.
         if let Some((x, y)) = self.day_sky(today.sun_alt, today.sun_az) {
-            self.field.glow(x, y, 80.0, [1.0, 0.92, 0.75], 0.4);
-            self.field.glow(x, y, 14.0, [1.0, 0.98, 0.92], 4.0);
+            let hy = self.horizon_y();
+            for (radius, colour, amount) in [
+                (80.0, [1.0, 0.92, 0.75], 0.4f32),
+                (14.0, [1.0, 0.98, 0.92], 4.0),
+            ] {
+                let reach = radius * 1.6;
+                self.field.disc(x, y, reach, |u, v| {
+                    let (px, py) = (x + u * reach, y + v * reach);
+                    let d2 = (u * u + v * v) * 1.6 * 1.6;
+                    (d2 < 2.5 && py < crate::life::hill_at(px, hy))
+                        .then(|| (colour, amount * (-d2 * 1.6).exp() as f32))
+                });
+            }
         }
         if let Some(m) = &today.moon
             && let Some((x, y)) = self.day_sky(m.alt, m.az)
@@ -903,8 +917,9 @@ impl Game {
                 .day_sky(today.sun_alt, today.sun_az)
                 .map_or(m.age < 0.5, |(sx, _)| sx > x);
             let k = (m.age * std::f64::consts::TAU).cos();
+            let hy = self.horizon_y();
             self.field.disc(x, y, 11.0, |u, v| {
-                if u * u + v * v > 1.0 {
+                if u * u + v * v > 1.0 || y + v * 11.0 >= crate::life::hill_at(x + u * 11.0, hy) {
                     return None;
                 }
                 let edge = k * (1.0 - v * v).max(0.0).sqrt();

@@ -15,6 +15,12 @@ use westering_core::wisp::Season;
 
 const INK: [f32; 3] = [0.1, 0.11, 0.14];
 
+/// The top of the far hills at `x`, for a horizon at `hy`: anything in the
+/// sky lower than this is behind them.
+pub(crate) fn hill_at(x: f64, hy: f64) -> f64 {
+    hy - 8.0 - 24.0 * noise3(x / 260.0, 0.5, 3.3)
+}
+
 /// A small stable random number for a thing and a salt, 0 to 1.
 fn hash(k: u64, salt: u64) -> f64 {
     let mut x = k
@@ -86,7 +92,7 @@ impl Game {
     }
 
     fn hill(&self, x: f64) -> f64 {
-        self.horizon_y() - 8.0 - 24.0 * noise3(x / 260.0, 0.5, 3.3)
+        hill_at(x, self.horizon_y())
     }
 
     /// Paints the still parts of the scene into the base layer.
@@ -412,8 +418,12 @@ impl Game {
         // where there's no winter.
         let m = day.month;
         let always = season.is_none();
+        // Butterflies and bees go to roost as the light goes, well before
+        // dark; midges carry on into dusk.
+        let x = ((day.today.sun_alt - 2.0) / 8.0).clamp(0.0, 1.0);
+        let daylight = (x * x * (3.0 - 2.0 * x)) as f32;
         // Butterflies over the grass, wandering and fluttering.
-        if always || (4..=10).contains(&m) {
+        if (always || (4..=10).contains(&m)) && daylight > 0.0 {
             for k in 0..2u64 {
                 let x = w * (0.3 + 0.45 * hash(k, 30))
                     + w * 0.12 * (t * 0.23 + k as f64).sin()
@@ -436,11 +446,11 @@ impl Game {
                         (x + 12.5 * o, y + 1.5),
                         (x + 6.0 * o, y + 8.5),
                     ];
-                    out.push(fill(wing, colour, 0.92 * fade));
+                    out.push(fill(wing, colour, 0.92 * fade * daylight));
                 }
             }
         }
-        if always || (3..=10).contains(&m) {
+        if (always || (3..=10).contains(&m)) && daylight > 0.0 {
             // Bees working round the finds on the ground.
             for i in 0..day.finds.len() {
                 if !matches!(day.finds[i], crate::day::Find::Ground(_)) {
@@ -462,7 +472,7 @@ impl Game {
                         (x + 4.0 * b.cos(), y + 2.8 * b.sin())
                     })
                     .collect();
-                out.push(fill(body, [0.28, 0.22, 0.08], 0.9 * fade));
+                out.push(fill(body, [0.28, 0.22, 0.08], 0.9 * fade * daylight));
                 let buzz = (t * 40.0).sin() * 2.0;
                 out.push(stroke(
                     vec![
@@ -472,7 +482,7 @@ impl Game {
                     ],
                     2.2,
                     [0.95, 0.97, 1.0],
-                    0.7 * fade,
+                    0.7 * fade * daylight,
                 ));
             }
         }
