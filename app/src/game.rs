@@ -1385,7 +1385,10 @@ impl Game {
         let dt = ((real - self.last_real) as f64 / 1000.0).clamp(0.0, 0.25);
         self.last_real = real;
         self.settle_releases(real);
-        if let Some(phase) = self.session.tick(real) {
+        // One thing at a time: the evening begins once the wisp has had
+        // its say.
+        let greeting = self.session.phase() == Phase::Arrival && self.wisp_busy(real);
+        if !greeting && let Some(phase) = self.session.tick(real) {
             self.entered(phase, real);
         }
         if self.session.phase() == Phase::Over {
@@ -1409,8 +1412,9 @@ impl Game {
             self.talk.pending = None;
             self.set_prompt(None);
             self.drawing = None;
+            // Nothing said about the hunt still applies.
+            self.hush();
         }
-        self.guide_phase(phase, real);
         match phase {
             Phase::Weights => self.begin_weights(real),
             Phase::Hunt => self.guide_hunt(real),
@@ -1463,6 +1467,8 @@ impl Game {
             }
             _ => {}
         }
+        // After the prompt for it is up, so what's said is about that one.
+        self.guide_phase(phase, real);
     }
 
     pub(crate) fn offered_wind_down(&self) -> bool {
@@ -1492,7 +1498,7 @@ impl Game {
     /// Where the evening is, and what to do now.
     pub fn evening(&self, real: UnixMs) -> Option<Evening> {
         let (step, now) = match self.session.phase() {
-            Phase::Arrival => return None,
+            Phase::Arrival => (0, "Settling in"),
             Phase::Weights if self.placing() => (0, "Arrows move it, Enter leaves it there to set"),
             Phase::Weights => (
                 0,

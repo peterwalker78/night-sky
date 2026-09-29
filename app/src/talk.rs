@@ -140,6 +140,8 @@ impl Game {
     pub(crate) fn set_prompt(&mut self, prompt: Option<Prompt>) {
         self.talk.prompt = prompt;
         self.talk.serial += 1;
+        // Whatever the wisp was saying about the last one is over.
+        self.guide_prompt_gone(self.last_real);
     }
 
     pub fn take_request(&mut self) -> Option<Request> {
