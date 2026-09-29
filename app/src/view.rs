@@ -93,6 +93,9 @@ pub struct CardView {
     /// Keys and what they do, shown as key caps along the bottom.
     pub keys: Vec<(String, String)>,
     pub alpha: f64,
+    pub width: f64,
+    /// Smaller type and tighter spacing, for a small window.
+    pub compact: bool,
 }
 
 /// A photograph of what's being looked at, set into the sky at its true size.
@@ -120,6 +123,9 @@ pub struct Compass {
     /// Azimuth the view faces, degrees from north through east.
     pub heading: f64,
     pub alpha: f64,
+    /// Along the bottom rather than the top: in a small window, where the
+    /// top is taken by the evening's guide and the list.
+    pub bottom: bool,
 }
 
 /// A crisp shape drawn over everything but the wisp: a bird, a butterfly,
@@ -258,7 +264,12 @@ fn keycap(
 
 fn draw_card(widget: &gtk::Widget, snapshot: &gtk::Snapshot, c: &CardView) {
     let a = c.alpha as f32;
-    let (pad, width) = (18.0f32, 400.0f32);
+    let (pad, width) = (if c.compact { 12.0 } else { 18.0f32 }, c.width as f32);
+    let (title_size, body_size) = if c.compact {
+        (17.0, 13.0)
+    } else {
+        (21.0, 15.0)
+    };
     let kicker = layout(
         widget,
         &c.kicker.to_uppercase(),
@@ -269,14 +280,14 @@ fn draw_card(widget: &gtk::Widget, snapshot: &gtk::Snapshot, c: &CardView) {
     let title = layout(
         widget,
         &c.title,
-        21.0,
+        title_size,
         true,
         Some((width - 2.0 * pad) as f64),
     );
     let body = layout(
         widget,
         &c.body,
-        15.0,
+        body_size,
         false,
         Some((width - 2.0 * pad) as f64),
     );
@@ -285,7 +296,9 @@ fn draw_card(widget: &gtk::Widget, snapshot: &gtk::Snapshot, c: &CardView) {
     let (_, bh) = body.pixel_size();
     let keys_h = if c.keys.is_empty() { 0.0 } else { 34.0 };
     let height = pad + kh as f32 + 6.0 + th as f32 + 10.0 + bh as f32 + keys_h + pad;
-    let (x, y) = (c.x as f32, c.y as f32);
+    // Kept on the screen, however short the window.
+    let room = widget.height() as f32;
+    let (x, y) = (c.x as f32, (c.y as f32).min(room - height - 8.0).max(8.0));
     panel(snapshot, &graphene::Rect::new(x, y, width, height), 14.0, a);
     let mut cy = y + pad;
     text_at(
@@ -466,9 +479,21 @@ fn draw_eyepiece(_widget: &gtk::Widget, snapshot: &gtk::Snapshot, e: &Eyepiece) 
     }
 }
 
-fn draw_compass(widget: &gtk::Widget, snapshot: &gtk::Snapshot, width: f32, c: &Compass) {
+fn draw_compass(
+    widget: &gtk::Widget,
+    snapshot: &gtk::Snapshot,
+    width: f32,
+    height: f32,
+    c: &Compass,
+) {
     let a = c.alpha as f32;
-    let (strip_w, strip_h, top) = (600.0f32.min(width - 40.0), 34.0f32, 12.0f32);
+    let strip_h = 34.0f32;
+    let top = if c.bottom {
+        height - strip_h - 6.0
+    } else {
+        12.0
+    };
+    let strip_w = 600.0f32.min(width - 40.0);
     let x0 = (width - strip_w) / 2.0;
     panel(
         snapshot,
@@ -699,7 +724,7 @@ mod imp {
                 }
             }
             if let Some(c) = &frame.compass {
-                draw_compass(widget.upcast_ref(), snapshot, w, c);
+                draw_compass(widget.upcast_ref(), snapshot, w, h, c);
             }
             if let Some(c) = &frame.card
                 && c.alpha > 0.004
@@ -739,7 +764,15 @@ mod imp {
                 snapshot.save();
                 snapshot.translate(&graphene::Point::new(x as f32, t.y as f32));
                 let c = t.color;
+                // A soft dark shadow keeps words clear of the dots behind.
+                snapshot.push_shadow(&[gsk::Shadow::new(
+                    gdk::RGBA::new(0.0, 0.01, 0.03, 0.7 * t.alpha as f32),
+                    0.0,
+                    1.0,
+                    3.0,
+                )]);
                 snapshot.append_layout(&layout, &gdk::RGBA::new(c[0], c[1], c[2], t.alpha as f32));
+                snapshot.pop();
                 snapshot.restore();
             }
             if frame.veil > 0.0 {

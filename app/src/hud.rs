@@ -10,9 +10,13 @@ use std::rc::Rc;
 
 pub struct Tonight {
     pub root: gtk::Revealer,
+    panel: gtk::Box,
+    scroll: gtk::ScrolledWindow,
     title: gtk::Label,
     hint: gtk::Label,
     rows: gtk::Box,
+    /// A small window: names only, and narrower.
+    compact: std::cell::Cell<bool>,
     shown: RefCell<Vec<Row>>,
 }
 
@@ -43,11 +47,35 @@ impl Tonight {
         panel.append(&hint);
         Rc::new(Tonight {
             root,
+            panel: panel.clone(),
+            scroll: scroll.clone(),
             title,
             hint,
             rows,
+            compact: std::cell::Cell::new(false),
             shown: RefCell::new(Vec::new()),
         })
+    }
+
+    /// Fits the list to the window: in a small one it's narrower, shows
+    /// names only and scrolls within what's left of the height.
+    pub fn fit(&self, height: f64, compact: bool) {
+        self.panel
+            .set_width_request(if compact { 180 } else { 270 });
+        let room = (height - if compact { 110.0 } else { 160.0 }).clamp(60.0, 560.0);
+        self.scroll.set_max_content_height(room as i32);
+        self.hint.set_visible(!compact);
+        self.root.set_margin_top(if compact { 8 } else { 14 });
+        self.root.set_margin_end(if compact { 8 } else { 14 });
+        if compact {
+            self.panel.add_css_class("compact");
+        } else {
+            self.panel.remove_css_class("compact");
+        }
+        if self.compact.replace(compact) != compact {
+            // Built again next time, with or without the details.
+            self.shown.borrow_mut().clear();
+        }
     }
 
     /// Refreshes the list from the game; cheap when nothing changed.
@@ -74,15 +102,16 @@ impl Tonight {
             mark.set_valign(gtk::Align::Start);
             let words = gtk::Box::new(gtk::Orientation::Vertical, 0);
             let name = label(&row.name, "find-name");
-            name.set_max_width_chars(28);
+            name.set_max_width_chars(if self.compact.get() { 20 } else { 28 });
             let detail = if row.found {
                 format!("{} · found", row.kind)
             } else {
                 format!("{} · {}", row.kind, row.whereabouts)
             };
             words.append(&name);
-            // Found things take one line, to leave room for the rest.
-            if !row.found {
+            // Found things take one line, to leave room for the rest; in a
+            // small window every row does, and the details are a tooltip.
+            if !row.found && !self.compact.get() {
                 words.append(&label(&detail, "find-where"));
             } else {
                 name.set_tooltip_text(Some(&detail));
@@ -108,12 +137,26 @@ impl Tonight {
 /// line saying what to do now. Wind down can be chosen from here.
 pub struct EveningGuide {
     pub root: gtk::Revealer,
+    panel: gtk::Box,
     steps: [gtk::Widget; 3],
     now: gtk::Label,
     shown: RefCell<Option<crate::game::Evening>>,
 }
 
 impl EveningGuide {
+    /// Narrower in a small window, so it leaves room for the list.
+    pub fn fit(&self, compact: bool) {
+        self.now.set_max_width_chars(if compact { 24 } else { 40 });
+        self.now.set_width_chars(if compact { 18 } else { 34 });
+        self.root.set_margin_start(if compact { 60 } else { 66 });
+        self.root.set_margin_top(if compact { 8 } else { 12 });
+        if compact {
+            self.panel.add_css_class("compact");
+        } else {
+            self.panel.remove_css_class("compact");
+        }
+    }
+
     pub fn new(game: &Rc<RefCell<Game>>) -> Rc<EveningGuide> {
         let panel = gtk::Box::new(gtk::Orientation::Vertical, 4);
         panel.add_css_class("evening");
@@ -154,6 +197,7 @@ impl EveningGuide {
         panel.append(&now);
         Rc::new(EveningGuide {
             root,
+            panel: panel.clone(),
             steps: [set_down.upcast(), look_up.upcast(), wind.upcast()],
             now,
             shown: RefCell::new(None),

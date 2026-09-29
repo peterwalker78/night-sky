@@ -387,6 +387,7 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
     let last_frame = Rc::new(std::cell::Cell::new(0i64));
     let last_music = Rc::new(std::cell::Cell::new(real));
     let last_list = std::cell::Cell::new(0i64);
+    let last_size = std::cell::Cell::new((0, 0));
     let spent = std::cell::Cell::new((0.0f64, 0u32, real));
     let profile = args.profile;
     // Keeping company while the window is out of sight, frames stop: a slow
@@ -434,6 +435,15 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
                 last_frame.set(real);
                 let mut g = game.borrow_mut();
                 g.focused = window.is_active();
+                // The panels over the sky fit the window, down to a small tile.
+                let size = (view.width(), view.height());
+                if size != last_size.get() && size.0 > 0 {
+                    last_size.set(size);
+                    let compact = crate::game::compact(size.0 as f64, size.1 as f64);
+                    prompt.fit(size.0 as f64, size.1 as f64, compact);
+                    tonight.fit(size.1 as f64, compact);
+                    evening.fit(compact);
+                }
                 g.playing = music.borrow().playing();
                 g.resize(
                     view.width() as f64,
@@ -473,6 +483,7 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
                     tonight.sync(&game);
                     evening.sync(&game);
                 }
+                prompt.aside(&game);
                 if prompt.sync(&game) && on_sky {
                     view.grab_focus();
                 }

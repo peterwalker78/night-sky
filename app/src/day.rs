@@ -757,7 +757,7 @@ impl Game {
     /// One frame of the day.
     pub(crate) fn day_frame(&mut self, real: UnixMs) -> Frame {
         let (w, h) = (self.camera.width, self.camera.height);
-        let pitch = if w > 2200.0 { 3.6 } else { 3.2 };
+        let pitch = if w > 2200.0 { 3.2 } else { 2.8 };
         let resized = self.field.fit(w, h, pitch);
         let minute = self.clock.sky(real) / (5 * MINUTE);
         let stamp = (self.field.cols, self.field.rows, minute);

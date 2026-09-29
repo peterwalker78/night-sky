@@ -318,6 +318,20 @@ impl Game {
         }
     }
 
+    /// What the wisp is saying, for the prompt to show in a small window
+    /// while something is asked, and whether there's more to come.
+    pub fn aside(&self, real: UnixMs) -> Option<(String, bool)> {
+        let small = crate::game::compact(self.camera.width, self.camera.height);
+        if !small || self.talk.prompt.is_none() {
+            return None;
+        }
+        self.guide
+            .line
+            .as_ref()
+            .filter(|l| real >= l.shown && real - l.shown < l.hold)
+            .map(|l| (l.text.clone(), self.more_now()))
+    }
+
     /// Whether a point is on the wisp's bubble.
     pub(crate) fn on_bubble(&self, x: f64, y: f64) -> bool {
         self.guide
@@ -1170,8 +1184,10 @@ impl Game {
             self.guide.pointing_since = None;
         }
 
-        // With calm motion on, the wisp keeps to its moss and speaks from there.
-        let aim = if self.calm() {
+        // With calm motion on, or in a small window, the wisp keeps to its
+        // moss and speaks from there.
+        let small = crate::game::compact(self.camera.width, self.camera.height);
+        let aim = if self.calm() || small {
             Aim::Home
         } else {
             self.guide.aim
@@ -1326,7 +1342,10 @@ impl Game {
             }
         }
 
-        let bubble = self.guide.line.as_ref().and_then(|l| {
+        // In a small window, while something is asked, what the wisp says
+        // goes into the prompt itself (see `aside`), not a bubble behind it.
+        let aside = small && self.talk.prompt.is_some();
+        let bubble = self.guide.line.as_ref().filter(|_| !aside).and_then(|l| {
             let a = envelope(real - l.shown, 350, l.hold, 450);
             if a <= 0.0 {
                 return None;
@@ -1334,9 +1353,21 @@ impl Game {
             // It rises a little as it appears, and sinks as it goes.
             let lift = (1.0 - a) * 8.0;
             let w = self.camera.width;
-            // Narrower in a narrow window.
-            let width = (w - 70.0).clamp(150.0, 300.0);
-            let (x, bottom, tail) = if settled {
+            // Narrower in a narrow window, and clear of the list there.
+            let list = if small && self.show_tonight() {
+                196.0
+            } else {
+                0.0
+            };
+            let width = (w - 70.0 - list).clamp(150.0, 300.0);
+            let (x, bottom, tail) = if small {
+                // In a small window it sits just under the panels at the top,
+                // clear of the prompt below.
+                let lines = (l.text.chars().count() as f64 * 7.6 / width)
+                    .ceil()
+                    .max(1.0);
+                (10.0, 76.0 + lines * 20.0 + 28.0, false)
+            } else if settled {
                 ((nx + 26.0).min(w - width - 38.0).max(10.0), ny + 14.0, true)
             } else {
                 let right = fx + 36.0 + width + 28.0 < w - 10.0;

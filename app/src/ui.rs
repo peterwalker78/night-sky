@@ -56,6 +56,16 @@ button.trash:hover { color: rgba(255, 190, 170, 0.95); background: rgba(255, 150
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 .prompt-text { font-size: 17px; color: #eef0f6; }
+.prompt.compact { padding: 10px 12px 8px 12px; border-radius: 12px; }
+.prompt-aside { font-size: 13px; color: #f3dcae; }
+.prompt-aside-more { font-size: 11px; color: rgba(243, 220, 174, 0.6); }
+.prompt.compact .prompt-text { font-size: 14px; }
+.prompt.compact entry { min-height: 30px; font-size: 14px; }
+.prompt.compact .hint { font-size: 11px; }
+.tonight.compact { padding: 8px 6px 6px 6px; border-radius: 11px; }
+.tonight.compact button.find-row { padding: 2px 6px; }
+.tonight.compact .find-name { font-size: 13px; }
+.evening.compact { padding: 5px 9px 6px 9px; }
 .prompt entry {
   background: rgba(255, 255, 255, 0.05);
   color: #f2f4f9;
@@ -376,6 +386,12 @@ pub fn label(text: &str, class: &str) -> gtk::Label {
 pub struct PromptBar {
     /// Fades the prompt in and out.
     pub root: gtk::Revealer,
+    panel: gtk::Box,
+    /// What the wisp is saying, in a small window, where its bubble would
+    /// sit behind the prompt.
+    aside: gtk::Label,
+    aside_more: gtk::Label,
+    aside_box: gtk::Box,
     text: gtk::Label,
     chips: gtk::FlowBox,
     entry: gtk::Entry,
@@ -396,6 +412,21 @@ impl PromptBar {
         root.set_margin_bottom(84);
         let text = label("", "prompt-text");
         text.set_max_width_chars(60);
+        let aside = label("", "prompt-aside");
+        let aside_more = label("Click here for more", "prompt-aside-more");
+        let aside_box = gtk::Box::new(gtk::Orientation::Vertical, 2);
+        aside_box.append(&aside);
+        aside_box.append(&aside_more);
+        aside_box.set_visible(false);
+        {
+            let game = game.clone();
+            let click = gtk::GestureClick::new();
+            click.connect_released(move |_, _, _, _| {
+                game.borrow_mut().guide_next(wall_clock());
+            });
+            aside_box.add_controller(click);
+        }
+        panel.append(&aside_box);
         let chips = gtk::FlowBox::new();
         chips.set_selection_mode(gtk::SelectionMode::None);
         chips.set_max_children_per_line(3);
@@ -412,6 +443,10 @@ impl PromptBar {
         panel.append(&hint);
         let bar = Rc::new(PromptBar {
             root,
+            panel: panel.clone(),
+            aside,
+            aside_more,
+            aside_box,
             text,
             chips,
             entry,
@@ -466,6 +501,42 @@ impl PromptBar {
             });
         }
         bar
+    }
+
+    /// Shows what the wisp is saying, when it goes in the prompt.
+    pub fn aside(&self, game: &Rc<RefCell<Game>>) {
+        let said = game.borrow().aside(wall_clock());
+        match said {
+            Some((text, more)) => {
+                if self.aside.text() != text {
+                    self.aside.set_text(&text);
+                }
+                self.aside_more.set_visible(more);
+                self.aside_box.set_visible(true);
+            }
+            None => self.aside_box.set_visible(false),
+        }
+    }
+
+    /// Fits the prompt to the window: narrower and tighter in a small one,
+    /// sitting just above the compass strip there.
+    pub fn fit(&self, width: f64, height: f64, compact: bool) {
+        let w = (width - 24.0).clamp(200.0, 560.0);
+        self.panel.set_width_request(w as i32);
+        self.text.set_max_width_chars(if compact { 40 } else { 60 });
+        if compact {
+            self.panel.add_css_class("compact");
+        } else {
+            self.panel.remove_css_class("compact");
+        }
+        let bottom = if compact {
+            46
+        } else if height < 700.0 {
+            56
+        } else {
+            84
+        };
+        self.root.set_margin_bottom(bottom);
     }
 
     fn suggest(&self, game: &Rc<RefCell<Game>>, typed: &str) {

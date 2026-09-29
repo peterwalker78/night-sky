@@ -254,6 +254,12 @@ pub(crate) enum PlanWhere {
 
 pub(crate) const WARM: Rgb = [1.0, 0.86, 0.66];
 
+/// Whether a window is small enough for the compact layout: narrower
+/// panels, and the compass strip along the bottom.
+pub(crate) fn compact(width: f64, height: f64) -> bool {
+    width < 820.0 || height < 560.0
+}
+
 /// How many finds a visit in the small hours offers.
 const LATE_FINDS: usize = 5;
 
@@ -1256,6 +1262,10 @@ impl Game {
     }
 
     pub fn show_tonight(&self) -> bool {
+        // In a small window a card needs the room.
+        if self.card.is_some() && compact(self.camera.width, self.camera.height) {
+            return false;
+        }
         if self.by_day() {
             return self.day_list_shows();
         }
@@ -2091,7 +2101,7 @@ impl Game {
     ) -> Frame {
         let cam = self.camera;
         // Fine enough that the lattice reads as texture, not as pixels.
-        let pitch = if cam.width > 2200.0 { 3.6 } else { 3.2 };
+        let pitch = if cam.width > 2200.0 { 3.2 } else { 2.8 };
         let resized = self.field.fit(cam.width, cam.height, pitch);
         let sun_seen = see(Body::Sun, self.observer, now);
         let sun_alt = sun_seen.alt;
@@ -2511,6 +2521,7 @@ impl Game {
             .then(|| crate::view::Compass {
                 heading: cam.az,
                 alpha: brightness.max(0.5),
+                bottom: compact(cam.width, cam.height),
             });
         Frame {
             silhouettes: Vec::new(),
@@ -2536,8 +2547,17 @@ impl Game {
     /// it's put away.
     pub(crate) fn card_view(&mut self, real: UnixMs) -> Option<crate::view::CardView> {
         let rise = |age: UnixMs| (1.0 - smoothstep(age as f64 / 450.0)) * 14.0;
+        let compact = compact(self.camera.width, self.camera.height);
+        let width = (self.camera.width - 32.0).min(400.0);
         let card = self.card.as_ref().map(|c| crate::view::CardView {
-            x: c.x,
+            // In a small window it takes the middle.
+            x: if compact {
+                (self.camera.width - width) / 2.0
+            } else {
+                c.x
+            },
+            width,
+            compact,
             y: (self.camera.height / 2.0 - 70.0).max(70.0) + rise(real - c.shown),
             kicker: c.kicker.clone(),
             title: c.title.clone(),
@@ -2824,15 +2844,22 @@ impl Game {
         }
         if let Some(c) = &self.caption {
             let a = envelope(real - c.shown, 1_500, c.hold, 2_000);
-            out.push(
-                Text::new(w / 2.0, 62.0, c.text.clone(), 16.0, 0.85 * a * text_light)
-                    .centred()
-                    .wrap(w * 0.8),
-            );
+            // Below the panels at the top, in a small window.
+            let y = if compact(w, h) { 120.0 } else { 62.0 };
+            // A very short window has no room for it.
+            if h >= 420.0 {
+                out.push(
+                    Text::new(w / 2.0, y, c.text.clone(), 16.0, 0.85 * a * text_light)
+                        .centred()
+                        .wrap(w * 0.8),
+                );
+            }
         }
         if let Some(hint) = &self.hint {
             let a = envelope(real - hint.shown, 1_000, hint.hold, 1_800);
-            out.push(Text::new(w / 2.0, h - 44.0, hint.text.clone(), 13.0, 0.5 * a).centred());
+            // Above the compass strip, when that's along the bottom.
+            let y = if compact(w, h) { h - 62.0 } else { h - 44.0 };
+            out.push(Text::new(w / 2.0, y, hint.text.clone(), 13.0, 0.5 * a).centred());
         }
         if let Some(handoff) = &self.handoff
             && self.session.last_line(real)
