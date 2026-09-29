@@ -1,6 +1,8 @@
-//! How the wisp gets about: a springy chase towards wherever it's going, a
-//! wide loop when it arrives at something in the sky to point it out, a gentle
-//! bob while it hovers, and a trail of embers behind it.
+//! How the wisp gets about: a small gathering crouch, a springy chase
+//! towards wherever it's going, a wide loop when it arrives at something in
+//! the sky to point it out, a wandering bob while it hovers that never quite
+//! repeats, and a trail of embers behind it. Its body stretches as it flies
+//! and wobbles when it lands.
 
 use crate::view::Point;
 use westering_core::time::UnixMs;
@@ -29,12 +31,39 @@ pub struct Flight {
     last_ember: f64,
     seed: u64,
     pub home: bool,
+    /// Until when it gathers itself before setting off, and which way it's
+    /// about to go.
+    gather_until: f64,
+    heading: f64,
+    /// How squashed (below 0) or stretched (above 0) it is, on a spring.
+    squash: f64,
+    squash_v: f64,
+}
+
+/// Smooth noise: a gentle wander through -1 to 1 that never repeats, from
+/// random slopes at whole numbers of `t`.
+fn noise(t: f64, seed: u64) -> f64 {
+    let slope = |i: i64| {
+        let mut x = (i as u64).wrapping_mul(0x9e37_79b9_7f4a_7c15)
+            ^ seed.wrapping_mul(0xbf58_476d_1ce4_e5b9);
+        x ^= x >> 31;
+        x = x.wrapping_mul(0x94d0_49bb_1331_11eb);
+        x ^= x >> 29;
+        (x >> 11) as f64 / (1u64 << 53) as f64 * 2.0 - 1.0
+    };
+    let i = t.floor();
+    let f = t - i;
+    let (a, b) = (slope(i as i64) * f, slope(i as i64 + 1) * (f - 1.0));
+    let u = f * f * (3.0 - 2.0 * f);
+    (a + (b - a) * u) * 2.0
 }
 
 const SPRING: f64 = 16.0;
 const DAMPING: f64 = 6.2;
 const TOP_SPEED: f64 = 1300.0;
 const LOOP_MS: f64 = 1100.0;
+/// The crouch before it sets off from a standstill.
+const GATHER_MS: f64 = 170.0;
 
 impl Flight {
     pub fn new(x: f64, y: f64) -> Flight {
@@ -50,6 +79,10 @@ impl Flight {
             last_ember: 0.0,
             seed: 0x2545_f491_4f6c_dd1d,
             home: true,
+            gather_until: 0.0,
+            heading: 0.0,
+            squash: 0.0,
+            squash_v: 0.0,
         }
     }
 
@@ -88,12 +121,20 @@ impl Flight {
             if moved {
                 self.arrived = None;
                 self.loop_round = None;
+                // From a standstill it looks where it's going and gathers
+                // itself first.
+                if self.speed() < 120.0 && self.goal.is_some() {
+                    self.gather_until = t + GATHER_MS;
+                    self.heading = ((goal.0 - self.x) / 120.0).clamp(-1.0, 1.0);
+                }
             }
             self.goal = Some(goal);
         }
         let near = ((self.x - goal.0).powi(2) + (self.y - goal.1).powi(2)).sqrt() < 30.0;
         if near && self.arrived.is_none() {
             self.arrived = Some(t);
+            // Landing: a soft squash that wobbles out.
+            self.squash_v -= 0.9 * (self.speed() / 400.0).clamp(0.3, 1.0);
             if let Some((px, py)) = pointing.filter(|_| circle) {
                 // Wide enough that the glow never covers what it's showing.
                 let r = ((goal.0 - px).powi(2) + (goal.1 - py).powi(2))
@@ -116,8 +157,12 @@ impl Flight {
             }
         }
         if bob {
-            ax += (t / 1700.0).sin() * 7.0;
-            ay += (t / 1100.0).sin() * 6.0;
+            ax += noise(t / 1500.0, 1) * 6.0 + noise(t / 610.0, 2) * 2.0;
+            ay += noise(t / 1200.0, 3) * 5.0 + noise(t / 530.0, 4) * 1.5;
+        }
+        let gathering = t < self.gather_until;
+        if gathering {
+            (ax, ay) = (self.x, self.y + 4.0);
         }
         let (fx, fy) = (
             SPRING * (ax - self.x) - DAMPING * self.vx,
@@ -132,6 +177,19 @@ impl Flight {
         }
         self.x += self.vx * dt;
         self.y += self.vy * dt;
+
+        // Stretched along its way while it flies, squashed as it gathers.
+        let speed = self.speed();
+        let target = if gathering {
+            -0.1
+        } else if speed > 1.0 {
+            0.13 * (speed / TOP_SPEED).min(1.0).sqrt() * (self.vy.abs() - self.vx.abs()) / speed
+        } else {
+            0.0
+        };
+        let pull = 320.0 * (target - self.squash) - 13.0 * self.squash_v;
+        self.squash_v += pull * dt;
+        self.squash = (self.squash + self.squash_v * dt).clamp(-0.25, 0.25);
 
         // Embers: a stream while it flies, a spark now and then while it hovers.
         let speed = self.speed();
@@ -161,6 +219,21 @@ impl Flight {
             e.dx *= 1.0 - dt * 1.5;
         }
         self.embers.retain(|e| t - e.born < e.life);
+    }
+
+    /// Width and height factors for the body.
+    pub fn body(&self) -> (f64, f64) {
+        (1.0 - self.squash * 0.7, 1.0 + self.squash)
+    }
+
+    /// Where it's about to go, while it gathers itself to set off.
+    pub fn heading(&self, now: UnixMs) -> Option<f64> {
+        ((now as f64) < self.gather_until).then_some(self.heading)
+    }
+
+    /// Whether its body is still settling after a take-off or landing.
+    pub fn wobbling(&self) -> bool {
+        self.squash.abs() > 0.004 || self.squash_v.abs() > 0.02
     }
 
     pub fn has_embers(&self) -> bool {

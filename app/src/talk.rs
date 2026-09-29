@@ -348,6 +348,7 @@ impl Game {
         self.care_check(text);
         let id = self.journal.add_weight(text, &self.night);
         self.save_weights_now();
+        self.wisp_gesture(westering_core::wisp::Gesture::Nod, real);
         self.start_placing(id, count, real);
     }
 
@@ -589,6 +590,9 @@ impl Game {
                 question: chosen.question.id.clone(),
             });
             self.save_people_now();
+            self.wisp_moved(self.last_real);
+        } else {
+            self.wisp_gesture(westering_core::wisp::Gesture::Nod, self.last_real);
         }
         self.save_page_now();
     }
@@ -606,6 +610,7 @@ impl Game {
             note: None,
         });
         self.page.plans.push(id);
+        self.wisp_gesture(westering_core::wisp::Gesture::Glow, self.last_real);
         if let Some(name) = who {
             self.journal.person_mut(name).mentions.push(Mention {
                 night: self.night.clone(),

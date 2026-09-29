@@ -33,6 +33,49 @@ pub enum Mode {
     Holding,
 }
 
+/// Feelings that colour whatever mode it's in. Each eases in and out.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Feel {
+    /// Someone is writing: it keeps still, leans in and looks at them.
+    pub listening: bool,
+    /// Something warm has just been said: it glows and its cheeks colour.
+    pub moved: bool,
+    /// Keeping someone company through something heavy: softer, quieter.
+    pub tender: bool,
+    /// It's late: heavy lids and a slower breath.
+    pub sleepy: bool,
+}
+
+/// Small things it does now and then, once through.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Gesture {
+    /// A little hop on the spot.
+    Hop,
+    /// Tall and thin for a moment, eyes shut, then back.
+    Stretch,
+    /// A big slow yawn.
+    Yawn,
+    /// A small dip, as if to say yes.
+    Nod,
+    /// Looks down at its moss and bobs, as if tidying it.
+    Tend,
+    /// A warm swell of light.
+    Glow,
+}
+
+impl Gesture {
+    fn length(self) -> f64 {
+        match self {
+            Gesture::Hop => 700.0,
+            Gesture::Stretch => 1700.0,
+            Gesture::Yawn => 2000.0,
+            Gesture::Nod => 520.0,
+            Gesture::Tend => 2600.0,
+            Gesture::Glow => 1100.0,
+        }
+    }
+}
+
 /// Which way things are going, shown as a wash of colour behind it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Trend {
@@ -49,6 +92,8 @@ const BODY_RADIUS: f64 = 13.5;
 const BREATH_MS: f64 = 6000.0;
 /// How much the body swells with each breath: 0.1 made the face bounce.
 const BREATH_DEPTH: f64 = 0.05;
+/// How much the light swells with it.
+const BREATH_GLOW: f64 = 0.07;
 /// Time for the shown dose to catch up with a changed one.
 const EASE_MS: f64 = 1500.0;
 /// A blink lasts this long, and comes every 2.5-7 s.
@@ -196,6 +241,22 @@ pub struct Wisp {
     lean: f64,
     /// Where it's looking when it has somewhere to look, -1 to 1.
     look: Option<f64>,
+    /// Up (-1) or down (1), when it has somewhere to look.
+    look_y: Option<f64>,
+    glance_y: f64,
+    feel: Feel,
+    /// 0-1, eased toward `feel`.
+    listening: f64,
+    moved: f64,
+    tender: f64,
+    sleepy: f64,
+    /// One breath, in milliseconds, and how far through one it is (0-1).
+    breath_ms: f64,
+    breath: f64,
+    /// What it's doing, and when it began.
+    gesture: Option<(Gesture, f64)>,
+    /// Squashed or stretched by its flight: width and height factors.
+    body: (f64, f64),
 }
 
 impl Wisp {
@@ -237,7 +298,51 @@ impl Wisp {
             flying: false,
             lean: 0.0,
             look: None,
+            look_y: None,
+            glance_y: 0.0,
+            feel: Feel::default(),
+            listening: 0.0,
+            moved: 0.0,
+            tender: 0.0,
+            sleepy: 0.0,
+            breath_ms: BREATH_MS,
+            breath: 0.0,
+            gesture: None,
+            body: (1.0, 1.0),
         }
+    }
+
+    /// What it's feeling, over and above its mode.
+    pub fn set_feel(&mut self, feel: Feel) {
+        self.feel = feel;
+    }
+
+    /// How long one breath takes, in milliseconds.
+    pub fn set_breath(&mut self, ms: f64) {
+        self.breath_ms = ms.clamp(3000.0, 15000.0);
+    }
+
+    /// Squashed or stretched: width and height factors, near 1.
+    pub fn set_body(&mut self, width: f64, height: f64) {
+        self.body = (width.clamp(0.7, 1.4), height.clamp(0.7, 1.4));
+    }
+
+    /// Looking up (-1) or down (1), or wherever it likes.
+    pub fn set_look_up(&mut self, look: Option<f64>) {
+        self.look_y = look.map(|l| l.clamp(-1.0, 1.0));
+    }
+
+    /// Starts a gesture, unless it's in the middle of one.
+    pub fn gesture(&mut self, gesture: Gesture, now: f64) {
+        if !self.gesturing(now) {
+            self.gesture = Some((gesture, now));
+        }
+    }
+
+    /// Whether it's in the middle of a gesture.
+    pub fn gesturing(&self, now: f64) -> bool {
+        self.gesture
+            .is_some_and(|(g, start)| now >= start && now - start < g.length())
     }
 
     /// Out of the nook and flying, leaning into it and looking somewhere.
@@ -303,6 +408,22 @@ impl Wisp {
     ) -> Option<f64> {
         draw(self, now, moving, dark, canvas)
     }
+}
+
+/// A breath at `phase` (0-1), from -1 (out) to 1 (in): in over the first
+/// two fifths, a longer, softer out.
+fn breathing(phase: f64) -> f64 {
+    if phase < 0.4 {
+        -(phase / 0.4 * PI).cos()
+    } else {
+        ((phase - 0.4) / 0.6 * PI).cos()
+    }
+}
+
+/// 0-1, eased at both ends; values past 1 hold at 1.
+fn smooth(x: f64) -> f64 {
+    let x = x.clamp(0.0, 1.0);
+    x * x * (3.0 - 2.0 * x)
 }
 
 fn wander(t: f64, seed: f64) -> f64 {
@@ -392,7 +513,19 @@ fn draw(wisp: &mut Wisp, now: f64, moving: bool, dark: bool, cr: &mut dyn Canvas
         );
         wisp.night_mix = ease_toward(wisp.night_mix, as_f64(wisp.night), dt, 4000.0);
         wisp.welcome_mix = ease_toward(wisp.welcome_mix, as_f64(wisp.welcome), dt, 1500.0);
+        let feel = wisp.feel;
+        wisp.listening = ease_toward(wisp.listening, as_f64(feel.listening), dt, 500.0);
+        // A warm moment arrives quickly and fades slowly.
+        let moved_ms = if feel.moved { 300.0 } else { 1800.0 };
+        wisp.moved = ease_toward(wisp.moved, as_f64(feel.moved), dt, moved_ms);
+        wisp.tender = ease_toward(wisp.tender, as_f64(feel.tender), dt, 1200.0);
+        wisp.sleepy = ease_toward(wisp.sleepy, as_f64(feel.sleepy), dt, 4000.0);
     } else {
+        let feel = wisp.feel;
+        wisp.listening = as_f64(feel.listening);
+        wisp.moved = as_f64(feel.moved);
+        wisp.tender = as_f64(feel.tender);
+        wisp.sleepy = as_f64(feel.sleepy);
         wisp.shown = wisp.target;
         wisp.privacy = as_f64(wisp.private);
         wisp.happy = as_f64(nourishing);
@@ -406,7 +539,10 @@ fn draw(wisp: &mut Wisp, now: f64, moving: bool, dark: bool, cr: &mut dyn Canvas
 
     let dose = wisp.shown;
     let mut look: Look = wisp.stops.at(dose);
-    look.glow = look.glow.mix(NIGHT_GLOW, NIGHT_WARMTH * wisp.night_mix);
+    look.glow = look.glow.mix(
+        NIGHT_GLOW,
+        NIGHT_WARMTH * wisp.night_mix + 0.3 * wisp.tender,
+    );
     look.core = look
         .core
         .mix(NIGHT_GLOW, NIGHT_WARMTH * 0.3 * wisp.night_mix);
@@ -456,14 +592,79 @@ fn draw(wisp: &mut Wisp, now: f64, moving: bool, dark: bool, cr: &mut dyn Canvas
     }
     brightness *= 1.0 - WARY_DIM * wisp.wary;
 
+    // Squash and stretch, from flying and from gestures, about its base.
+    let (mut body_w, mut body_h) = wisp.body;
+    let mut face_happy = wisp.happy.max(wisp.moved * 0.85);
+    let mut shut = 0.0;
+    let mut yawn = 0.0;
+    let mut warm = wisp.moved;
     if moving {
-        let slow = (1.0 + wisp.sleep * 0.4) * (1.0 + (NIGHT_BREATH - 1.0) * wisp.night_mix);
-        let breath = (now / (BREATH_MS * slow) * TAU).sin();
-        radius *= (1.0 + breath * BREATH_DEPTH) * (1.0 + WELCOME_BIGGER * wisp.welcome_mix);
-        y -= ((now / 2400.0 * TAU).sin() * 0.5 + 0.5) * 2.0 * rested * awake;
-        x += wander(now, 1.3) * ROAM_X * engaged * awake;
-        y -= wander(now, 4.2).abs() * ROAM_Y * engaged * awake;
-        sway = wander(now * 1.7, 5.1) * radius * 0.22 + wisp.lean * radius * 0.6;
+        // Still while it listens or keeps someone company.
+        let still = 1.0 - 0.8 * wisp.listening.max(wisp.tender);
+        let slow = (1.0 + wisp.sleep * 0.4)
+            * (1.0 + (NIGHT_BREATH - 1.0) * wisp.night_mix)
+            * (1.0 + 0.15 * wisp.sleepy);
+        // Kept as a running phase, so a changing pace never skips a beat.
+        wisp.breath = (wisp.breath + dt / (wisp.breath_ms * slow)).fract();
+        let breath = breathing(wisp.breath);
+        radius *= (1.0 + breath * BREATH_DEPTH)
+            * (1.0 + WELCOME_BIGGER * wisp.welcome_mix)
+            * (1.0 + 0.03 * wisp.listening);
+        // The light swells with each breath too, so a slow breath is easy to
+        // fall in with.
+        brightness *= 1.0 + BREATH_GLOW * breath;
+        y -= ((now / 2400.0 * TAU).sin() * 0.5 + 0.5) * 2.0 * rested * awake * still;
+        x += wander(now, 1.3) * ROAM_X * engaged * awake * still;
+        y -= wander(now, 4.2).abs() * ROAM_Y * engaged * awake * still;
+        sway = wander(now * 1.7, 5.1) * radius * 0.22 * still + wisp.lean * radius * 0.6;
+
+        if let Some((gesture, start)) = wisp.gesture {
+            let p = (now - start) / gesture.length();
+            if (0.0..1.0).contains(&p) {
+                let bump = (p * PI).sin();
+                match gesture {
+                    Gesture::Hop => {
+                        // Crouch, spring up, land soft.
+                        let crouch = |q: f64| (1.0 - (q / 0.14 - 0.5).abs() * 2.0).max(0.0);
+                        let squash = 0.12 * (crouch(p) + crouch(p - 0.84));
+                        let air = ((p - 0.14) / 0.7).clamp(0.0, 1.0);
+                        y -= (air * PI).sin() * 9.0;
+                        body_w *= 1.0 + squash;
+                        body_h *= 1.0 - squash + 0.06 * (air * PI).sin();
+                    }
+                    Gesture::Stretch => {
+                        let s = smooth(bump * 1.4);
+                        body_h *= 1.0 + 0.16 * s;
+                        body_w *= 1.0 - 0.08 * s;
+                        shut = s;
+                        face_happy = face_happy.max(s);
+                    }
+                    Gesture::Yawn => {
+                        let s = smooth(bump * 1.5);
+                        body_h *= 1.0 + 0.07 * s;
+                        yawn = s;
+                        shut = s;
+                    }
+                    Gesture::Nod => {
+                        y += bump * 3.0;
+                        wisp.glance_y = wisp.glance_y.max(bump * 0.6);
+                    }
+                    Gesture::Tend => {
+                        wisp.glance_y = ease_toward(wisp.glance_y, 1.0, dt, 200.0);
+                        let bob = (p * PI * 4.0).sin().max(0.0) * bump;
+                        y += bob * 2.5;
+                        body_h *= 1.0 - 0.05 * bob;
+                        body_w *= 1.0 + 0.04 * bob;
+                    }
+                    Gesture::Glow => {
+                        warm = warm.max(bump);
+                        radius *= 1.0 + 0.06 * bump;
+                    }
+                }
+            } else if p >= 1.0 {
+                wisp.gesture = None;
+            }
+        }
 
         // Clouded: an occasional flicker.
         let flick = (wander(now * 3.1, 7.7) - 0.55).max(0.0) * 1.6;
@@ -504,11 +705,21 @@ fn draw(wisp: &mut Wisp, now: f64, moving: bool, dark: bool, cr: &mut dyn Canvas
         }
         if let Some(look) = wisp.look {
             wisp.glance_target = look;
+        } else if wisp.listening > 0.5 {
+            // Looking out at whoever is writing.
+            wisp.glance_target = 0.0;
         }
         wisp.glance = ease_toward(wisp.glance, wisp.glance_target, dt, 250.0);
+        let tending = wisp
+            .gesture
+            .is_some_and(|(g, _)| matches!(g, Gesture::Tend | Gesture::Nod));
+        if !tending {
+            wisp.glance_y = ease_toward(wisp.glance_y, wisp.look_y.unwrap_or(0.0), dt, 300.0);
+        }
 
         // Particles.
-        if wisp.happy > 0.5 && now - wisp.last_mote > MOTE_EVERY_MS * (0.6 + random(wisp) * 0.8) {
+        let glad = wisp.happy.max(wisp.moved);
+        if glad > 0.5 && now - wisp.last_mote > MOTE_EVERY_MS * (0.6 + random(wisp) * 0.8) {
             wisp.last_mote = now;
             spawn(wisp, now, x, y - radius, ParticleKind::Mote);
         }
@@ -538,9 +749,19 @@ fn draw(wisp: &mut Wisp, now: f64, moving: bool, dark: bool, cr: &mut dyn Canvas
     if nourishing {
         brightness = (brightness * 1.15).min(1.0);
     }
+    brightness = (brightness * (1.0 + 0.25 * warm) * (1.0 - 0.12 * wisp.tender)).min(1.15);
 
     if presence > 0.0 {
         draw_particles(wisp, cr, now, look, dark, presence);
+        // Squash and stretch about the base, so it stays on its feet.
+        let base = y + radius;
+        let shaped = (body_w - 1.0).abs() > 1e-3 || (body_h - 1.0).abs() > 1e-3;
+        if shaped {
+            cr.save();
+            cr.translate(x, base);
+            cr.scale(body_w, body_h);
+            cr.translate(-x, -base);
+        }
         draw_sprite(
             cr,
             Sprite {
@@ -567,6 +788,9 @@ fn draw(wisp: &mut Wisp, now: f64, moving: bool, dark: bool, cr: &mut dyn Canvas
         ) * (1.0 - blink)
             * (1.0 - WARY_LIDS * wisp.wary)
             * (1.0 - wisp.sleep)
+            * (1.0 - 0.28 * wisp.tender)
+            * (1.0 - 0.42 * wisp.sleepy * (1.0 - wisp.listening))
+            * (1.0 - shut)
             * (1.0 - (privacy * 3.0).min(1.0));
         draw_face(
             cr,
@@ -575,24 +799,36 @@ fn draw(wisp: &mut Wisp, now: f64, moving: bool, dark: bool, cr: &mut dyn Canvas
                 y,
                 radius,
                 openness,
-                happy: wisp.happy * awake,
+                happy: face_happy * awake,
                 glance: wisp.glance,
+                glance_y: wisp.glance_y,
                 smile: (along(&[(0.0, 1.0), (0.3, 0.65), (0.55, 0.05)], dose)
                     * (1.0 - 0.7 * wisp.wary))
                     .max(0.9 * wisp.calm * awake)
+                    .max(0.7 * wisp.listening)
+                    .min(1.0 - 0.45 * wisp.tender)
                     * awake.max(0.4),
-                brow: (0.7 * wisp.happy * awake + 0.6 * wisp.curious * awake + 0.4 * rested
+                brow: (0.7 * wisp.happy * awake
+                    + 0.6 * wisp.curious * awake
+                    + 0.4 * rested
+                    + 0.35 * wisp.listening
+                    + 0.25 * wisp.tender
                     - 1.0 * wisp.wary
                     - 0.8 * clouded
                     - 0.5 * drained)
                     .clamp(-1.0, 1.0)
                     * (1.0 - wisp.sleep * 0.6),
-                sleepy: (drained * awake).max(wisp.sleep),
-                blush: along(&[(0.0, 1.0), (0.5, 0.3), (1.0, 0.12)], dose),
+                sleepy: (drained * awake).max(wisp.sleep).max(yawn),
+                yawn,
+                blush: along(&[(0.0, 1.0), (0.5, 0.3), (1.0, 0.12)], dose)
+                    * (1.0 + 1.4 * warm + 0.5 * wisp.tender),
                 ink: if drained > 0.5 { 0.72 } else { 0.9 },
                 presence,
             },
         );
+        if shaped {
+            cr.restore();
+        }
     }
 
     if !moving {
@@ -601,6 +837,10 @@ fn draw(wisp: &mut Wisp, now: f64, moving: bool, dark: bool, cr: &mut dyn Canvas
     let settling = |v: f64| v > 0.02 && v < 0.98;
     let bursting = blink > 0.0
         || noticing
+        || wisp.gesturing(now)
+        || settling(wisp.listening)
+        || settling(wisp.moved)
+        || settling(wisp.tender)
         || settling(wisp.wary)
         || settling(wisp.calm)
         || settling(wisp.curious)
@@ -873,12 +1113,16 @@ struct Face {
     happy: f64,
     /// -1 to 1, where the eyes look.
     glance: f64,
+    /// -1 up to 1 down.
+    glance_y: f64,
     /// 1 = a small smile, 0 = a flat line.
     smile: f64,
     /// 1 = brows lifted and open, -1 = lowered and watchful.
     brow: f64,
     /// 1 = heavy-lidded, mouth fallen open a little: sleepy, never sad.
     sleepy: f64,
+    /// 0-1, how far into a yawn.
+    yawn: f64,
     blush: f64,
     ink: f64,
     presence: f64,
@@ -887,7 +1131,7 @@ struct Face {
 fn draw_face(cr: &mut dyn Canvas, f: Face) {
     let r = f.radius;
     let alpha = f.presence * f.ink;
-    let eye_y = f.y - r * 0.08;
+    let eye_y = f.y - r * 0.08 + f.glance_y * r * 0.1;
     let (eye_w, eye_h) = (r * 0.22, r * 0.38);
     cr.set_round_ends(true);
 
@@ -978,7 +1222,15 @@ fn draw_face(cr: &mut dyn Canvas, f: Face) {
     // open when the wisp is sleepy.
     cr.set_paint(Paint::solid(FACE_INK, alpha * 0.9));
     let mouth_y = f.y + r * 0.32;
-    if f.happy > 0.5 {
+    if f.yawn > 0.05 {
+        // A big round yawn.
+        cr.save();
+        cr.translate(f.x, mouth_y + r * 0.04 * f.yawn);
+        cr.scale(r * (0.1 + 0.05 * f.yawn), r * (0.08 + 0.2 * f.yawn));
+        cr.arc(0.0, 0.0, 1.0, 0.0, TAU);
+        cr.restore();
+        cr.fill();
+    } else if f.happy > 0.5 {
         cr.arc(f.x, mouth_y - r * 0.14, r * 0.26, PI * 0.1, PI * 0.9);
         cr.close_path();
         cr.fill();

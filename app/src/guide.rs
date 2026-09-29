@@ -8,6 +8,7 @@
 
 use crate::flight::Flight;
 use crate::game::{Game, envelope};
+use crate::idle::{Idle, Kind, Scene};
 use crate::sprite::{FLYING, NOOK, SIZE, render_flying, render_moss};
 use crate::talk::Flow;
 use crate::view::{Bubble, Point, Sprite};
@@ -15,7 +16,7 @@ use westering_core::coords::{apply, unit};
 use westering_core::finds::{Target, stable_hash};
 use westering_core::session::Phase;
 use westering_core::time::UnixMs;
-use westering_core::wisp::{Mode, Trend, Wisp};
+use westering_core::wisp::{Feel, Gesture, Mode, Trend, Wisp};
 
 /// A place on the screen, in pixels.
 type Spot = (f64, f64);
@@ -82,6 +83,14 @@ pub struct Guide {
     /// When it arrived at what it's pointing at, for the glow round it.
     pointing_since: Option<UnixMs>,
     last_frame: UnixMs,
+    /// When the user last typed, and how much was there.
+    typed_at: UnixMs,
+    typed_len: usize,
+    /// Warmed by something just said, until then.
+    moved_until: UnixMs,
+    idle: Idle,
+    /// Where an idle look is aimed.
+    idle_spot: Option<Spot>,
 }
 
 /// Whether a line waits: while a card is up only its own line speaks, and
@@ -137,6 +146,11 @@ impl Guide {
             bubble_at: None,
             pointing_since: None,
             last_frame: real,
+            typed_at: 0,
+            typed_len: 0,
+            moved_until: 0,
+            idle: Idle::new(real),
+            idle_spot: None,
         }
     }
 }
@@ -247,12 +261,43 @@ impl Game {
     /// How much the wisp is moving, for the frame rate: 2 flying, 1 out
     /// and hovering, 0 settled on its moss.
     pub(crate) fn wisp_motion(&self) -> u8 {
+        let real = self.last_real;
         if self.guide.flight.speed() > 12.0 || self.guide.flight.has_embers() {
             2
-        } else if !self.guide.flight.home {
+        } else if !self.guide.flight.home
+            || self.guide.wisp.gesturing(real as f64)
+            || self.guide.flight.wobbling()
+            || self.guide.idle.doing(real).is_some()
+        {
             1
         } else {
             0
+        }
+    }
+
+    /// Something warm was just said: a glow, and a softer face for a while.
+    pub(crate) fn wisp_moved(&mut self, real: UnixMs) {
+        self.guide.moved_until = real + 3_500;
+        self.wisp_gesture(Gesture::Glow, real);
+    }
+
+    /// A gesture, if the wisp can: with calm motion on, only a glow.
+    pub(crate) fn wisp_gesture(&mut self, gesture: Gesture, real: UnixMs) {
+        if !self.calm() || gesture == Gesture::Glow {
+            self.guide.wisp.gesture(gesture, real as f64);
+        }
+    }
+
+    /// The user is writing: the wisp listens, and nods at the end of a
+    /// sentence.
+    pub(crate) fn typed(&mut self, text: &str, real: UnixMs) {
+        let len = text.chars().count();
+        if len > self.guide.typed_len && text.ends_with(['.', '!', '?']) {
+            self.wisp_gesture(Gesture::Nod, real);
+        }
+        self.guide.typed_len = len;
+        if len > 0 {
+            self.guide.typed_at = real;
         }
     }
 
@@ -706,6 +751,76 @@ impl Game {
         self.guide
             .wisp
             .update(0.05, mode, Trend::Steady, false, true, false);
+        self.guide.wisp.set_feel(self.wisp_feel(real));
+        // Its breath slows with the evening, to about five and a half breaths
+        // a minute at the calmest: slow enough to fall in with.
+        let calmest = westering_core::session::CALMEST;
+        let slowed = ((1.0 - self.session.tempo(real)) / (1.0 - calmest)).clamp(0.0, 1.0);
+        self.guide.wisp.set_breath(6_000.0 + 4_900.0 * slowed);
+        self.idle_tick(real);
+    }
+
+    fn wisp_feel(&self, real: UnixMs) -> Feel {
+        let phase = self.session.phase();
+        let writing = self.talk.prompt.as_ref().is_some_and(|p| p.entry);
+        let (hour, _) = westering_core::time::clock(self.sky_now(real), self.offset_s);
+        Feel {
+            listening: writing && real - self.guide.typed_at < 6_000,
+            moved: real < self.guide.moved_until,
+            tender: matches!(self.talk.flow, Some(Flow::Weight { .. }))
+                || (phase == Phase::Finale && !self.page.weights.is_empty()),
+            sleepy: !(5..23).contains(&hour) || matches!(phase, Phase::Dimming | Phase::Finale),
+        }
+    }
+
+    /// Small things the wisp does on its moss while nothing else is going on.
+    fn idle_tick(&mut self, real: UnixMs) {
+        let free = matches!(
+            self.session.phase(),
+            Phase::Weights | Phase::Hunt | Phase::Dimming
+        ) && self.guide.flight.home
+            && !self.wisp_busy(real)
+            && self.card.is_none()
+            && self.talk.prompt.is_none()
+            && self.drawing.is_none();
+        if !free {
+            if self.guide.idle.doing(real).is_some() {
+                self.guide.idle.interrupt(real);
+            }
+            return;
+        }
+        let sky = self.sky_spot(real);
+        let scene = Scene {
+            sky: sky.is_some(),
+            pointer: self.pointer.is_some_and(|(_, _, at)| real - at < 1_500),
+            sleepy: self.wisp_feel(real).sleepy,
+            calm: self.calm(),
+            tempo: self.session.tempo(real),
+        };
+        if let Some(kind) = self.guide.idle.tick(real, &scene) {
+            self.guide.idle_spot = if kind == Kind::LookUp { sky } else { None };
+            if let Some(g) = kind.gesture() {
+                self.wisp_gesture(g, real);
+            }
+        }
+    }
+
+    /// Something in the sky worth a look: one of tonight's finds on the
+    /// screen, not yet caught if there is one.
+    fn sky_spot(&self, real: UnixMs) -> Option<Spot> {
+        let now = self.sky_now(real);
+        let hz = westering_core::coords::horizon(self.observer, now);
+        let prec = westering_core::coords::precession(now);
+        let mut spots: Vec<(bool, Spot)> = (0..self.finds.len())
+            .filter_map(|i| {
+                let (x, y) = self.camera.project(self.find_dir(i, now, &hz, &prec)?)?;
+                self.camera
+                    .on_screen(x, y, 40.0)
+                    .then_some((self.caught[i], (x, y)))
+            })
+            .collect();
+        spots.sort_by_key(|(caught, _)| *caught);
+        spots.first().map(|(_, s)| *s)
     }
 
     /// Where the wisp's nook sits: on the horizon, bottom left.
@@ -973,7 +1088,31 @@ impl Game {
         }
 
         let (fx, fy) = (self.guide.flight.x, self.guide.flight.y);
-        let look = pointing.map(|(px, _)| ((px - fx) / 120.0).clamp(-1.0, 1.0));
+        let toward = |(px, py): Spot| {
+            (
+                ((px - fx) / 120.0).clamp(-1.0, 1.0),
+                ((py - fy) / 160.0).clamp(-1.0, 1.0),
+            )
+        };
+        // What it looks at: whatever it's showing; where it's about to go;
+        // a meteor as it flies; or whatever it's idly looking at.
+        let idle = self.guide.idle.doing(real);
+        let gaze = if let Some(p) = pointing {
+            Some(toward(p))
+        } else if let Some(h) = self.guide.flight.heading(real) {
+            Some((h, 0.0))
+        } else if let Some(m) = self.meteor_head(real).filter(|_| settled) {
+            Some(toward(m))
+        } else {
+            match idle {
+                Some(Kind::LookUp) => self.guide.idle_spot.map(toward),
+                Some(Kind::Watch) => self.pointer.map(|(x, y, _)| toward((x, y))),
+                Some(Kind::LookOut) => Some((0.0, 0.0)),
+                _ => None,
+            }
+        };
+        let look = gaze.map(|g| g.0);
+        self.guide.wisp.set_look_up(gaze.map(|g| g.1));
         let mut sprites = Vec::new();
         let mut points = self.guide.flight.embers(real, alpha as f32);
         // The moss stays put; the wisp is drawn the same way whether it sits
@@ -999,6 +1138,12 @@ impl Game {
             look.or(Some(lean * 0.8))
         };
         self.guide.wisp.set_flight(true, lean, look);
+        let (bw, bh) = if self.calm() {
+            (1.0, 1.0)
+        } else {
+            self.guide.flight.body()
+        };
+        self.guide.wisp.set_body(bw, bh);
         if let Some(texture) = render_flying(&mut self.guide.wisp, real as f64, self.guide.scale) {
             let (sw, sh) = (FLYING.0 * SIZE, FLYING.1 * SIZE);
             sprites.push(Sprite {

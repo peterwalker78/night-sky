@@ -457,6 +457,9 @@ impl PromptBar {
             let game = game.clone();
             let weak = Rc::downgrade(&bar);
             bar.entry.connect_changed(move |entry| {
+                if let Ok(mut g) = game.try_borrow_mut() {
+                    g.typed(&entry.text(), wall_clock());
+                }
                 if let Some(bar) = weak.upgrade() {
                     bar.suggest(&game, &entry.text());
                 }

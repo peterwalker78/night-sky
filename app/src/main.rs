@@ -12,6 +12,7 @@ mod game;
 mod guide;
 mod hover;
 mod hud;
+mod idle;
 mod music;
 mod settings;
 mod sprite;

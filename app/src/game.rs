@@ -2677,6 +2677,25 @@ impl Game {
         }
     }
 
+    /// Where a meteor's head is on the screen, while one is flying.
+    pub(crate) fn meteor_head(&self, real: UnixMs) -> Option<(f64, f64)> {
+        self.meteors.iter().find_map(|m| {
+            let age = (real - m.start) as f64 / m.duration as f64;
+            if !(0.0..1.0).contains(&age) {
+                return None;
+            }
+            let th = age * m.length;
+            let v = [
+                m.from[0] * th.cos() + m.toward[0] * th.sin(),
+                m.from[1] * th.cos() + m.toward[1] * th.sin(),
+                m.from[2] * th.cos() + m.toward[2] * th.sin(),
+            ];
+            self.camera
+                .project(v)
+                .filter(|&(x, y)| self.camera.on_screen(x, y, 0.0))
+        })
+    }
+
     /// Keeps the frame clock's pace honest: fast while things move, slow at rest.
     pub fn wants_fast_frames(&self, real: UnixMs) -> bool {
         self.look.is_some()
