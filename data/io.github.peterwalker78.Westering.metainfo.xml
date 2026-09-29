@@ -33,6 +33,19 @@
   <url type="homepage">https://github.com/peterwalker78/westering</url>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.4.0" date="2026-09-29">
+      <description>
+        <p>Guided or free look, company in the background, and the ground by day.</p>
+        <ul>
+          <li>Every evening starts guided; once the wisp has walked the sky with you, free look lets you click anything that glows to close in on it</li>
+          <li>Keep me company: the sky rests and the music plays on in a window of any size, with a word now and then about looking after yourself</li>
+          <li>By day the view turns to the ground under a daylit sky: the real Sun, a stone's shadow, and three small things for the time of year</li>
+          <li>Winding down asks plainly, breathes with you, and only ever gets darker</li>
+          <li>The wisp listens while you write, keeps quiet while you look, and waits for you to move its words on</li>
+          <li>Over 160 more photographs of the sky, facts and lore checked against the sources, and music in four styles</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.3.0" date="2026-09-29">
       <description>
         <p>Every evening shows its three parts: set it down, look up, wind down. Winding down is chosen, and ends outside or in bed.</p>
