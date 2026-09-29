@@ -69,7 +69,8 @@ impl Company {
             said_late: false,
             seed: night.to_owned(),
         };
-        c.next = now + c.gap();
+        // The first look in comes a little sooner than the rest.
+        c.next = now + c.gap() / 2;
         c
     }
 

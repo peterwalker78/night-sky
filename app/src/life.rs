@@ -67,7 +67,8 @@ fn bird(x: f64, y: f64, size: f64, flap: f64, alpha: f32) -> Silhouette {
             (x + s * 0.45, y - s * 0.12 + tip * 0.3),
             (x + s, y + tip),
         ],
-        (size / 4.0).clamp(1.2, 2.2) as f32,
+        // Thick enough to fill whole dots.
+        3.0,
         INK,
         alpha,
     )
@@ -263,6 +264,35 @@ impl Game {
         }
     }
 
+    /// How far a point is hidden behind the near tree, 0 to 1: its crown
+    /// in leaf, or its trunk.
+    fn tree_cover(&self, x: f64, y: f64) -> f64 {
+        let (tx, ty, th) = self.tree();
+        let top = ty - th * 0.55;
+        if (x - tx).abs() < th * 0.05 && (top..=ty).contains(&y) {
+            return 1.0;
+        }
+        if self.season_now() == Some(Season::Winter) {
+            return 0.0;
+        }
+        let (cx, cy, rc) = (tx, ty - th * 0.74, th * 0.34);
+        let q = [
+            (0.0, 0.0),
+            (-0.55, 0.15),
+            (0.55, 0.12),
+            (-0.3, -0.42),
+            (0.32, -0.38),
+            (0.0, 0.32),
+        ]
+        .iter()
+        .map(|&(bx, by)| {
+            ((x - cx - bx * rc).powi(2) + (y - cy - by * rc).powi(2)).sqrt() / (rc * 0.6)
+        })
+        .fold(f64::MAX, f64::min);
+        let x = ((q - 0.75) / 0.4).clamp(0.0, 1.0);
+        1.0 - x * x * (3.0 - 2.0 * x)
+    }
+
     /// A small bird crossing, if one is: where it is now.
     fn small_bird(&self, k: u64, t: f64) -> Option<(f64, f64, f64, f64)> {
         let (w, hy) = (self.camera.width, self.horizon_y());
@@ -297,7 +327,11 @@ impl Game {
     /// Where a bird is flying now, for the wisp to watch.
     pub(crate) fn day_bird(&self, real: UnixMs) -> Option<(f64, f64)> {
         let t = real as f64 / 1000.0;
-        (0..3).find_map(|k| self.small_bird(k, t).map(|(x, y, _, _)| (x, y)))
+        (0..3).find_map(|k| {
+            self.small_bird(k, t)
+                .map(|(x, y, _, _)| (x, y))
+                .filter(|&(x, y)| self.tree_cover(x, y) < 0.5)
+        })
     }
 
     /// Everything alive, this moment.
@@ -315,7 +349,8 @@ impl Game {
         let birds = if season == Some(Season::Winter) { 2 } else { 3 };
         for k in 0..birds {
             if let Some((x, y, size, flap)) = self.small_bird(k, t) {
-                out.push(bird(x, y, size, flap, 0.85 * fade));
+                let seen = (1.0 - self.tree_cover(x, y)) as f32;
+                out.push(bird(x, y, size, flap, 0.85 * fade * seen));
             }
         }
 
@@ -340,7 +375,8 @@ impl Game {
                     let x = x0 + dir * rank * 16.0;
                     let y = y0 + side * rank * 9.0;
                     let flap = (t * 4.5 + i as f64 * 0.7).sin();
-                    out.push(bird(x, y, 6.5, flap, 0.8 * fade));
+                    let seen = (1.0 - self.tree_cover(x, y)) as f32;
+                    out.push(bird(x, y, 7.5, flap, 0.8 * fade * seen));
                 }
             }
         }
@@ -361,13 +397,23 @@ impl Game {
                     (s * 0.15, s * 0.35),
                     (-s * 0.2, s),
                 ];
-                out.push(stroke(place(&scythe, x, y, angle), 1.8, INK, 0.85 * fade));
+                let seen = (1.0 - self.tree_cover(x, y)) as f32;
+                out.push(stroke(
+                    place(&scythe, x, y, angle),
+                    3.0,
+                    INK,
+                    0.85 * fade * seen,
+                ));
             }
         }
 
-        let warm = matches!(season, Some(Season::Spring | Season::Summer) | None);
+        // What's on the wing goes by the month: butterflies from spring into
+        // autumn, bees a little longer, midges in summer; all year round
+        // where there's no winter.
+        let m = day.month;
+        let always = season.is_none();
         // Butterflies over the grass, wandering and fluttering.
-        if warm {
+        if always || (4..=10).contains(&m) {
             for k in 0..2u64 {
                 let x = w * (0.3 + 0.45 * hash(k, 30))
                     + w * 0.12 * (t * 0.23 + k as f64).sin()
@@ -393,7 +439,9 @@ impl Game {
                     out.push(fill(wing, colour, 0.92 * fade));
                 }
             }
-            // Bees about the finds on the ground.
+        }
+        if always || (3..=10).contains(&m) {
+            // Bees working round the finds on the ground.
             for i in 0..day.finds.len() {
                 if !matches!(day.finds[i], crate::day::Find::Ground(_)) {
                     continue;
@@ -411,34 +459,33 @@ impl Game {
                 let body: Vec<(f64, f64)> = (0..8)
                     .map(|j| {
                         let b = j as f64 / 8.0 * TAU;
-                        (x + 2.6 * b.cos(), y + 1.8 * b.sin())
+                        (x + 4.0 * b.cos(), y + 2.8 * b.sin())
                     })
                     .collect();
                 out.push(fill(body, [0.28, 0.22, 0.08], 0.9 * fade));
-                let buzz = (t * 40.0).sin() * 1.5;
+                let buzz = (t * 40.0).sin() * 2.0;
                 out.push(stroke(
                     vec![
-                        (x - 3.0, y - 2.5 - buzz),
-                        (x, y - 1.0),
-                        (x + 3.0, y - 2.5 - buzz),
+                        (x - 4.5, y - 4.0 - buzz),
+                        (x, y - 1.5),
+                        (x + 4.5, y - 4.0 - buzz),
                     ],
-                    1.0,
+                    2.2,
                     [0.95, 0.97, 1.0],
-                    0.6 * fade,
+                    0.7 * fade,
                 ));
-                break;
             }
         }
 
         // Midges dancing under the tree on summer days.
-        if season == Some(Season::Summer) {
+        if always || (5..=9).contains(&m) {
             let (tx, ty, th) = self.tree();
             let (cx, cy) = (tx + th * 0.28, ty - th * 0.25);
             for k in 0..12u64 {
                 let x = cx + 16.0 * (t * (1.1 + hash(k, 50)) + k as f64).sin();
                 let y = cy + 12.0 * (t * (1.7 + hash(k, 51)) + 2.0 * k as f64).cos();
                 out.push(fill(
-                    vec![(x - 0.9, y), (x, y - 0.9), (x + 0.9, y), (x, y + 0.9)],
+                    vec![(x - 1.7, y), (x, y - 1.7), (x + 1.7, y), (x, y + 1.7)],
                     INK,
                     0.6 * fade,
                 ));
@@ -458,7 +505,7 @@ impl Game {
                 let x = start + 14.0 * (phase * TAU * 1.5).sin() + phase * 30.0;
                 let y = ty - th * 0.7 + fall * phase;
                 let angle = (phase * TAU * 2.0).sin() * 0.9;
-                let leaf = [(-3.5, 0.0), (0.0, -2.2), (3.5, 0.0), (0.0, 2.2)];
+                let leaf = [(-5.0, 0.0), (0.0, -3.2), (5.0, 0.0), (0.0, 3.2)];
                 let a = if phase > 0.85 {
                     ((1.0 - phase) / 0.15) as f32
                 } else {
@@ -476,7 +523,7 @@ impl Game {
         if season == Some(Season::Winter) {
             let (sx, sy, sh) = self.stone();
             let bob = if (t * 0.4).fract() < 0.08 { 1.5 } else { 0.0 };
-            let (x, y) = (sx, sy - sh - 6.0 + bob);
+            let (x, y) = (sx, sy - sh - 3.0 + bob);
             let body: Vec<(f64, f64)> = (0..10)
                 .map(|j| {
                     let b = j as f64 / 10.0 * TAU;

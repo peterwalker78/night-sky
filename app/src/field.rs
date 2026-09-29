@@ -96,6 +96,19 @@ impl Field {
         self.add_at(c, r, color, amount);
     }
 
+    /// Darkens the dot nearest a point by `factor`: a shadow falling on it.
+    pub fn shade(&mut self, x: f64, y: f64, factor: f32) {
+        let c = (x / self.pitch as f64 - 0.5).round() as isize;
+        let r = (y / self.pitch as f64 - 0.5).round() as isize;
+        if c < 0 || r < 0 || c as usize >= self.cols || r as usize >= self.rows {
+            return;
+        }
+        let cell = &mut self.light[r as usize * self.cols + c as usize];
+        for k in cell.iter_mut() {
+            *k *= factor;
+        }
+    }
+
     pub fn star(&mut self, x: f64, y: f64, color: Rgb, amount: f32) {
         self.dot(x, y, color, amount.min(1.2));
         if amount > 1.0 {

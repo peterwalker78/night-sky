@@ -585,6 +585,18 @@ mod imp {
                 snapshot.pop();
                 snapshot.append_scaled_texture(texture, gsk::ScalingFilter::Nearest, &bounds);
                 snapshot.pop();
+                // Living things are drawn in the same dots as everything else.
+                if !frame.silhouettes.is_empty() {
+                    snapshot.push_mask(gsk::MaskMode::Alpha);
+                    snapshot.push_repeat(&bounds, Some(&cell));
+                    snapshot.append_texture(&tile, &cell);
+                    snapshot.pop();
+                    snapshot.pop();
+                    for s in &frame.silhouettes {
+                        draw_silhouette(snapshot, s);
+                    }
+                    snapshot.pop();
+                }
             }
             for p in &frame.points {
                 draw_point(snapshot, p);
@@ -599,9 +611,6 @@ mod imp {
             }
             for p in &frame.marks {
                 draw_point(snapshot, p);
-            }
-            for s in &frame.silhouettes {
-                draw_silhouette(snapshot, s);
             }
             for sprite in &frame.sprites {
                 snapshot.push_opacity(sprite.alpha.clamp(0.0, 1.0));

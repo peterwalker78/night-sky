@@ -907,7 +907,7 @@ impl Game {
             self.session.phase(),
             Phase::Weights | Phase::Hunt | Phase::Dimming
         ) && self.guide.flight.home
-            && !self.wisp_busy(real)
+            && !self.more_now()
             && self.card.is_none()
             && self.talk.prompt.is_none()
             && self.drawing.is_none();
@@ -1246,6 +1246,8 @@ impl Game {
                 Some(Kind::LookUp) => self.guide.idle_spot.map(toward),
                 Some(Kind::Watch) => self.pointer.map(|(x, y, _)| toward((x, y))),
                 Some(Kind::LookOut) => Some((0.0, 0.0)),
+                // By day, any bird going over catches its eye.
+                _ if settled && self.by_day() => self.day_bird(real).map(toward),
                 _ => None,
             }
         };

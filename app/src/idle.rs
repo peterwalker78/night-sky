@@ -97,7 +97,7 @@ pub struct Idle {
 impl Idle {
     pub fn new(now: UnixMs) -> Idle {
         Idle {
-            next: now + 20_000,
+            next: now + 10_000,
             last: None,
             doing: None,
             seed: 0x51_7cc1_b727_220a ^ now as u64,
@@ -144,7 +144,7 @@ impl Idle {
         let choices: Vec<Kind> = Kind::ALL.into_iter().filter(|&k| can(k)).collect();
         let total: f64 = choices.iter().map(|k| k.weight()).sum();
         // Quiet gaps that lengthen as the evening slows.
-        let gap = (16_000.0 + self.random() * 26_000.0) / scene.tempo.max(0.3);
+        let gap = (8_000.0 + self.random() * 14_000.0) / scene.tempo.max(0.3);
         self.next = now + gap as UnixMs;
         if total <= 0.0 {
             return None;
@@ -191,8 +191,8 @@ mod tests {
             }
             t += 500;
         }
-        // Somewhere between one a minute and one every three minutes.
-        assert!((20..=240).contains(&count), "{count}");
+        // Somewhere between one every twenty seconds and one a minute.
+        assert!((60..=450).contains(&count), "{count}");
     }
 
     #[test]

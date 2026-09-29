@@ -51,6 +51,9 @@ pub struct Day {
     /// Which way the view faces: towards the Sun's side of the sky.
     facing: f64,
     pub(crate) season: Option<Season>,
+    /// The month as it would be in the north, for what's about: the same
+    /// in both hemispheres once shifted.
+    pub(crate) month: u32,
     began: UnixMs,
 }
 
@@ -89,6 +92,11 @@ impl Day {
             stamp: None,
             facing: if observer.lat >= 0.0 { 180.0 } else { 0.0 },
             season: season(month, observer.lat),
+            month: if observer.lat < 0.0 {
+                (month + 5) % 12 + 1
+            } else {
+                month
+            },
             began: 0,
         }
     }
@@ -899,31 +907,54 @@ impl Game {
 
         // The stone, and this minute's shadow falling from its foot.
         let (sx, sy, sh) = self.stone();
+        let p = self.field.pitch as f64;
+        // Dot centres in a box, row by row.
+        let dots = |x0: f64, y0: f64, x1: f64, y1: f64| {
+            let (c0, c1) = ((x0 / p - 0.5).floor() as i64, (x1 / p - 0.5).ceil() as i64);
+            let (r0, r1) = ((y0 / p - 0.5).floor() as i64, (y1 / p - 0.5).ceil() as i64);
+            (r0..=r1).flat_map(move |r| {
+                (c0..=c1).map(move |c| ((c as f64 + 0.5) * p, (r as f64 + 0.5) * p))
+            })
+        };
+        let hw = sh * 0.13;
         if let Some(ratio) = today.shadow {
             let rel = turn(day.facing, today.shadow_az).to_radians();
             let len = (ratio * sh).min(sh * 5.0);
             // Ahead is up the screen, foreshortened; clockwise is rightwards.
             let (dx, dy) = (rel.sin() * len, -rel.cos() * len * 0.38);
-            for k in -3..=3 {
-                let off = k as f64 * 2.2;
-                self.field.line(
-                    (sx + off, sy),
-                    (sx + dx + off * 0.6, sy + dy),
-                    [0.5, 0.5, 0.45],
-                    -0.3,
-                );
+            // The stone's footprint, an oval on the ground, swept along the
+            // shadow: a dot is in shadow if some point of the sweep covers it.
+            let (ax, ay) = (hw, hw * 0.38);
+            let a = (dx / ax).powi(2) + (dy / ay).powi(2);
+            let (x0, x1) = (sx.min(sx + dx) - hw, sx.max(sx + dx) + hw);
+            let (y0, y1) = (sy.min(sy + dy) - ay, sy.max(sy + dy) + ay);
+            for (px, py) in dots(x0, y0, x1, y1) {
+                let (qx, qy) = (px - sx, py - sy);
+                let b = -2.0 * (qx * dx / (ax * ax) + qy * dy / (ay * ay));
+                let c = (qx / ax).powi(2) + (qy / ay).powi(2);
+                let t = if a > 1e-9 {
+                    (-b / (2.0 * a)).clamp(0.0, 1.0)
+                } else {
+                    0.0
+                };
+                if a * t * t + b * t + c <= 1.0 {
+                    // Crisp at the foot, softer towards the tip.
+                    self.field.shade(px, py, (0.4 + 0.35 * t) as f32);
+                }
             }
         }
-        // An upright stone with a rounded top, lit a little more on one side.
-        let half = 0.26;
-        self.field.disc(sx, sy - sh / 2.0, sh / 2.0, |u, v| {
-            let body = u.abs() < half && v > -0.7;
-            let top = (u / half).powi(2) + ((v + 0.7) / 0.3).powi(2) < 1.0;
-            (body || top).then(|| {
-                let side = if u > 0.0 { 0.7 } else { 1.0 };
-                ([0.86, 0.84, 0.8], 0.9 * side)
-            })
-        });
+        // An upright stone with a rounded top, standing on its footprint.
+        for (px, py) in dots(sx - hw, sy - sh, sx + hw, sy) {
+            let off = ((px - sx) / hw).abs();
+            if off > 1.0 || py > sy {
+                continue;
+            }
+            let top = sy - sh + hw * 0.9 * (1.0 - (1.0 - off * off).max(0.0).sqrt());
+            if py >= top {
+                let side = if px > sx { 0.8 } else { 1.0 };
+                self.field.dot(px, py, [0.86, 0.84, 0.8], 0.9 * side);
+            }
+        }
 
         // The things on the ground, breathing gently until found.
         let hovered = self.pointer.and_then(|(x, y, _)| self.day_at(x, y));

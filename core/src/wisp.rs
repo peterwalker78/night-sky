@@ -773,6 +773,12 @@ fn draw(wisp: &mut Wisp, now: f64, moving: bool, dark: bool, cr: &mut dyn Canvas
             wisp.glance_target = 0.0;
         }
         wisp.glance = ease_toward(wisp.glance, wisp.glance_target, dt, 250.0);
+        // Watching something, it leans towards it, and lifts a little to
+        // look up.
+        if wisp.look.is_some() {
+            sway += wisp.glance * radius * 0.3;
+        }
+        y -= (-wisp.glance_y).max(0.0) * 3.0;
         let tending = wisp
             .gesture
             .is_some_and(|(g, _)| matches!(g, Gesture::Tend | Gesture::Nod));
@@ -1277,7 +1283,7 @@ struct Face {
 fn draw_face(cr: &mut dyn Canvas, f: Face) {
     let r = f.radius;
     let alpha = f.presence * f.ink;
-    let eye_y = f.y - r * 0.08 + f.glance_y * r * 0.1;
+    let eye_y = f.y - r * 0.08 + f.glance_y * r * 0.14;
     let (eye_w, eye_h) = (r * 0.22, r * 0.38);
     cr.set_round_ends(true);
 
@@ -1296,7 +1302,7 @@ fn draw_face(cr: &mut dyn Canvas, f: Face) {
         ));
         cr.disc(cheek_x, cheek_y, r * 0.22);
 
-        let eye_x = f.x + side * r * 0.4 + f.glance * r * 0.09;
+        let eye_x = f.x + side * r * 0.4 + f.glance * r * 0.14;
 
         // The brow, a short stroke that lifts with a bright mood and lowers
         // with a heavy one, its outer end dipping as it goes.
