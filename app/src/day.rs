@@ -571,7 +571,20 @@ impl Game {
 
     pub(crate) fn day_key(&mut self, key: gdk::Key, real: UnixMs) -> bool {
         match key {
-            gdk::Key::Tab => {
+            // Space, Enter and Tab all carry on: the wisp's next word, then
+            // past a card, then to the next find.
+            gdk::Key::Tab | gdk::Key::space | gdk::Key::Return | gdk::Key::KP_Enter
+                if self.more_now() =>
+            {
+                self.guide_next(real);
+            }
+            gdk::Key::Tab | gdk::Key::space | gdk::Key::Return | gdk::Key::KP_Enter
+                if self.card.is_some() =>
+            {
+                self.dismiss_card(real);
+            }
+            gdk::Key::Tab | gdk::Key::space | gdk::Key::Return | gdk::Key::KP_Enter => {
+                self.guide_next(real);
                 let day = self.day_ref();
                 let n = day.finds.len();
                 let from = self
@@ -588,20 +601,7 @@ impl Game {
                 }
                 self.day_open(next, real);
             }
-            gdk::Key::space => {
-                if self.card.is_some() {
-                    self.dismiss_card(real);
-                } else {
-                    self.guide_next(real);
-                }
-            }
-            gdk::Key::Return | gdk::Key::KP_Enter => {
-                if self.card.is_some() {
-                    self.dismiss_card(real);
-                } else if !self.guide_next(real) {
-                    return false;
-                }
-            }
+
             gdk::Key::Escape => {
                 if self.card.is_some() {
                     self.dismiss_card(real);

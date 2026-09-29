@@ -162,8 +162,9 @@ journal, not therapy or a crisis service.
 | --- | --- |
 | Arrows, or drag | Look around |
 | Scroll, `+` and `-` | Zoom |
+| Tap `Space` (or `Enter`, or `Tab`) | Carry on, one step at a time: the wisp's next word, then past a card or a story's page, then round to the next find |
 | Hold `Space` | Catch what's in the ring |
-| `Tab`, or click one in the list | Turn towards the next find |
+| Click one in the list | Turn towards it |
 | `C` | Draw a constellation: arrows step between stars, `Enter` joins, `C` finishes |
 | `L` | The logbook |
 | `?`, or click the wisp | What the keys do; a click also hurries the wisp on when it has more to say |

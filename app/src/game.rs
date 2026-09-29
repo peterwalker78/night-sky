@@ -191,6 +191,8 @@ pub struct Game {
     pub(crate) handoff: Option<Handoff>,
     pub(crate) finale_turned: bool,
     pub(crate) last_input: UnixMs,
+    /// When Space went down, to tell a tap from a hold.
+    pub(crate) space_since: Option<UnixMs>,
     /// Key releases wait a moment: X11's auto-repeat sends a release before
     /// every repeated press, and a real release has no press behind it.
     pub(crate) releases: Vec<(gdk::Key, UnixMs)>,
@@ -277,6 +279,10 @@ pub(crate) const WARM: Rgb = [1.0, 0.86, 0.66];
 pub(crate) fn compact(width: f64, height: f64) -> bool {
     width < 820.0 || height < 560.0
 }
+
+/// A press of Space shorter than this is a tap: it carries on rather than
+/// catches.
+const TAP_MS: UnixMs = 350;
 
 /// How many finds a visit in the small hours offers.
 const LATE_FINDS: usize = 5;
@@ -505,6 +511,7 @@ impl Game {
             handoff: None,
             finale_turned: false,
             last_input: real_now,
+            space_since: None,
             releases: Vec::new(),
             esc_armed: 0,
             last_real: real_now,
@@ -1067,26 +1074,23 @@ impl Game {
             gdk::Key::plus | gdk::Key::equal | gdk::Key::KP_Add => self.held.zoom_in = true,
             gdk::Key::minus | gdk::Key::KP_Subtract => self.held.zoom_out = true,
             gdk::Key::Shift_L | gdk::Key::Shift_R => self.held.fast = true,
+            // Space held catches; tapped, like Enter and Tab, it carries on.
             gdk::Key::space => {
-                if self.card.is_some() {
-                    self.dismiss_card(real);
-                } else if self.hunting() {
+                self.space_since = Some(real);
+                if self.card.is_none()
+                    && self.talk.prompt.is_none()
+                    && !self.more_now()
+                    && self.hunting()
+                {
                     self.catch.holding = true;
                     if self.catch.target.is_none() {
                         self.try_meteor(real);
                     }
                 }
             }
-            gdk::Key::Return | gdk::Key::KP_Enter => {
-                if self.card.is_some() {
-                    self.dismiss_card(real);
-                } else if !self.guide_next(real) {
+            gdk::Key::Return | gdk::Key::KP_Enter | gdk::Key::Tab => {
+                if !self.carry_on(real) {
                     return false;
-                }
-            }
-            gdk::Key::Tab => {
-                if self.hunting() {
-                    self.turn_to_next(real);
                 }
             }
             gdk::Key::Escape => {
@@ -1117,19 +1121,43 @@ impl Game {
     }
 
     fn settle_releases(&mut self, real: UnixMs) {
-        let due: Vec<gdk::Key> = self
+        let due: Vec<(gdk::Key, UnixMs)> = self
             .releases
             .iter()
             .filter(|(_, at)| real - at > 45)
-            .map(|(k, _)| *k)
+            .copied()
             .collect();
         self.releases.retain(|(_, at)| real - at <= 45);
-        for key in due {
-            self.release(key);
+        for (key, at) in due {
+            self.release(key, at);
         }
     }
 
-    fn release(&mut self, key: gdk::Key) {
+    /// The one way on, whatever's showing, a step at a time so nothing is
+    /// missed: the wisp's next word first, then past a card or a story's
+    /// page, then round to the next thing to find.
+    pub(crate) fn carry_on(&mut self, real: UnixMs) -> bool {
+        if self.more_now() {
+            return self.guide_next(real);
+        }
+        if self.card.is_some() {
+            self.dismiss_card(real);
+            return true;
+        }
+        if self.talk.prompt.is_some() || !self.hunting() {
+            return self.guide_next(real);
+        }
+        self.guide_next(real);
+        // Something is already in the ring: don't swing away from it.
+        if self.catch.target.is_some() {
+            self.status("Hold Space to catch it".into(), real);
+            return true;
+        }
+        self.turn_to_next(real);
+        true
+    }
+
+    fn release(&mut self, key: gdk::Key, at: UnixMs) {
         match key {
             gdk::Key::Left => self.held.left = false,
             gdk::Key::Right => self.held.right = false,
@@ -1141,6 +1169,15 @@ impl Game {
             gdk::Key::space => {
                 self.held.space = false;
                 self.catch.holding = false;
+                // A tap, not a hold: carry on. A hold that caught something
+                // has made a card, which the release mustn't put away.
+                if let Some(down) = self.space_since.take()
+                    && at - down < TAP_MS
+                    && !self.by_day()
+                    && !self.winding()
+                {
+                    self.carry_on(at);
+                }
             }
             _ => {}
         }
@@ -1900,7 +1937,7 @@ impl Game {
             ),
             Phase::Hunt if self.caught.iter().any(|c| *c) => (
                 1,
-                "Tab turns to the next find. Point at anything to see what it is",
+                "Tap Space for the next find, hold it to catch. Point at anything to see what it is",
             ),
             Phase::Hunt => (
                 1,
@@ -2773,10 +2810,7 @@ impl Game {
                     ("Space".into(), "go on".into()),
                     ("Esc".into(), "stop here".into()),
                 ],
-                None => vec![
-                    ("Space".into(), "carry on".into()),
-                    ("Tab".into(), "next".into()),
-                ],
+                None => vec![("Space".into(), "carry on".into())],
             },
             alpha: envelope(real - c.shown, 350, 600_000, 800),
         });

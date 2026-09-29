@@ -259,7 +259,7 @@ impl Game {
     }
 
     /// Whether the wisp has more to say now, rather than later.
-    fn more_now(&self) -> bool {
+    pub(crate) fn more_now(&self) -> bool {
         let held = self.held_back();
         self.guide.queue.iter().any(|l| !waiting(held, l))
     }
@@ -570,7 +570,7 @@ impl Game {
         );
         self.say_at(
             Aim::Ring,
-            "When something's inside the ring, hold Space to catch it. Tab turns you to the next one.",
+            "Tap Space to turn to the next thing to find, and hold it to catch whatever's inside the ring.",
             real + 500,
             8_000,
         );
@@ -597,7 +597,7 @@ impl Game {
         if self.say_once(
             "caught",
             Aim::Card,
-            "Lovely. Every find comes with a card saying something true about it. Space puts the card away, and Tab turns you to the next find.",
+            "Lovely. Every find comes with a card saying something true about it. Tap Space to carry on: it puts the card away, then turns you to the next find.",
             real + 600,
             9_000,
         ) {
@@ -785,7 +785,7 @@ impl Game {
     pub(crate) fn guide_help(&mut self, real: UnixMs) {
         self.say_at(
             Aim::Near(0.32, 0.5),
-            "Arrows or a drag look around. Hold Space to catch whatever's in the ring. Tab, or a click on the list, turns you to the next find. Point at anything to see what it is. C draws, L opens the logbook, M changes the music's style (and after the last, turns it off), K keeps you company in the background, and W winds down. The button top left opens the menu.",
+            "Arrows or a drag look around. Tapping Space carries on: the wisp's next word, then past a card, then to the next find (Enter and Tab do the same). Hold Space to catch whatever's in the ring, or click the list to turn to something. Point at anything to see what it is. C draws, L opens the logbook, M changes the music's style (and after the last, turns it off), K keeps you company in the background, and W winds down. The button top left opens the menu.",
             real,
             15_000,
         );
@@ -871,7 +871,7 @@ impl Game {
             } else {
                 self.say_at(
                     Aim::List,
-                    "Lost? Pick one from the list, or press Tab, and I'll turn you to it.",
+                    "Lost? Pick one from the list, or tap Space, and I'll turn you to the next.",
                     real,
                     8_000,
                 );
@@ -1406,13 +1406,13 @@ impl Game {
                 width,
                 alpha: a * alpha.min(1.0),
                 tail,
-                // Enter belongs to a card or a prompt while one is up.
+                // Space moves the wisp on first, except while typing.
                 more: more.then_some((
                     real as f64 / 1000.0,
-                    if self.card.is_some() || self.talk.prompt.is_some() {
+                    if self.talk.prompt.as_ref().is_some_and(|p| p.entry) {
                         "click me for more"
                     } else {
-                        "Enter for more"
+                        "Space for more"
                     },
                 )),
             })

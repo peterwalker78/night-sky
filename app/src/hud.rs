@@ -32,7 +32,7 @@ impl Tonight {
         root.set_margin_end(14);
         let title = label("TONIGHT", "tonight-title");
         let hint = label(
-            "Click one, or press Tab, to turn towards it",
+            "Click one, or tap Space, to turn to the next",
             "tonight-hint",
         );
         let rows = gtk::Box::new(gtk::Orientation::Vertical, 1);
@@ -89,7 +89,8 @@ impl Tonight {
         // turning to it.
         if day {
             self.title.set_text("TODAY");
-            self.hint.set_text("Click one, or press Tab, to see it");
+            self.hint
+                .set_text("Click one, or tap Space, to see the next");
         }
         if !visible || *self.shown.borrow() == rows {
             return;
