@@ -163,12 +163,12 @@ more = ["It lies so near the Sun's yearly path that the Moon can pass in front o
 [[showpiece]]
 id = "m24"
 name = "Small Sagittarius Star Cloud (M24)"
-kind = "cluster"
+kind = "cloud"
 ra = 274.200
 dec = -18.550
 mag = 2.5
 size = 120.0
-fact = "Not a cluster but a window through the dust into the Milky Way, showing stars 10,000 to 15,000 light years deep."
+fact = "Not an object of its own: a gap in the nearby dust lets us see deep into the Sagittarius Arm, one of our galaxy's spiral arms, where stars lie 10,000 to 16,000 light years away."
 more = ["Binoculars show around 1,000 stars at once here, the densest crowd of stars they can reach.", "A dark cloud, Barnard 92, makes a round, starless hole in its north-western side."]
 
 [[showpiece]]

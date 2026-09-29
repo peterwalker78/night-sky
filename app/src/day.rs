@@ -463,6 +463,7 @@ impl Game {
         // Left of the middle, so the wisp beside it stays clear of the list.
         let x = (self.camera.width / 2.0 - 240.0).max(20.0);
         self.card = Some(Card {
+            picture: None,
             x,
             kicker,
             title: self.day_name(i),

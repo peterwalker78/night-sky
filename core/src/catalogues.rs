@@ -52,6 +52,8 @@ pub enum Kind {
     Double,
     Star,
     Dark,
+    /// A rich patch of the Milky Way seen through a gap in nearer dust.
+    Cloud,
 }
 
 #[derive(Clone, Debug, Deserialize)]

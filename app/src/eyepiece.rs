@@ -32,6 +32,13 @@ pub struct Credit {
     /// exposure, light we can't see, marks the telescope makes.
     #[serde(default)]
     pub caption: Option<String>,
+    /// Shown in the card rather than laid over the sky: a constellation's
+    /// wide field, or a star's close-up.
+    #[serde(default)]
+    pub card_only: bool,
+    /// The constellation a wide-field photograph shows, by abbreviation.
+    #[serde(default)]
+    pub constellation: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -52,6 +59,8 @@ pub struct Photos {
     dir: Option<PathBuf>,
     credits: Vec<Credit>,
     cache: Option<(String, gdk::Texture)>,
+    /// The picture in the card showing, kept separately.
+    card: Option<(String, gdk::Texture)>,
 }
 
 fn folder() -> Option<PathBuf> {
@@ -86,6 +95,7 @@ impl Photos {
             dir,
             credits,
             cache: None,
+            card: None,
         }
     }
 
@@ -123,6 +133,29 @@ impl Photos {
         };
         self.cache = Some((key, texture.clone()));
         Some(texture)
+    }
+}
+
+impl Photos {
+    /// The picture for a card, by the photograph's id.
+    pub fn card_texture(&mut self, id: &str) -> Option<gdk::Texture> {
+        if let Some((k, t)) = &self.card
+            && k == id
+        {
+            return Some(t.clone());
+        }
+        self.credit(id)?;
+        let path = self.dir.as_ref()?.join(format!("{id}.jpg"));
+        let texture = gdk::Texture::from_filename(&path).ok()?;
+        self.card = Some((id.to_owned(), texture.clone()));
+        Some(texture)
+    }
+
+    /// The card-only photograph of a constellation, by abbreviation.
+    pub fn of_constellation(&self, abbrev: &str) -> Option<&Credit> {
+        self.credits
+            .iter()
+            .find(|c| c.constellation.as_deref() == Some(abbrev))
     }
 }
 

@@ -96,6 +96,8 @@ pub struct CardView {
     pub width: f64,
     /// Smaller type and tighter spacing, for a small window.
     pub compact: bool,
+    /// A photograph at the top, and whose it is.
+    pub picture: Option<(gdk::Texture, String)>,
 }
 
 /// A photograph of what's being looked at, set into the sky at its true size.
@@ -295,12 +297,66 @@ fn draw_card(widget: &gtk::Widget, snapshot: &gtk::Snapshot, c: &CardView) {
     let (_, th) = title.pixel_size();
     let (_, bh) = body.pixel_size();
     let keys_h = if c.keys.is_empty() { 0.0 } else { 34.0 };
-    let height = pad + kh as f32 + 6.0 + th as f32 + 10.0 + bh as f32 + keys_h + pad;
-    // Kept on the screen, however short the window.
     let room = widget.height() as f32;
+    // A picture across the top, as tall as its shape asks but never so tall
+    // the words run off the screen.
+    let inner = width - 2.0 * pad;
+    let credit = c.picture.as_ref().map(|(_, who)| {
+        layout(
+            widget,
+            &format!("Photograph: {who}"),
+            10.5,
+            false,
+            Some(inner as f64),
+        )
+    });
+    let text_h = pad + kh as f32 + 6.0 + th as f32 + 10.0 + bh as f32 + keys_h + pad;
+    let pic_h = c.picture.as_ref().map_or(0.0, |(t, _)| {
+        let natural = inner * t.height() as f32 / t.width().max(1) as f32;
+        natural
+            .min(if c.compact { 130.0 } else { 240.0 })
+            .min((room - text_h - 60.0).max(0.0))
+    });
+    let credit_h = credit
+        .as_ref()
+        .map_or(0.0, |l| l.pixel_size().1 as f32 + 6.0);
+    let top_h = if pic_h > 20.0 {
+        pic_h + credit_h + 10.0
+    } else {
+        0.0
+    };
+    let height = text_h + top_h;
+    // Kept on the screen, however short the window.
     let (x, y) = (c.x as f32, (c.y as f32).min(room - height - 8.0).max(8.0));
     panel(snapshot, &graphene::Rect::new(x, y, width, height), 14.0, a);
     let mut cy = y + pad;
+    if top_h > 0.0
+        && let Some((texture, _)) = &c.picture
+    {
+        // Filled to the width, trimmed top and bottom to fit.
+        let frame = graphene::Rect::new(x + pad, cy, inner, pic_h);
+        let natural = inner * texture.height() as f32 / texture.width().max(1) as f32;
+        snapshot.push_rounded_clip(&gsk::RoundedRect::from_rect(frame, 8.0));
+        snapshot.push_opacity(a as f64);
+        snapshot.append_texture(
+            texture,
+            &graphene::Rect::new(x + pad, cy - (natural - pic_h) / 2.0, inner, natural),
+        );
+        snapshot.pop();
+        snapshot.pop();
+        cy += pic_h + 4.0;
+        if let Some(l) = &credit {
+            text_at(
+                snapshot,
+                l,
+                x + pad,
+                cy,
+                gdk::RGBA::new(0.8, 0.83, 0.9, 0.5 * a),
+            );
+            cy += credit_h;
+        }
+        cy += 6.0;
+    }
     text_at(
         snapshot,
         &kicker,

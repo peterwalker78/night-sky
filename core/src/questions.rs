@@ -77,6 +77,8 @@ pub fn triggers(find: &Find, sky: &Sky) -> Vec<&'static str> {
                 Kind::Double => vec!["double"],
                 Kind::Star => vec!["distant"],
                 Kind::Dark => vec![],
+                // Looking deep into our own galaxy.
+                Kind::Cloud => vec!["distant"],
             }
         }
         Target::Meteor(_) => vec!["meteor"],

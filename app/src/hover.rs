@@ -42,6 +42,7 @@ fn kind_of(kind: Kind) -> &'static str {
         Kind::Double => "Double star",
         Kind::Star => "Star",
         Kind::Dark => "Dark cloud",
+        Kind::Cloud => "Star cloud",
     }
 }
 
@@ -446,6 +447,7 @@ impl Game {
             return false;
         };
         self.card = Some(Card {
+            picture: None,
             x: self.beside_centre(),
             kicker: h.kind,
             title: h.name,

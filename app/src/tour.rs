@@ -258,6 +258,7 @@ impl Game {
             self.beside_centre()
         };
         self.card = Some(Card {
+            picture: None,
             x,
             kicker,
             title,

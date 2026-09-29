@@ -254,6 +254,7 @@ impl Game {
             None => "Drawn tonight. It will rise and set with the real sky.".to_owned(),
         };
         self.card = Some(crate::game::Card {
+            picture: None,
             x: self.beside_centre(),
             kicker: "Your constellation".into(),
             title: name.to_owned(),
