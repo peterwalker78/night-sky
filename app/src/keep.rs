@@ -35,6 +35,9 @@ pub struct Keep {
     /// The sky's time when the company began.
     from: UnixMs,
     last: UnixMs,
+    /// Asked for while the wisp was still saying hello: it starts as soon
+    /// as the evening does.
+    want: bool,
 }
 
 impl Keep {
@@ -48,6 +51,7 @@ impl Keep {
             risen: Vec::new(),
             from: 0,
             last: 0,
+            want: false,
         }
     }
 }
@@ -63,6 +67,13 @@ impl Game {
             self.stop_company(real);
             let back = self.keep.lines.back.clone();
             self.say_at(Aim::Home, back, real, 4_000);
+            return;
+        }
+        // Still arriving: the hello can wait, and company begins as soon as
+        // the evening does.
+        if self.session.phase() == Phase::Arrival {
+            self.keep.want = true;
+            self.hush();
             return;
         }
         // From the menu it can start while something's being asked: that
@@ -110,15 +121,23 @@ impl Game {
         self.keep.last = real;
         let target = if self.keeping() { 1.0 } else { 0.0 };
         self.keep.mix += (target - self.keep.mix) * dt;
-        let Some(company) = &mut self.keep.company else {
+        if self.keep.want && matches!(self.session.phase(), Phase::Weights | Phase::Hunt) {
+            self.keep.want = false;
+            self.toggle_company(real);
+        }
+        if !self.keeping() {
             return;
-        };
+        }
         if seen && let Some(text) = self.keep.pending.take() {
             self.say_at(Aim::Home, text, real + 600, HOLD_MS);
             self.wisp_gesture(Gesture::Glow, real);
             return;
         }
         let now = self.clock.sky(real);
+        let hour = clock(now, self.offset_s);
+        if !self.keep.company.as_ref().is_some_and(|c| c.due(now, hour)) {
+            return;
+        }
         let up = risen(
             &self.sky,
             self.observer,
@@ -126,12 +145,20 @@ impl Game {
             now,
             &self.keep.risen,
         );
-        let person = self.journal.fixed_stars().first().map(|p| p.name.clone());
+        // Someone named on more than one night, a different one each time.
+        let people = self.journal.fixed_stars();
+        let person = (!people.is_empty())
+            .then(|| people[(now / 60_000) as usize % people.len()].name.clone());
+        let by_day = self.by_day();
+        let Some(company) = &mut self.keep.company else {
+            return;
+        };
         let Some(look) = company.tick(
             now,
-            clock(now, self.offset_s),
+            hour,
             up.as_deref(),
             person.as_deref(),
+            by_day,
             &self.keep.lines,
         ) else {
             return;

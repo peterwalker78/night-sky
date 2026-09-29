@@ -191,9 +191,13 @@ impl Flight {
         self.squash_v += pull * dt;
         self.squash = (self.squash + self.squash_v * dt).clamp(-0.25, 0.25);
 
-        // Embers: a stream while it flies, a spark now and then while it hovers.
+        // Embers: a stream while it flies, a spark now and then while it
+        // hovers, and none once it's home on its moss.
         let speed = self.speed();
         let every = if speed > 60.0 { 14.0 } else { 260.0 };
+        if self.home && speed <= 60.0 {
+            self.last_ember = t;
+        }
         while t - self.last_ember > every {
             self.last_ember = if t - self.last_ember > 500.0 {
                 t

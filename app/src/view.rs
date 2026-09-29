@@ -13,6 +13,7 @@ pub enum Align {
     Centre,
 }
 
+#[derive(Clone)]
 pub struct Text {
     pub x: f64,
     pub y: f64,
@@ -60,6 +61,7 @@ impl Text {
 
 /// A bright star or planet, drawn as a true point at its exact place rather
 /// than on the lattice: a crisp core and a soft halo.
+#[derive(Clone)]
 pub struct Point {
     pub x: f64,
     pub y: f64,
@@ -71,6 +73,7 @@ pub struct Point {
 }
 
 /// A soft line on the screen: a constellation's figure.
+#[derive(Clone)]
 pub struct Line {
     pub a: (f64, f64),
     pub b: (f64, f64),
@@ -93,6 +96,7 @@ pub struct CardView {
 }
 
 /// A photograph of what's being looked at, set into the sky at its true size.
+#[derive(Clone)]
 pub struct Eyepiece {
     pub texture: gdk::Texture,
     pub x: f64,
@@ -111,13 +115,26 @@ pub struct Eyepiece {
 }
 
 /// The strip along the top that says which way the view faces.
+#[derive(Clone)]
 pub struct Compass {
     /// Azimuth the view faces, degrees from north through east.
     pub heading: f64,
     pub alpha: f64,
 }
 
+/// A crisp shape drawn over everything but the wisp: a bird, a butterfly,
+/// a falling leaf. Strokes when open, filled when closed.
+#[derive(Clone)]
+pub struct Silhouette {
+    pub path: Vec<(f64, f64)>,
+    pub width: f32,
+    pub color: [f32; 3],
+    pub alpha: f32,
+    pub filled: bool,
+}
+
 /// A small picture drawn over the sky: the wisp.
+#[derive(Clone)]
 pub struct Sprite {
     pub texture: gdk::Texture,
     pub x: f64,
@@ -128,6 +145,7 @@ pub struct Sprite {
 }
 
 /// Words in a speech bubble, standing on `bottom` from `x`.
+#[derive(Clone)]
 pub struct Bubble {
     pub x: f64,
     pub bottom: f64,
@@ -141,9 +159,11 @@ pub struct Bubble {
     pub more: Option<(f64, &'static str)>,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Frame {
     pub points: Vec<Point>,
+    /// Living things moving about: drawn fresh every frame.
+    pub silhouettes: Vec<Silhouette>,
     /// Points drawn over the photographs: the wisp's trail and what it marks.
     pub marks: Vec<Point>,
     pub lines: Vec<Line>,
@@ -321,6 +341,31 @@ fn draw_line(snapshot: &gtk::Snapshot, l: &Line) {
         let stroke = gsk::Stroke::new(width);
         stroke.set_line_cap(gsk::LineCap::Round);
         snapshot.append_stroke(&path, &stroke, &gdk::RGBA::new(r, g, b, l.alpha * share));
+    }
+}
+
+fn draw_silhouette(snapshot: &gtk::Snapshot, s: &Silhouette) {
+    if s.alpha <= 0.004 || s.path.len() < 2 {
+        return;
+    }
+    let builder = gsk::PathBuilder::new();
+    builder.move_to(s.path[0].0 as f32, s.path[0].1 as f32);
+    for &(x, y) in &s.path[1..] {
+        builder.line_to(x as f32, y as f32);
+    }
+    if s.filled {
+        builder.close();
+    }
+    let path = builder.to_path();
+    let [r, g, b] = s.color;
+    let rgba = gdk::RGBA::new(r, g, b, s.alpha.min(1.0));
+    if s.filled {
+        snapshot.append_fill(&path, gsk::FillRule::Winding, &rgba);
+    } else {
+        let stroke = gsk::Stroke::new(s.width);
+        stroke.set_line_cap(gsk::LineCap::Round);
+        stroke.set_line_join(gsk::LineJoin::Round);
+        snapshot.append_stroke(&path, &stroke, &rgba);
     }
 }
 
@@ -554,6 +599,9 @@ mod imp {
             }
             for p in &frame.marks {
                 draw_point(snapshot, p);
+            }
+            for s in &frame.silhouettes {
+                draw_silhouette(snapshot, s);
             }
             for sprite in &frame.sprites {
                 snapshot.push_opacity(sprite.alpha.clamp(0.0, 1.0));

@@ -99,6 +99,8 @@ pub struct Guide {
     /// Where an idle look is aimed.
     idle_spot: Option<Spot>,
     lines: Lines,
+    /// The moss as last drawn: when, at what scale.
+    moss: Option<(UnixMs, f64, gtk::gdk::Texture)>,
 }
 
 /// Whether a line waits: while a card is up only its own line speaks, and
@@ -164,6 +166,7 @@ impl Guide {
             idle: Idle::new(real),
             idle_spot: None,
             lines: Lines::bundled(),
+            moss: None,
         }
     }
 }
@@ -275,9 +278,10 @@ impl Game {
     /// and hovering, 0 settled on its moss.
     pub(crate) fn wisp_motion(&self) -> u8 {
         let real = self.last_real;
-        if self.guide.flight.speed() > 12.0 || self.guide.flight.has_embers() {
+        if self.guide.flight.speed() > 12.0 {
             2
         } else if !self.guide.flight.home
+            || self.guide.flight.has_embers()
             || self.guide.wisp.gesturing(real as f64)
             || self.guide.flight.wobbling()
             || self.guide.idle.doing(real).is_some()
@@ -873,6 +877,9 @@ impl Game {
             .wisp
             .update(0.05, mode, Trend::Steady, false, true, false);
         self.guide.wisp.set_feel(self.wisp_feel(real));
+        self.guide
+            .wisp
+            .set_humming(self.keeping() && self.playing.is_some());
         // Its breath slows with the evening, to about five and a half breaths
         // a minute at the calmest: slow enough to fall in with.
         let calmest = westering_core::session::CALMEST;
@@ -929,6 +936,9 @@ impl Game {
     /// Something in the sky worth a look: one of tonight's finds on the
     /// screen, not yet caught if there is one.
     fn sky_spot(&self, real: UnixMs) -> Option<Spot> {
+        if self.by_day() {
+            return self.day_bird(real);
+        }
         let now = self.sky_now(real);
         let hz = westering_core::coords::horizon(self.observer, now);
         let prec = westering_core::coords::precession(now);
@@ -1231,6 +1241,8 @@ impl Game {
             Some(toward(m))
         } else {
             match idle {
+                // By day it watches a bird as it goes over.
+                Some(Kind::LookUp) if self.by_day() => self.day_bird(real).map(toward),
                 Some(Kind::LookUp) => self.guide.idle_spot.map(toward),
                 Some(Kind::Watch) => self.pointer.map(|(x, y, _)| toward((x, y))),
                 Some(Kind::LookOut) => Some((0.0, 0.0)),
@@ -1243,7 +1255,17 @@ impl Game {
         let mut points = self.guide.flight.embers(real, alpha as f32);
         // The moss stays put; the wisp is drawn the same way whether it sits
         // on it or flies, so going home has no seam.
-        if let Some(texture) = render_moss(&self.guide.wisp, real as f64, self.guide.scale) {
+        // It changes slowly, so it's drawn a few times a second.
+        let stale = self
+            .guide
+            .moss
+            .as_ref()
+            .is_none_or(|(at, scale, _)| real - at > 250 || *scale != self.guide.scale);
+        if stale {
+            self.guide.moss = render_moss(&self.guide.wisp, real as f64, self.guide.scale)
+                .map(|t| (real, self.guide.scale, t));
+        }
+        if let Some((_, _, texture)) = self.guide.moss.clone() {
             sprites.push(Sprite {
                 texture,
                 x: nx,

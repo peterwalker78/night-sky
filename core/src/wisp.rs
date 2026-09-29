@@ -158,6 +158,8 @@ const BURST_FPS: f64 = 20.0;
 const MOTE_EVERY_MS: f64 = 1400.0;
 /// Clouded and drained: faint smoke.
 const SMOKE_EVERY_MS: f64 = 2200.0;
+/// Humming: a note drifts up now and then.
+const NOTE_EVERY_MS: f64 = 4200.0;
 /// Dozing: a small z drifts up now and then.
 const Z_EVERY_MS: f64 = 3200.0;
 /// Drained: out toward the window edge, pause, back, rest.
@@ -216,6 +218,8 @@ enum ParticleKind {
     Mote,
     Smoke,
     Z,
+    /// A little note, drifting up while it hums along to music.
+    Note,
 }
 
 /// Everything the wisp is doing, and everything it is about to do.
@@ -282,6 +286,8 @@ pub struct Wisp {
     /// Squashed or stretched by its flight: width and height factors.
     body: (f64, f64),
     season: Option<Season>,
+    humming: bool,
+    last_note: f64,
 }
 
 impl Wisp {
@@ -335,7 +341,14 @@ impl Wisp {
             gesture: None,
             body: (1.0, 1.0),
             season: None,
+            humming: false,
+            last_note: 0.0,
         }
+    }
+
+    /// Humming along to music: now and then a note drifts up.
+    pub fn set_humming(&mut self, humming: bool) {
+        self.humming = humming;
     }
 
     /// The time of year, for the moss: none where the year has no seasons
@@ -779,6 +792,19 @@ fn draw(wisp: &mut Wisp, now: f64, moving: bool, dark: bool, cr: &mut dyn Canvas
         {
             wisp.last_smoke = now;
             spawn(wisp, now, x, y - radius * 1.4, ParticleKind::Smoke);
+        }
+        if wisp.humming
+            && awake > 0.5
+            && now - wisp.last_note > NOTE_EVERY_MS * (0.7 + random(wisp) * 0.6)
+        {
+            wisp.last_note = now;
+            spawn(
+                wisp,
+                now,
+                x + radius * 0.9,
+                y - radius * 1.1,
+                ParticleKind::Note,
+            );
         }
         if wisp.sleep > 0.8 && wisp.privacy < 0.1 && now - wisp.last_z > Z_EVERY_MS {
             wisp.last_z = now;
@@ -1386,6 +1412,7 @@ fn spawn(wisp: &mut Wisp, now: f64, x: f64, y: f64, kind: ParticleKind) {
         ParticleKind::Mote => (900.0, spread * 8.0, -16.0, 1.4),
         ParticleKind::Smoke => (2600.0, spread * 4.0, -12.0, 5.0),
         ParticleKind::Z => (2600.0, 6.0, -14.0, 3.2),
+        ParticleKind::Note => (3400.0, 7.0 + spread * 6.0, -18.0, 4.2),
     };
     wisp.particles.push(Particle {
         born: now,
@@ -1432,6 +1459,32 @@ fn draw_particles(
                     ],
                 ));
                 cr.disc(px, py, size);
+            }
+            ParticleKind::Note => {
+                // A quaver: a round head, a stem and a flag, swaying a little.
+                let sway = (age * PI * 2.0).sin() * 1.5;
+                let (hx, hy) = (px + sway, py);
+                let s = p.size;
+                cr.set_paint(Paint::solid(look.core, 0.7 * fade));
+                cr.save();
+                cr.translate(hx, hy);
+                cr.scale(s * 0.5, s * 0.38);
+                cr.arc(0.0, 0.0, 1.0, 0.0, TAU);
+                cr.restore();
+                cr.fill();
+                cr.set_line_width(0.8);
+                cr.set_round_ends(true);
+                cr.move_to(hx + s * 0.45, hy);
+                cr.line_to(hx + s * 0.45, hy - s * 1.7);
+                cr.curve_to(
+                    hx + s * 0.9,
+                    hy - s * 1.3,
+                    hx + s * 1.1,
+                    hy - s * 1.0,
+                    hx + s * 0.8,
+                    hy - s * 0.6,
+                );
+                cr.stroke();
             }
             ParticleKind::Z => {
                 let ink = if dark {

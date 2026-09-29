@@ -50,7 +50,7 @@ pub struct Day {
     stamp: Option<(usize, usize, i64)>,
     /// Which way the view faces: towards the Sun's side of the sky.
     facing: f64,
-    season: Option<Season>,
+    pub(crate) season: Option<Season>,
     began: UnixMs,
 }
 
@@ -255,7 +255,7 @@ impl Game {
 
     /// Where the horizon sits: a third of the way down, so the ground has
     /// most of the view.
-    fn horizon_y(&self) -> f64 {
+    pub(crate) fn horizon_y(&self) -> f64 {
         self.camera.height * 0.34
     }
 
@@ -274,7 +274,7 @@ impl Game {
     }
 
     /// The standing stone's foot, and its height on the screen.
-    fn stone(&self) -> (f64, f64, f64) {
+    pub(crate) fn stone(&self) -> (f64, f64, f64) {
         let (w, h, hy) = (self.camera.width, self.camera.height, self.horizon_y());
         (w * 0.58, hy + (h - hy) * 0.4, (h - hy) * 0.16)
     }
@@ -715,10 +715,10 @@ impl Game {
         }
     }
 
-    /// One frame of the day.
-    pub(crate) fn day_frame(&mut self, real: UnixMs) -> Frame {
-        // The visit's own arc: arrival, a look, and it ends by itself if
-        // left long enough.
+    /// The day's own arc: arrival, a look, and an end, by choice or after a
+    /// while. The Sun's place is worked out afresh every few minutes, so a
+    /// long stay sees it move and the shadow turn.
+    pub(crate) fn day_logic(&mut self, real: UnixMs) {
         if self.session.phase() == westering_core::session::Phase::Arrival
             && !self.wisp_busy(real)
             && let Some(westering_core::session::Phase::Hunt) = self.session.tick(real)
@@ -733,6 +733,19 @@ impl Game {
         } else if !self.keeping() && day.began > 0 && real - day.began > LONGEST_MS {
             self.day_end(real);
         }
+        let now = self.clock.sky(real);
+        let minute = now / (5 * MINUTE);
+        if self.day_ref().stamp.is_some_and(|s| s.2 != minute) {
+            let fresh = ground::today(self.observer, now, self.offset_s);
+            if let Some(day) = &mut self.day {
+                let moon = fresh.moon.clone().or(day.today.moon.take());
+                day.today = ground::Today { moon, ..fresh };
+            }
+        }
+    }
+
+    /// One frame of the day.
+    pub(crate) fn day_frame(&mut self, real: UnixMs) -> Frame {
         let (w, h) = (self.camera.width, self.camera.height);
         let pitch = if w > 2200.0 { 3.6 } else { 3.2 };
         let resized = self.field.fit(w, h, pitch);
@@ -765,10 +778,12 @@ impl Game {
                     .color([1.0, 0.95, 0.86]),
             );
         }
+        self.sprite_brightness = gain.max(0.3);
         let (sprites, bubble, embers) = self.guide_frame(real, gain.max(0.3));
         let card = self.card_view(real);
         crate::view::Frame {
             points: std::mem::take(&mut self.points),
+            silhouettes: self.day_life(real),
             marks: embers,
             sprites,
             bubble,
@@ -789,7 +804,8 @@ impl Game {
         let (h, hy) = (self.camera.height, self.horizon_y());
         let day = self.day_ref();
         let sun_alt = day.today.sun_alt;
-        let light = (0.55 + 0.45 * (sun_alt / 30.0).clamp(0.0, 1.0)) as f32;
+        // Dimming towards dusk, for a long stay.
+        let light = (0.25 + 0.75 * ((sun_alt + 6.0) / 36.0).clamp(0.0, 1.0)) as f32;
         let low = (1.0 - sun_alt / 14.0).clamp(0.0, 1.0) as f32;
         let grass = match day.season {
             Some(Season::Spring) => [0.42, 0.7, 0.3],
@@ -832,6 +848,7 @@ impl Game {
                 ];
             }
         }
+        self.day_scenery(light);
     }
 
     /// What moves or matters: the Sun, the Moon, drifting clouds, the stone
@@ -932,6 +949,11 @@ impl Game {
             } else {
                 amount
             };
+            // Keeping company, the finds step aside with everything else.
+            let amount = amount * (1.0 - self.keep.mix as f32);
+            if amount < 0.01 {
+                continue;
+            }
             self.field.glow(x, y, 28.0, colour, 0.1 * amount);
             for stroke in outline(shape) {
                 for pair in stroke.windows(2) {

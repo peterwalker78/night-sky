@@ -55,6 +55,24 @@ impl Music {
         }
     }
 
+    /// The title of the track playing, from its file name.
+    pub fn playing(&self) -> Option<String> {
+        if self.quiet || self.volume < 0.01 {
+            return None;
+        }
+        let path = self
+            .tracks
+            .get((self.next + self.tracks.len() - 1) % self.tracks.len().max(1))?;
+        let stem = path.file_stem()?.to_str()?;
+        // "02-moon-unit" is "Moon unit".
+        let words = stem.trim_start_matches(|c: char| c.is_ascii_digit() || c == '-');
+        let mut title = words.replace('-', " ");
+        if let Some(first) = title.get(..1) {
+            title = first.to_uppercase() + &title[1..];
+        }
+        Some(title)
+    }
+
     fn start_next(&mut self) {
         if self.tracks.is_empty() {
             return;

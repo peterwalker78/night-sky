@@ -108,7 +108,7 @@ text = "{name}'s star, {star}, is up tonight, {where}."
 [company]
 start = "I'll keep you company. The music plays on, and I'll look in on you now and then. K, or a click on me, brings the sky back."
 back = "There's the sky again."
-not-yet = "Once you're looking up at the sky, K lets me keep you company in the background."
+not-yet = "Once this is done, K lets me keep you company in the background."
 care = [
   "Still here. Let your shoulders drop, and your jaw.",
   "A sip of water, if there's some nearby.",
@@ -116,8 +116,18 @@ care = [
   "If you've been sitting a while, stand up and stretch. I'll wait.",
   "Breathe out slowly, a little longer than the breath in. Once more.",
   "Unclench your hands for a moment. There.",
-  "Is the light where you are soft enough? Gentler light makes for an easier night.",
   "Warm enough? Small comforts count for a lot.",
+]
+care-day = [
+  "If there's a window near you, look out of it for a moment: the real sky's right there.",
+  "Had something to eat lately? A proper break counts for more than it looks.",
+  "Stretch your legs for a minute, if you can. I'll be right here.",
+  "If it's a fine day, a window open for a while lets the day in.",
+]
+care-night = [
+  "Is the light where you are soft enough? Gentler light makes for an easier night.",
+  "A warm drink, if you fancy one: something without caffeine, this late.",
+  "The screen can come down a notch or two now. Your eyes will be ready for sleep sooner.",
 ]
 people = [
   "{name} might like to hear from you some time. No rush.",

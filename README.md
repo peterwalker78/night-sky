@@ -76,15 +76,18 @@ Everything there is true where you are, today: the Sun where it really is, a
 standing stone casting this minute's shadow (and how long yours would be), the
 Moon if it's out by day, how much longer or shorter today is than yesterday,
 and three small things on the ground at this time of year, like acorns, frost,
-swallows or a spider's web, for your hemisphere. It takes a few minutes, may
+swallows or a spider's web, for your hemisphere. Birds cross the sky, geese go
+over in spring and autumn, butterflies and bees work the grass in summer, the
+tree drops its leaves in autumn, and in winter a robin keeps the stone. It takes a few minutes, may
 ask one small question about the day ahead, and then sends you back to your
 day with a nudge to step outside.
 
 **Or just keep it running.** Press `K`, or choose Keep me company in the menu,
 and the evening pauses. The sky settles back, the music plays on, and the
 window can be as small as you like: tiled into a corner, or behind everything
-else. Every half hour or so the wisp looks in with a word about looking after
-yourself: a sip of water, a stretch, your shoulders. If the window is out of
+else. The wisp hums along, and the track playing is named at the top. Every
+half hour or so it looks in with a word about looking after yourself: a sip
+of water, a stretch, your shoulders, a look out of the window by day. If the window is out of
 sight, the music softens for a moment, and the word waits for you. It never
 runs for ever. After two hours, or once it's well past midnight, it winds the
 evening down.
@@ -153,7 +156,7 @@ journal, not therapy or a crisis service.
 | `?`, or click the wisp | What the keys do; a click also hurries the wisp on when it has more to say |
 | Point at anything | What it is; click it to hear more |
 | `M` | Music off or on |
-| `K` | Keep me company: the sky rests and the music plays on in the background; `K` again brings the sky back |
+| `K` | Keep me company: the sky rests and the music plays on in the background; `K` again brings the sky back. While it keeps you company, the arrow keys (or `+` and `-`) set the volume |
 | `W`, or Wind down at the top left | Wind down: the screen dims, and you choose outside or bed |
 | `Ctrl` `,` | Settings |
 | `F11` | Full screen |

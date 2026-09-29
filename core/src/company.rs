@@ -16,6 +16,10 @@ pub struct Lines {
     #[serde(rename = "not-yet")]
     pub not_yet: String,
     care: Vec<String>,
+    #[serde(rename = "care-day")]
+    care_day: Vec<String>,
+    #[serde(rename = "care-night")]
+    care_night: Vec<String>,
     people: Vec<String>,
     pub risen: String,
     pub late: String,
@@ -75,6 +79,14 @@ impl Company {
         20 * MINUTE + roll as UnixMs * MINUTE
     }
 
+    /// Whether `tick` has something to say now, without working it out.
+    pub fn due(&self, now: UnixMs, (hour, minute): (u32, u32)) -> bool {
+        let small_hours = hour < 5 && (hour > 0 || minute >= 30);
+        now >= self.next
+            || now - self.since >= LONGEST
+            || (small_hours && now - self.since >= 10 * MINUTE)
+    }
+
     /// Whether it's time to look in, and what to say. `hour` and `minute`
     /// are the local clock; `risen` is something that has come up since,
     /// if anything; `person` someone named on more than one night.
@@ -84,6 +96,7 @@ impl Company {
         (hour, minute): (u32, u32),
         risen: Option<&str>,
         person: Option<&str>,
+        by_day: bool,
         lines: &Lines,
     ) -> Option<Look> {
         let small_hours = hour < 5 && (hour > 0 || minute >= 30);
@@ -116,8 +129,18 @@ impl Company {
                 return Some(Look::Care(line.clone()));
             }
         }
+        // Words for any time, and some for the time of day.
+        let pool: Vec<&String> = lines
+            .care
+            .iter()
+            .chain(if by_day {
+                &lines.care_day
+            } else {
+                &lines.care_night
+            })
+            .collect();
         Some(Look::Care(
-            lines.care[(roll / 4 + self.looks as usize) % lines.care.len()].clone(),
+            pool[(roll / 4 + self.looks as usize) % pool.len()].clone(),
         ))
     }
 }
@@ -135,7 +158,7 @@ mod tests {
         let mut t = 0;
         let end = loop {
             let hour = 20 + (t / HOUR) as u32;
-            if let Some(look) = c.tick(t, (hour, 0), None, Some("Sam"), &lines) {
+            if let Some(look) = c.tick(t, (hour, 0), None, Some("Sam"), false, &lines) {
                 if look == Look::Closing {
                     break t;
                 }
@@ -161,7 +184,7 @@ mod tests {
             // Starting at 23:40.
             let minutes = 23 * 60 + 40 + t / MINUTE;
             let clock = (((minutes / 60) % 24) as u32, (minutes % 60) as u32);
-            match c.tick(t, clock, None, None, &lines) {
+            match c.tick(t, clock, None, None, false, &lines) {
                 Some(Look::Closing) => break t,
                 Some(Look::Late) => lates += 1,
                 _ => {}

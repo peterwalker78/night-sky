@@ -107,6 +107,14 @@ pub(crate) struct Card {
     pub(crate) shown: UnixMs,
 }
 
+/// A full frame kept for reuse, less the wisp and anything alive.
+struct Cached {
+    at: UnixMs,
+    size: (f64, f64),
+    brightness: f64,
+    frame: Frame,
+}
+
 pub(crate) struct Timed {
     pub(crate) text: String,
     pub(crate) shown: UnixMs,
@@ -224,6 +232,15 @@ pub struct Game {
     pub(crate) keep: crate::keep::Keep,
     /// A visit while the Sun is up, looking down at the ground.
     pub(crate) day: Option<crate::day::Day>,
+    /// Whether the window has the keyboard.
+    pub focused: bool,
+    /// The last full frame, for drawing the wisp over while little else
+    /// is changing.
+    cached: Option<Cached>,
+    /// How bright the wisp was drawn in the last full frame.
+    pub(crate) sprite_brightness: f64,
+    /// The track playing, by its title.
+    pub playing: Option<String>,
     pub(crate) ground: westering_core::ground::Ground,
 }
 
@@ -496,6 +513,10 @@ impl Game {
             keep: crate::keep::Keep::new(),
             day,
             ground,
+            focused: true,
+            cached: None,
+            sprite_brightness: 1.0,
+            playing: None,
         };
         game.arrive(real_now);
         game
@@ -821,6 +842,16 @@ impl Game {
         self.last_input = real;
     }
 
+    /// A little louder or quieter, and kept.
+    fn nudge_volume(&mut self, by: f64, real: UnixMs) {
+        let v = (self.volume() + by).clamp(0.0, 1.0);
+        self.journal.settings.volume = Some(v);
+        if let Err(e) = self.journal.save_settings() {
+            eprintln!("westering: couldn't save settings: {e}");
+        }
+        self.say(format!("Volume {}%.", (v * 100.0).round()), real, 1_800);
+    }
+
     pub(crate) fn toggle_music(&mut self, real: UnixMs) {
         let quiet = !self.journal.settings.quiet;
         self.journal.settings.quiet = quiet;
@@ -869,6 +900,8 @@ impl Game {
                 }
                 gdk::Key::Return | gdk::Key::KP_Enter => return self.guide_next(real),
                 gdk::Key::m | gdk::Key::M => self.toggle_music(real),
+                gdk::Key::Up | gdk::Key::plus | gdk::Key::equal => self.nudge_volume(0.1, real),
+                gdk::Key::Down | gdk::Key::minus => self.nudge_volume(-0.1, real),
                 _ => return false,
             }
             return true;
@@ -1478,28 +1511,73 @@ impl Game {
         let dt = ((real - self.last_real) as f64 / 1000.0).clamp(0.0, 0.25);
         self.last_real = real;
         self.settle_releases(real);
-        if self.by_day() {
-            self.company_tick(real, true);
-            if !self.keeping() {
-                self.tick_talk(real);
+        self.logic(real);
+        // Unfocused, or keeping company, the sky and ground change slowly:
+        // they're drawn a few times a second, while the wisp and anything
+        // alive keep moving smoothly on top.
+        let every = if self.keeping() { 250 } else { 125 };
+        let quiet = (!self.focused || self.keeping())
+            && self.wisp_motion() < 2
+            && !self.wants_fast_frames(real);
+        if quiet
+            && let Some(c) = &self.cached
+            && real - c.at < every
+            && c.size == (self.camera.width, self.camera.height)
+        {
+            let (mut frame, brightness) = (c.frame.clone(), c.brightness);
+            let (sprites, bubble, embers) = self.guide_frame(real, brightness);
+            frame.sprites = sprites;
+            frame.bubble = bubble;
+            frame.marks.extend(embers);
+            if self.by_day() {
+                frame.silhouettes = self.day_life(real);
             }
-            self.guide_tick(real);
-            return self.day_frame(real);
+            return frame;
         }
-        // One thing at a time: the evening begins once the wisp has had
-        // its say.
-        let greeting = self.session.phase() == Phase::Arrival && self.wisp_busy(real);
-        if !greeting && let Some(phase) = self.session.tick(real) {
-            self.entered(phase, real);
-        }
-        if self.session.phase() == Phase::Over {
-            self.quit = true;
+        let frame = if self.by_day() {
+            self.day_frame(real)
+        } else {
+            self.night_frame(real, dt)
+        };
+        self.cached = Some(Cached {
+            at: real,
+            size: (self.camera.width, self.camera.height),
+            brightness: self.sprite_brightness,
+            frame: Frame {
+                sprites: Vec::new(),
+                bubble: None,
+                marks: Vec::new(),
+                silhouettes: Vec::new(),
+                ..frame.clone()
+            },
+        });
+        frame
+    }
+
+    /// Everything that isn't drawing: the arc of the visit, company, what's
+    /// being asked and what the wisp is up to.
+    fn logic(&mut self, real: UnixMs) {
+        if self.by_day() {
+            self.day_logic(real);
+        } else {
+            // One thing at a time: the evening begins once the wisp has had
+            // its say.
+            let greeting = self.session.phase() == Phase::Arrival && self.wisp_busy(real);
+            if !greeting && let Some(phase) = self.session.tick(real) {
+                self.entered(phase, real);
+            }
+            if self.session.phase() == Phase::Over {
+                self.quit = true;
+            }
         }
         self.company_tick(real, true);
         if !self.keeping() {
             self.tick_talk(real);
         }
         self.guide_tick(real);
+    }
+
+    fn night_frame(&mut self, real: UnixMs, dt: f64) -> Frame {
         let tempo = self.session.tempo(real);
         self.steer(dt, tempo);
         let now = self.sky_now(real);
@@ -2392,6 +2470,7 @@ impl Game {
         if !self.keeping() {
             texts.extend(self.hover_frame(real, now, hz, prec));
         }
+        self.sprite_brightness = brightness;
         let (sprites, bubble, embers) = self.guide_frame(real, brightness);
         if let Some(i) = self.eye
             && self.eye_alpha > 0.05
@@ -2435,6 +2514,7 @@ impl Game {
                 alpha: brightness.max(0.5),
             });
         Frame {
+            silhouettes: Vec::new(),
             eyepiece,
             card,
             compass,
@@ -2730,7 +2810,12 @@ impl Game {
                 Text::new(
                     w / 2.0,
                     20.0,
-                    "Keeping you company · K brings the sky back",
+                    match &self.playing {
+                        Some(track) => {
+                            format!("Keeping you company · ♪ {track} · K brings the sky back")
+                        }
+                        None => "Keeping you company · K brings the sky back".to_owned(),
+                    },
                     12.0,
                     0.45 * self.keep.mix,
                 )
@@ -2801,8 +2886,9 @@ impl Game {
     pub fn frame_ms(&self, real: UnixMs) -> i64 {
         let fast = self.wants_fast_frames(real);
         if self.keeping() && !fast && self.wisp_motion() == 0 && self.keep.mix > 0.99 {
-            // In the background the sky barely needs drawing.
-            return 250;
+            // In the background: only the wisp and anything alive move
+            // smoothly, and cheaply; the sky is redrawn a few times a second.
+            return 50;
         }
         if fast || self.wisp_motion() == 2 {
             16

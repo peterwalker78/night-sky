@@ -15,6 +15,7 @@ mod hover;
 mod hud;
 mod idle;
 mod keep;
+mod life;
 mod music;
 mod settings;
 mod sprite;
@@ -419,12 +420,10 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
             let real = wall_clock();
             let pace = game.borrow().frame_ms(real);
             let on_sky = !sheet.reveals_child();
+            // Out of focus it goes on smoothly but a little slower; the
+            // sky itself is only redrawn now and then (see Game::tick).
             let interval = if !window.is_active() {
-                if game.borrow().keeping() {
-                    pace.max(200)
-                } else {
-                    200
-                }
+                pace.max(40)
             } else if !on_sky {
                 // Still turning behind the panel, gently.
                 100
@@ -434,6 +433,8 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
             if real - last_frame.get() >= interval {
                 last_frame.set(real);
                 let mut g = game.borrow_mut();
+                g.focused = window.is_active();
+                g.playing = music.borrow().playing();
                 g.resize(
                     view.width() as f64,
                     view.height() as f64,
