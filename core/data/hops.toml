@@ -34,7 +34,7 @@ id = "pegasus-andromeda"
 title = "From Pegasus to the Andromeda Galaxy"
 hemisphere = "north"
 steps = [
-  { hr = 15,  say = "Start at Alpheratz, the corner of the Great Square of Pegasus nearest Cassiopeia." },
+  { hr = 15,  say = "Start at Alpheratz, the corner of the Great Square of Pegasus nearest Cassiopeia, though the star itself belongs to Andromeda." },
   { hr = 337, say = "Away from the Square about a fist and a half to Mirach, the next bright star in the chain." },
   { hr = 269, say = "Turn towards Cassiopeia: about four degrees takes you to the fainter mu Andromedae." },
   { hr = 226, say = "Carry on about three degrees in the same direction to nu Andromedae, fainter still." },

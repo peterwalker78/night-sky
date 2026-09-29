@@ -10,10 +10,10 @@
 id = "hunter-scorpion"
 title = "The hunter and the scorpion"
 anchor = 2061
-mirror = "Orion and the Scorpion are never up on the same night. Some things are worth keeping apart like that: the day's work and the evening's rest."
+mirror = "Orion and the Scorpion are hardly ever up at the same time. Some things are worth keeping apart like that: the day's work and the evening's rest."
 lines = [
-  { hr = 2061, say = "In Greek myth, Orion was a great hunter who boasted he could kill any animal on Earth." },
-  { hr = 1903, say = "So the Earth sent a scorpion to stop him, and the gods set them both among the stars, far apart." },
+  { hr = 2061, say = "In one Greek telling, Orion was a great hunter who boasted he could kill any animal on Earth." },
+  { say = "So the Earth sent a scorpion to stop him, and the gods set them both among the stars, far apart." },
   { say = "They sit on opposite sides of the sky: as Orion sets in the west, the Scorpion rises in the east, so they're hardly ever up together." },
   { hr = 2061, say = "Betelgeuse, his shoulder, is a red supergiant. Put it where the Sun is and it would reach out past the orbit of Mars." },
 ]
@@ -24,9 +24,9 @@ title = "Perseus and the chained princess"
 anchor = 15
 mirror = "Andromeda didn't have to free herself; someone came. Most of us have someone who would come, if we asked."
 lines = [
-  { hr = 168, say = "Queen Cassiopeia boasted that her daughter Andromeda was more beautiful than the nymphs of the sea." },
+  { hr = 168, say = "Queen Cassiopeia boasted that she, or in some tellings her daughter Andromeda, was more beautiful than the nymphs of the sea." },
   { hr = 15, say = "In revenge the sea god sent a monster, and Andromeda was chained to a rock at the shore as its offering." },
-  { hr = 1017, say = "Perseus, flying home with the head of Medusa, saw her and turned the monster to stone." },
+  { hr = 1017, say = "Perseus, flying home with the head of Medusa, saw her and killed the monster; in one telling he turned it to stone with Medusa's head." },
   { hr = 936, say = "Algol marks Medusa's head. Its name comes from the Arabic for the demon's head, and every few days it really does dim, as a fainter star passes in front of it." },
 ]
 
@@ -34,11 +34,11 @@ lines = [
 id = "great-bear"
 title = "The Great Bear"
 anchor = 4301
-mirror = "The Great Bear and the Little Bear circle the pole all year and never set. Some people are like that too: there in every season, whether or not we look up."
+mirror = "From Britain and much of the north, the Plough and the Little Bear circle the pole all year and never set. Some people are like that too: there in every season, whether or not we look up."
 lines = [
-  { hr = 4301, say = "Zeus loved the nymph Callisto, and in her jealousy Hera turned her into a bear." },
-  { hr = 424, say = "Years later her son Arcas nearly hunted her, so Zeus lifted them both into the sky; in one telling Arcas became the Little Bear." },
-  { hr = 5191, say = "Hera asked the sea gods never to let the bears bathe, and in Homer's day, seen from Greece, the Great Bear never sank below the horizon." },
+  { hr = 4301, say = "Zeus loved the nymph Callisto, and in Ovid's telling a jealous Hera turned her into a bear; others blame Artemis, or Zeus himself." },
+  { hr = 5340, say = "Years later her son Arcas nearly hunted her, so Zeus lifted them both into the sky: she became the Great Bear, and Arcas the Bear-keeper, Boötes, who follows her round the pole." },
+  { hr = 5191, say = "Hera asked the sea gods never to let the Bear bathe, and in Homer's day, seen from Greece, its seven bright stars never sank below the horizon." },
 ]
 
 [[story]]
@@ -63,7 +63,7 @@ figure = [[7001, 7557], [7557, 7924], [7924, 7001]]
 mirror = "The weaver and the cowherd get one night a year together, and they make it count. Is there someone you only see now and then, who'd be glad to hear from you?"
 lines = [
   { hr = 7001, say = "In a story told across China, Korea and Japan, Vega is a weaver girl who fell in love with a cowherd, Altair." },
-  { hr = 7557, say = "Her mother, a goddess, drew a river between them: the Milky Way." },
+  { hr = 7557, say = "The Queen Mother of the West, a goddess, drew a river between them: the Milky Way." },
   { hr = 7924, say = "Once a year, on the seventh night of the seventh month, magpies make a bridge so they can meet. Some say Deneb is the bridge." },
 ]
 
@@ -97,7 +97,7 @@ mirror = "Pollux gave up half of forever rather than be without his brother. Mos
 lines = [
   { hr = 2891, say = "Castor and Pollux were twin brothers. Castor was mortal; Pollux, a son of Zeus, was not." },
   { hr = 2990, say = "When Castor was killed, Pollux asked to share his immortality with him." },
-  { say = "So now they take turns: a day among the gods, a day in the underworld, always together. Sailors once prayed to them for calm seas." },
+  { say = "In Pindar's telling they now take turns together, a day among the gods and a day in the underworld; in Homer's, they live on alternate days. Sailors once prayed to them for calm seas." },
 ]
 
 [[story]]
@@ -106,7 +106,7 @@ title = "The lion Heracles faced first"
 anchor = 3982
 mirror = "Even Heracles had his labours one at a time, not twelve at once. Tomorrow's can wait for tomorrow."
 lines = [
-  { hr = 3982, say = "Leo is the lion of Nemea, whose skin no weapon could pierce. Killing it was the first of Heracles's twelve labours." },
+  { hr = 3982, say = "Leo is usually said to be the lion of Nemea, whose skin no weapon could pierce. Killing it was the first of Heracles's twelve labours." },
   { hr = 4057, say = "Its head and mane are the Sickle, a backwards question mark of stars." },
   { hr = 3982, say = "Regulus, at the bottom of the Sickle, means little king." },
 ]
@@ -120,7 +120,7 @@ mirror = "Most people see six of the Seven Sisters; the seventh only shows once 
 lines = [
   { showpiece = "pleiades", say = "Almost every people on Earth has a story for the Pleiades. To the Greeks they were seven sisters, daughters of Atlas." },
   { showpiece = "pleiades", say = "In Japan they are Subaru, and six of them shine on the car maker's badge." },
-  { showpiece = "pleiades", say = "In Aotearoa New Zealand they are Matariki, whose rising marks the Māori new year. Most people can see six; the seventh takes a dark sky." },
+  { showpiece = "pleiades", say = "In Aotearoa New Zealand they are Matariki, whose rising marks the Māori new year for many iwi. Most people can see six; the seventh takes a dark sky." },
 ]
 
 [[story]]
@@ -129,7 +129,7 @@ title = "The white bull"
 anchor = 1457
 mirror = "Pioneer 10 carries a message for whoever finds it, from people who knew they'd never hear back. A lot of kindness works that way: sent off, never counted."
 lines = [
-  { hr = 1457, say = "Zeus once turned himself into a beautiful white bull to carry the princess Europa across the sea to Crete." },
+  { hr = 1457, say = "Taurus is usually said to be the beautiful white bull Zeus became to carry the princess Europa across the sea to Crete." },
   { hr = 1457, say = "Aldebaran, the bull's eye, means the follower in Arabic: it rises after the Pleiades as if chasing them." },
   { hr = 1457, say = "The Pioneer 10 spacecraft is drifting in its direction, and will pass it in about two million years." },
 ]
@@ -204,10 +204,10 @@ lines = [
 [[story]]
 id = "hercules"
 title = "Hercules and the dragon"
-anchor = 6406
+anchor = 6212
 mirror = "The Arecibo message will take 25,000 years to reach M13. Some things are worth doing even if we never see where they end up."
 lines = [
-  { hr = 6406, say = "Hercules hangs upside down in our sky, kneeling, with a foot near the Dragon's head." },
+  { hr = 6406, say = "Hercules hangs upside down in our sky, kneeling, his head down at Rasalgethi and a foot near the Dragon's head." },
   { showpiece = "m13", say = "In his side is M13, several hundred thousand stars in a ball." },
   { showpiece = "m13", say = "In 1974 the Arecibo radio telescope beamed a message towards it. It will take about 25,000 years to arrive." },
 ]
@@ -218,7 +218,7 @@ title = "Zeus's eagle"
 anchor = 7557
 mirror = "Altair spins that fast and still holds together. Busy days do too, and this part of the day is for slowing down."
 lines = [
-  { hr = 7557, say = "Aquila is the eagle that carried Zeus's thunderbolts, and carried the shepherd boy Ganymede up to Olympus." },
+  { hr = 7557, say = "Aquila is usually Zeus's own eagle, which carried his thunderbolts, and carried the shepherd boy Ganymede up to Olympus." },
   { hr = 7557, say = "Altair spins so fast, once in under eight hours, that it bulges at its middle." },
 ]
 
@@ -238,7 +238,7 @@ title = "The little she-goat"
 anchor = 1708
 mirror = "Capella's one point of light turns out to be four stars keeping each other company. Most of us are held up by more than we can see."
 lines = [
-  { hr = 1708, say = "Capella means little she-goat. In Greek myth it's Amalthea, the goat who fed the infant Zeus." },
+  { hr = 1708, say = "Capella means little she-goat. In Greek myth it's the goat who fed the infant Zeus, most often called Amalthea." },
   { hr = 1708, say = "It looks like one yellow star, but it's two giant stars close together, with a pair of small dim ones further out." },
 ]
 
@@ -249,6 +249,6 @@ anchor = 7796
 pattern = false
 mirror = "Too many suns to count, and today was one day under them. It's good to look at something that big now and then; it puts the day in its place."
 lines = [
-  { hr = 7796, say = "The Greeks said the Milky Way was milk spilt across the sky by the goddess Hera; our word galaxy comes from the Greek for milk." },
+  { hr = 7796, say = "In most Greek tellings the Milky Way is milk spilt across the sky by the goddess Hera as she nursed a baby, Heracles or Hermes; our word galaxy comes from the Greek for milk." },
   { hr = 7796, say = "It's really our own galaxy seen from inside: the light of more stars than you could ever count, too far off to see one by one." },
 ]

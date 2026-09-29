@@ -19,12 +19,12 @@ more = ["Thales is said to have measured 'the Wagon by which the Phoenicians sai
 [[note]]
 abbrev = "Cas"
 fact = "A queen in Greek myth, drawn as a W. It sits across Polaris from the Plough, so one is always easy when the other is low."
-more = ["Tycho Brahe's supernova flared here in 1572.", "As punishment for her boasting she wheels around the pole on her throne, clinging on for half the time so as not to fall."]
+more = ["Tycho Brahe's supernova flared here in 1572.", "As punishment for her boasting she wheels around the pole on her throne, upside down for part of every turn."]
 
 [[note]]
 abbrev = "Cyg"
 fact = "The swan, also called the Northern Cross, flying along the Milky Way. Deneb at its tail is one of the most luminous stars the eye can see."
-more = ["In one Greek story it is Orpheus, turned into a swan after his death and set beside his lyre.", "Cygnus X-1, near eta Cygni, was the first object widely held to be a black hole."]
+more = ["Plato wrote that the soul of Orpheus chose to live again as a swan, and later writers saw him here, beside his lyre.", "Cygnus X-1, near eta Cygni, was the first object widely held to be a black hole."]
 
 [[note]]
 abbrev = "Lyr"
@@ -34,7 +34,7 @@ more = ["The lyre of Orpheus, whose music charmed even Hades into letting his wi
 [[note]]
 abbrev = "Aql"
 fact = "The eagle. Its brightest star, Altair, spins so fast that it bulges at the middle."
-more = ["In Greek myth, the eagle that carried Zeus's thunderbolts and snatched the shepherd boy Ganymede up to Olympus.", "In the Chinese love story of Qi Xi, Altair is Niu Lang, parted forever from his wife Zhi Nu, the star Vega, by the river of the Milky Way."]
+more = ["In Greek myth, the eagle that carried Zeus's thunderbolts and snatched the shepherd boy Ganymede up to Olympus.", "In the Chinese story of the cowherd and the weaver girl, Altair is Niulang, parted from his wife Zhinü, the star Vega in neighbouring Lyra, by the river of the Milky Way; once a year they may meet."]
 
 [[note]]
 abbrev = "Sco"
@@ -44,12 +44,12 @@ more = ["In one Greek myth the scorpion was sent to kill boastful Orion; now Ori
 [[note]]
 abbrev = "Sgr"
 fact = "Its brightest stars make a teapot, and the spout points towards the centre of our galaxy."
-more = ["The Babylonians saw it as the god Pabilsag, a winged, two-headed archer, half man and half beast.", "Its star Nunki may carry the oldest star name still in use, after the Babylonian city of Eridu."]
+more = ["The Babylonians saw it as the god Pabilsag, a winged, two-headed archer, half man and half beast.", "Its star Nunki carries a Babylonian name for the city of Eridu, though the Babylonians may have given it to stars further south."]
 
 [[note]]
 abbrev = "Leo"
 fact = "The lion. A backwards question mark, the Sickle, makes its head, with Regulus at the bottom."
-more = ["The Nemean Lion, killed by Heracles in the first of his twelve labours.", "Mesopotamians may have seen a lion in these stars as early as 4000 BC."]
+more = ["Usually said to be the Nemean Lion, killed by Heracles in the first of his twelve labours.", "Mesopotamians may have seen a lion in these stars as early as 4000 BC."]
 
 [[note]]
 abbrev = "Tau"
@@ -99,12 +99,12 @@ more = ["Procyon means 'before the dog': from northern lands it rises a little a
 [[note]]
 abbrev = "Vir"
 fact = "The largest constellation of the zodiac, with blue-white Spica as its brightest star."
-more = ["It holds the Virgo Cluster of galaxies, among them the giant M87.", "The Greeks saw Astraea, goddess of justice, who fled to the sky when the Silver Age ended."]
+more = ["It holds the Virgo Cluster of galaxies, among them the giant M87.", "The Greek poet Aratus saw Justice, later called Astraea, who fled to the sky when the Bronze Age began."]
 
 [[note]]
 abbrev = "CrB"
 fact = "The northern crown: a small semicircle of stars, easy to pick out once seen."
-more = ["In Greek myth, the crown that Dionysus gave to Ariadne, which she set among the stars.", "T Coronae Borealis, the Blaze Star, is a recurrent nova; it last flared up, to about magnitude 3, in 1946."]
+more = ["In Greek myth, Ariadne's wedding crown, which Dionysus set among the stars.", "T Coronae Borealis, the Blaze Star, is a recurrent nova; it last flared up, to about magnitude 3, in 1946."]
 
 [[note]]
 abbrev = "Her"
@@ -114,7 +114,7 @@ more = ["The fifth-largest constellation, yet it has no star brighter than magni
 [[note]]
 abbrev = "Dra"
 fact = "The dragon winds between the two bears. One of its stars, Thuban, was the pole star when the pyramids were built."
-more = ["In one Greek myth Athena hurled the dragon into the sky, where it froze, still twisted, at the cold north pole.", "In 1728 James Bradley discovered the aberration of starlight by watching its brightest star, gamma Draconis."]
+more = ["In one Greek myth the Giants hurled the dragon at Athena; she caught it and flung it into the sky, where it still lies twisted at the north pole.", "In 1728 James Bradley discovered the aberration of starlight by watching its brightest star, gamma Draconis."]
 
 [[note]]
 abbrev = "Cru"
@@ -129,7 +129,7 @@ more = ["Its alpha and beta stars are the southern pointers, leading the eye to 
 [[note]]
 abbrev = "Car"
 fact = "The keel of a great ship. Canopus, the second-brightest star in the night sky, is here."
-more = ["It was once part of Argo Navis, the ship of Jason and the Argonauts, until Lacaille divided the ship in three in 1763.", "Canopus is named after the navigator of Menelaus, king of Sparta."]
+more = ["It was once part of Argo Navis, the ship of Jason and the Argonauts, until Lacaille divided the ship in three in 1756.", "Canopus is named after the navigator of Menelaus, king of Sparta."]
 
 [[note]]
 abbrev = "Psc"
@@ -139,7 +139,7 @@ more = ["The Greeks and Romans pictured two fishes, each tied by a cord, the cor
 [[note]]
 abbrev = "Aqr"
 fact = "The water-bearer, pouring a stream of faint stars down towards Fomalhaut."
-more = ["The Babylonians saw the god Ea here, holding an overflowing vase.", "In ancient Egypt the Nile was said to flood when Aquarius dipped his jar into the river."]
+more = ["The Babylonians saw the god Ea here, holding an overflowing vase.", "Many Greeks saw Ganymede here, the Trojan boy carried up to Olympus to pour for the gods."]
 
 [[note]]
 abbrev = "Ari"
@@ -149,7 +149,7 @@ more = ["Before late Babylonian times its stars were not a ram but a farmhand, '
 [[note]]
 abbrev = "Cap"
 fact = "The sea goat, a wide triangle of fairly faint stars and one of the oldest constellations on record."
-more = ["The Sun stood here at the December solstice until about 130 BC; the Tropic of Capricorn still bears its name.", "In one Greek myth it is Amalthea, the goat that fed the infant Zeus; her broken horn became the horn of plenty."]
+more = ["The Sun stood here at the December solstice until about 130 BC; the Tropic of Capricorn still bears its name.", "In Greek myth it is Pan, who escaped the monster Typhon by leaping into a river and turning the lower half of his body into a fish."]
 
 [[note]]
 abbrev = "Cnc"

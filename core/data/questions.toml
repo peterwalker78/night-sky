@@ -38,7 +38,7 @@ id = "pole-south-3am"
 thread = "people"
 on = "pole-south"
 answer = "name"
-text = "The Southern Cross points to the one still place the whole southern sky turns around, though no star marks it. Who is still there for you like that, someone who'd pick up if you rang at 3am?"
+text = "The Southern Cross points to the one still place the whole southern sky turns around, though no bright star marks it. Who is still there for you like that, someone who'd pick up if you rang at 3am?"
 
 [[question]]
 id = "moons-running"

@@ -74,6 +74,22 @@ NAMES = {
     "Com": "Coma Berenices, Berenice's Hair",
     "Cap": "Capricornus, the Sea Goat",
     "Ser": "Serpens, the Serpent",
+    "CrA": "Corona Australis, the Southern Crown",
+    "Cae": "Caelum, the Chisel",
+    "Dor": "Dorado, the Dolphinfish",
+    "Hya": "Hydra, the Water Snake",
+    "Hyi": "Hydrus, the Lesser Water Snake",
+    "Nor": "Norma, the Set Square",
+    "Ret": "Reticulum, the Reticle",
+    "Pic": "Pictor, the Painter's Easel",
+    "Men": "Mensa, Table Mountain",
+    "Cir": "Circinus, the Compasses",
+    "Pyx": "Pyxis, the Mariner's Compass",
+    "Cet": "Cetus, the Sea Monster",
+    "Aqr": "Aquarius, the Water Bearer",
+    "Eri": "Eridanus, the River",
+    "Oph": "Ophiuchus, the Serpent Bearer",
+    "Cha": "Chamaeleon, the Chameleon",
 }
 
 

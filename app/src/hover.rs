@@ -31,6 +31,11 @@ pub(crate) struct Hovered {
 const REACH: f64 = 20.0;
 /// Stars brighter than this answer to the pointer even without a name.
 const NAMELESS: f32 = 4.5;
+/// Stars drawn in a neighbour's figure, and the constellation they're
+/// really in: nu Puppis in Carina's (the old ship Argo, drawn as one), and
+/// delta and nu Ophiuchi in the Serpent's, which passes through Ophiuchus's
+/// hands.
+const BORROWED: [(u16, &str); 3] = [(2451, "Pup"), (6056, "Oph"), (6698, "Oph")];
 /// A hint fades once the pointer has been still this long.
 const STILL_MS: UnixMs = 4_000;
 
@@ -224,11 +229,20 @@ impl Game {
             if (sx - x).abs() > 40.0 || (sy - y).abs() > 40.0 {
                 continue;
             }
+            // A few figures borrow stars from their neighbours; those stars
+            // are named for the constellation they're really in.
+            let home = BORROWED
+                .iter()
+                .find(|(hr, _)| *hr == star.hr)
+                .map(|(_, abbrev)| *abbrev);
             let figure = self
                 .sky
                 .figures
                 .iter()
-                .find(|f| f.edges.iter().any(|&(a, b)| a == star.hr || b == star.hr))
+                .find(|f| match home {
+                    Some(abbrev) => f.abbrev == abbrev,
+                    None => f.edges.iter().any(|&(a, b)| a == star.hr || b == star.hr),
+                })
                 .map(|f| f.name.split(',').next().unwrap_or(&f.name).to_owned());
             let brightness = match star.mag {
                 m if m < 1.5 => "One of the brightest stars",
