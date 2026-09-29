@@ -81,6 +81,9 @@ pub struct Session {
     finds: usize,
     found: usize,
     all_found_at: Option<UnixMs>,
+    /// Held still since then: the evening waits while the wisp keeps
+    /// someone company in the background.
+    held: Option<UnixMs>,
 }
 
 fn smoothstep(x: f64) -> f64 {
@@ -99,7 +102,31 @@ impl Session {
             finds,
             found: 0,
             all_found_at: None,
+            held: None,
         }
+    }
+
+    /// Holds the evening where it is: nothing moves on until `resume`.
+    pub fn hold(&mut self, now: UnixMs) {
+        if self.held.is_none() {
+            self.held = Some(now);
+        }
+    }
+
+    /// Carries on from where it was held, as if no time had passed.
+    pub fn resume(&mut self, now: UnixMs) {
+        if let Some(at) = self.held.take() {
+            let gap = now - at;
+            self.started += gap;
+            self.phase_since += gap;
+            if let Some(found) = &mut self.all_found_at {
+                *found += gap;
+            }
+        }
+    }
+
+    pub fn held(&self) -> bool {
+        self.held.is_some()
     }
 
     pub fn phase(&self) -> Phase {
@@ -108,7 +135,7 @@ impl Session {
 
     /// Time spent in the current phase.
     pub fn in_phase(&self, now: UnixMs) -> UnixMs {
-        now - self.phase_since
+        self.held.unwrap_or(now) - self.phase_since
     }
 
     fn enter(&mut self, phase: Phase, now: UnixMs) -> Option<Phase> {
@@ -119,6 +146,9 @@ impl Session {
 
     /// Moves on by itself where the arc does; returns the new phase.
     pub fn tick(&mut self, now: UnixMs) -> Option<Phase> {
+        if self.held.is_some() {
+            return None;
+        }
         let t = self.timings;
         let here = self.in_phase(now);
         match self.phase {
@@ -174,7 +204,7 @@ impl Session {
 
     /// How quickly things move: 1 at the start, easing to `CALMEST`.
     pub fn tempo(&self, now: UnixMs) -> f64 {
-        let x = (now - self.started) as f64 / self.timings.slowing as f64;
+        let x = (self.held.unwrap_or(now) - self.started) as f64 / self.timings.slowing as f64;
         let base = 1.0 - (1.0 - CALMEST) * smoothstep(x);
         match self.phase {
             Phase::Finale | Phase::LightsOut | Phase::Over => CALMEST.min(base),
@@ -289,6 +319,21 @@ mod tests {
             t += 50;
         }
         assert!(s.lapse(t) >= Timings::STANDARD.lapse_sky - 1);
+    }
+
+    #[test]
+    fn a_held_evening_waits_and_carries_on_where_it_was() {
+        let mut s = Session::new(0, Timings::STANDARD, 5, false);
+        run_until(&mut s, 0, 10_000);
+        assert_eq!(s.phase(), Phase::Hunt);
+        s.hold(20 * MINUTE);
+        let tempo = s.tempo(20 * MINUTE);
+        assert!(run_until(&mut s, 20 * MINUTE, 3 * HOUR).is_empty());
+        assert_eq!(s.tempo(3 * HOUR), tempo);
+        s.resume(3 * HOUR);
+        assert_eq!(s.phase(), Phase::Hunt);
+        let changes = run_until(&mut s, 3 * HOUR, 4 * HOUR);
+        assert!(changes[0].0 >= 3 * HOUR + 5 * MINUTE, "{changes:?}");
     }
 
     #[test]

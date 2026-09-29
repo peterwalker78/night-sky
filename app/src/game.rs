@@ -220,6 +220,8 @@ pub struct Game {
     offered_wind_down: bool,
     /// Plans whose night is tonight: what, and where in the sky it happens.
     pub(crate) plan_marks: Vec<(String, PlanWhere)>,
+    /// Keeping the user company in the background.
+    pub(crate) keep: crate::keep::Keep,
 }
 
 /// Where a planned sky event happens.
@@ -231,6 +233,15 @@ pub(crate) enum PlanWhere {
 }
 
 pub(crate) const WARM: Rgb = [1.0, 0.86, 0.66];
+
+/// How many finds a visit in the small hours offers.
+const LATE_FINDS: usize = 5;
+
+/// Whether it's the small hours, by the local clock: past midnight and
+/// before five.
+pub(crate) fn late(now: UnixMs, offset_s: i32) -> bool {
+    westering_core::time::clock(now, offset_s).0 < 5
+}
 const RETICLE: Rgb = [0.78, 0.84, 1.0];
 
 pub(crate) fn smoothstep(x: f64) -> f64 {
@@ -320,9 +331,13 @@ impl Game {
         } = options;
         let now = clock.sky(real_now);
         let night = night_key(night_of(now, offset_s));
-        let finds = tonight(&sky, observer, now, offset_s, &|id| {
+        let mut finds = tonight(&sky, observer, now, offset_s, &|id| {
             journal.times_found_before(id, &night)
         });
+        // In the small hours, a shorter evening.
+        if late(now, offset_s) {
+            finds.truncate(LATE_FINDS);
+        }
         let caught: Vec<bool> = finds
             .iter()
             .map(|f| journal.found_on(&f.id, &night))
@@ -460,6 +475,7 @@ impl Game {
             ending: None,
             offered_wind_down: false,
             plan_marks,
+            keep: crate::keep::Keep::new(),
         };
         game.arrive(real_now);
         game
@@ -781,6 +797,23 @@ impl Game {
         self.last_input = real;
     }
 
+    fn toggle_music(&mut self, real: UnixMs) {
+        let quiet = !self.journal.settings.quiet;
+        self.journal.settings.quiet = quiet;
+        if let Err(e) = self.journal.save_settings() {
+            eprintln!("westering: couldn't save settings: {e}");
+        }
+        self.say(
+            if quiet {
+                "Music off."
+            } else {
+                "Music back on."
+            },
+            real,
+            2_500,
+        );
+    }
+
     pub(crate) fn hunting(&self) -> bool {
         self.session.phase() == Phase::Hunt
     }
@@ -798,6 +831,20 @@ impl Game {
             self.held.space = true;
         }
         let phase = self.session.phase();
+        if self.keeping() {
+            // In the background only a few keys mean anything.
+            match key {
+                gdk::Key::k | gdk::Key::K => self.toggle_company(real),
+                gdk::Key::w | gdk::Key::W => {
+                    self.stop_company(real);
+                    self.wind_down(real);
+                }
+                gdk::Key::Return | gdk::Key::KP_Enter => return self.guide_next(real),
+                gdk::Key::m | gdk::Key::M => self.toggle_music(real),
+                _ => return false,
+            }
+            return true;
+        }
         if matches!(phase, Phase::Finale | Phase::LightsOut | Phase::Over)
             && matches!(key, gdk::Key::Escape | gdk::Key::q | gdk::Key::Q)
         {
@@ -845,22 +892,8 @@ impl Game {
             gdk::Key::Down => self.held.down = true,
             gdk::Key::question | gdk::Key::F1 => self.guide_help(real),
             gdk::Key::w | gdk::Key::W => self.wind_down(real),
-            gdk::Key::m | gdk::Key::M => {
-                let quiet = !self.journal.settings.quiet;
-                self.journal.settings.quiet = quiet;
-                if let Err(e) = self.journal.save_settings() {
-                    eprintln!("westering: couldn't save settings: {e}");
-                }
-                self.say(
-                    if quiet {
-                        "Music off."
-                    } else {
-                        "Music back on."
-                    },
-                    real,
-                    2_500,
-                );
-            }
+            gdk::Key::m | gdk::Key::M => self.toggle_music(real),
+            gdk::Key::k | gdk::Key::K => self.toggle_company(real),
             gdk::Key::c | gdk::Key::C => {
                 if self.hunting() && self.card.is_none() && self.talk.prompt.is_none() {
                     self.start_drawing(real);
@@ -995,7 +1028,11 @@ impl Game {
         }
         if self.on_wisp(x, y) {
             // With more to say, a click hurries it on; otherwise it helps.
-            if !self.guide_next(real) {
+            if self.keeping() {
+                if !self.guide_next(real) {
+                    self.toggle_company(real);
+                }
+            } else if !self.guide_next(real) {
                 self.guide_help(real);
             }
             return;
@@ -1142,6 +1179,7 @@ impl Game {
 
     pub fn show_tonight(&self) -> bool {
         matches!(self.session.phase(), Phase::Hunt)
+            && !self.keeping()
             && !self.finds.is_empty()
             && self.eye_alpha < 0.3
     }
@@ -1394,7 +1432,10 @@ impl Game {
         if self.session.phase() == Phase::Over {
             self.quit = true;
         }
-        self.tick_talk(real);
+        self.company_tick(real, true);
+        if !self.keeping() {
+            self.tick_talk(real);
+        }
         self.guide_tick(real);
         let tempo = self.session.tempo(real);
         self.steer(dt, tempo);
@@ -1497,6 +1538,9 @@ impl Game {
 
     /// Where the evening is, and what to do now.
     pub fn evening(&self, real: UnixMs) -> Option<Evening> {
+        if self.keeping() {
+            return None;
+        }
         let (step, now) = match self.session.phase() {
             Phase::Arrival => (0, "Settling in"),
             Phase::Weights if self.placing() => (0, "Arrows move it, Enter leaves it there to set"),
@@ -2261,10 +2305,15 @@ impl Game {
         let lines = self.pattern_lines(real, hz, dt);
         self.draw_reticle(real, tempo);
 
-        let brightness = self.session.brightness(real);
+        // Keeping company, the sky settles back.
+        let brightness = self.session.brightness(real) * (1.0 - 0.45 * self.keep.mix);
         let veil = self.finale_veil(real);
         let frame_texture = self.field.texture((brightness * (1.0 - veil)) as f32 * 1.0);
-        let mut texts = self.labels(real, now, hz, prec, brightness);
+        let mut texts = if self.keeping() {
+            Vec::new()
+        } else {
+            self.labels(real, now, hz, prec, brightness)
+        };
         texts.extend(self.mark_labels(hz, brightness));
         texts.extend(self.plan_mark_frame(now, hz, prec, real));
         for &(x, y, name, a) in &self.moon_labels {
@@ -2277,7 +2326,9 @@ impl Game {
             ));
         }
         texts.extend(self.words(real, brightness));
-        texts.extend(self.hover_frame(real, now, hz, prec));
+        if !self.keeping() {
+            texts.extend(self.hover_frame(real, now, hz, prec));
+        }
         let (sprites, bubble, embers) = self.guide_frame(real, brightness);
         if let Some(i) = self.eye
             && self.eye_alpha > 0.05
@@ -2356,14 +2407,14 @@ impl Game {
             c.y += smoothstep(f) * 10.0;
             Some(c)
         });
-        let compass = matches!(
+        let compass = (matches!(
             self.session.phase(),
             Phase::Arrival | Phase::Weights | Phase::Hunt | Phase::Dimming
-        )
-        .then(|| crate::view::Compass {
-            heading: cam.az,
-            alpha: brightness.max(0.5),
-        });
+        ) && self.keep.mix < 0.5)
+            .then(|| crate::view::Compass {
+                heading: cam.az,
+                alpha: brightness.max(0.5),
+            });
         Frame {
             eyepiece,
             card,
@@ -2460,7 +2511,7 @@ impl Game {
 
     fn draw_reticle(&mut self, real: UnixMs, tempo: f64) {
         let ringed = matches!(self.session.phase(), Phase::Hunt | Phase::Arrival) || self.placing();
-        if !ringed || self.card.is_some() {
+        if !ringed || self.card.is_some() || self.keeping() {
             return;
         }
         let r = self.reticle_radius();
@@ -2604,6 +2655,20 @@ impl Game {
                     .color([1.0, 0.84, 0.68]),
             );
         }
+        if self.keep.mix > 0.01 {
+            // One quiet line, clear of the menu button in a narrow window.
+            out.push(
+                Text::new(
+                    w / 2.0,
+                    20.0,
+                    "Keeping you company · K brings the sky back",
+                    12.0,
+                    0.45 * self.keep.mix,
+                )
+                .centred()
+                .wrap((w - 140.0).max(120.0)),
+            );
+        }
         if let Some(c) = &self.caption {
             let a = envelope(real - c.shown, 1_500, c.hold, 2_000);
             out.push(
@@ -2643,10 +2708,11 @@ impl Game {
     pub fn music_level(&self, real: UnixMs) -> f64 {
         let b = self.session.brightness(real);
         let dim = westering_core::session::DIM;
-        match self.session.phase() {
+        let level = match self.session.phase() {
             Phase::LightsOut | Phase::Over => 0.6 * b / dim,
             _ => 0.6 + 0.4 * ((b - dim) / (1.0 - dim)).max(0.0),
-        }
+        };
+        level * self.company_music(real)
     }
 
     pub fn quiet(&self) -> bool {
@@ -2664,7 +2730,12 @@ impl Game {
     /// How often to draw, in milliseconds: smooth while anything moves,
     /// half pace while the wisp hovers or something fades, slow at rest.
     pub fn frame_ms(&self, real: UnixMs) -> i64 {
-        if self.wants_fast_frames(real) || self.wisp_motion() == 2 {
+        let fast = self.wants_fast_frames(real);
+        if self.keeping() && !fast && self.wisp_motion() == 0 && self.keep.mix > 0.99 {
+            // In the background the sky barely needs drawing.
+            return 250;
+        }
+        if fast || self.wisp_motion() == 2 {
             16
         } else if self.wisp_motion() == 1
             || self.leaving_card.is_some()

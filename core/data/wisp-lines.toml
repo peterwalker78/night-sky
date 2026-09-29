@@ -100,3 +100,29 @@ longest-night = "The longest night was {day}. From here the days lengthen again,
 # A person's star, when it's up. Not every night: now and then.
 [star]
 text = "{name}'s star, {star}, is up tonight, {where}."
+
+# Keeping someone company in the background, with the music on. The wisp
+# looks in every half hour or so; what it says leans towards looking after
+# yourself, and towards bed as it gets late. It always ends: after two
+# hours, or once it's well past midnight, it winds the evening down.
+[company]
+start = "I'll keep you company. The music plays on, and I'll look in on you now and then. K, or a click on me, brings the sky back."
+back = "There's the sky again."
+not-yet = "Once you're looking up at the sky, K lets me keep you company in the background."
+care = [
+  "Still here. Let your shoulders drop, and your jaw.",
+  "A sip of water, if there's some nearby.",
+  "Look at something far away for a moment: eyes like a change of distance.",
+  "If you've been sitting a while, stand up and stretch. I'll wait.",
+  "Breathe out slowly, a little longer than the breath in. Once more.",
+  "Unclench your hands for a moment. There.",
+  "Is the light where you are soft enough? Gentler light makes for an easier night.",
+  "Warm enough? Small comforts count for a lot.",
+]
+people = [
+  "{name} might like to hear from you some time. No rush.",
+  "Is there someone you've been meaning to send a few words to? Tonight's as good a night as any.",
+]
+risen = "{name} has come up since you put me on, {where}."
+late = "It's getting late. Whenever you're ready, W winds down and I'll see you off to bed."
+closing = "That's been a good long while. I'll wind down now, and the music with me."

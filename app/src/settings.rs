@@ -239,6 +239,15 @@ impl Settings {
             j.settings.volume = Some(v.value());
             let _ = j.save_settings();
         });
+        let company = gtk::Button::with_label("Start");
+        company.add_css_class("chip");
+        let me = self.me.borrow().clone();
+        company.connect_clicked(move |_| {
+            if let Some(me) = me.upgrade() {
+                me.request(None);
+                me.game.borrow_mut().toggle_company(crate::wall_clock());
+            }
+        });
         group(
             &self.body,
             "SOUND",
@@ -249,6 +258,11 @@ impl Settings {
                     &music,
                 ),
                 row("Volume", "", &volume),
+                row(
+                    "Keep me company",
+                    "Leave the music playing while you get on with something else, in a window of any size. The sky rests, and the wisp looks in on you now and then. K starts and stops it.",
+                    &company,
+                ),
             ],
         );
 

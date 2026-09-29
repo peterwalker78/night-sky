@@ -219,12 +219,22 @@ pub fn turned(now: UnixMs, lat: f64) -> Option<(TurnKind, UnixMs)> {
     Some((kind, hi))
 }
 
-/// Something bright that was below the horizon at this hour on an earlier
-/// evening (`then`) and is well up now: a planet if one fits, otherwise
-/// one of the brightest named stars.
-pub fn risen(sky: &Sky, observer: Observer, then: UnixMs, now: UnixMs) -> Option<String> {
+/// Something bright that was below the horizon at an earlier moment
+/// (`then`) and is well up now: a planet if one fits, otherwise one of the
+/// brightest named stars. Anything in `except` is passed over.
+pub fn risen(
+    sky: &Sky,
+    observer: Observer,
+    then: UnixMs,
+    now: UnixMs,
+    except: &[String],
+) -> Option<String> {
+    let new = |name: &str| !except.iter().any(|e| e == name);
     for body in [Body::Venus, Body::Jupiter, Body::Mars, Body::Saturn] {
-        if see(body, observer, then).alt < 0.0 && see(body, observer, now).alt > 15.0 {
+        if new(body.name())
+            && see(body, observer, then).alt < 0.0
+            && see(body, observer, now).alt > 15.0
+        {
             return Some(body.name().to_owned());
         }
     }
@@ -234,6 +244,7 @@ pub fn risen(sky: &Sky, observer: Observer, then: UnixMs, now: UnixMs) -> Option
         .iter()
         .filter(|s| s.mag < 1.0)
         .filter_map(|s| Some((s, sky.lists.star_name(s.hr)?)))
+        .filter(|(_, n)| new(&n.name))
         .collect();
     stars.sort_by(|a, b| a.0.mag.total_cmp(&b.0.mag));
     stars.into_iter().find_map(|(s, named)| {
@@ -354,8 +365,12 @@ mod tests {
         let sky = Sky::bundled();
         let now = midnight_utc(2026, 12, 14) + 21 * HOUR;
         let then = midnight_utc(2026, 8, 14) + 21 * HOUR;
-        let name = risen(&sky, LONDON, then, now).expect("something new");
+        let name = risen(&sky, LONDON, then, now, &[]).expect("something new");
         assert!(!name.is_empty());
-        assert_eq!(risen(&sky, LONDON, now - DAY, now), None);
+        assert_ne!(
+            risen(&sky, LONDON, then, now, std::slice::from_ref(&name)),
+            Some(name)
+        );
+        assert_eq!(risen(&sky, LONDON, now - DAY, now, &[]), None);
     }
 }

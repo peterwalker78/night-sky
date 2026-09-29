@@ -333,7 +333,7 @@ impl Game {
         }
     }
 
-    fn finish_weights(&mut self, real: UnixMs) {
+    pub(crate) fn finish_weights(&mut self, real: UnixMs) {
         self.hush();
         self.talk.flow = None;
         self.set_prompt(None);

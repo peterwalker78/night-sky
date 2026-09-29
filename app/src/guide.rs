@@ -384,6 +384,10 @@ impl Game {
             format!("{hello} You've found tonight's sky already; look around as long as you like.")
         } else if self.finds.is_empty() {
             format!("{hello} It's still light out, so there's not much to find yet.")
+        } else if crate::game::late(self.sky_now(real), self.offset_s) {
+            format!(
+                "{hello}{things} It's late, so tonight's sky is a short one. W winds down whenever you're ready."
+            )
         } else {
             format!("{hello}{things}")
         };
@@ -412,7 +416,7 @@ impl Game {
         if let (Some(last), _) = self.earlier_nights() {
             let days = days_between(&last, &self.night);
             if days >= 10 {
-                if let Some(name) = risen(&self.sky, self.observer, now - days * DAY, now) {
+                if let Some(name) = risen(&self.sky, self.observer, now - days * DAY, now, &[]) {
                     return format!("Hello. {}", lines.news.risen.replace("{name}", &name));
                 }
                 if (30..=45).contains(&days) {
@@ -612,6 +616,13 @@ impl Game {
             real,
             9_000,
         );
+        self.say_once(
+            "company",
+            Aim::Near(0.5, 0.35),
+            "Or, if you'd like the music on while you get on with something else, press K. I'll keep you company in the background, in a window as small as you like, and look in on you now and then.",
+            real,
+            12_000,
+        );
     }
 
     pub(crate) fn guide_meteor_left(&mut self, real: UnixMs) {
@@ -734,7 +745,7 @@ impl Game {
     pub(crate) fn guide_help(&mut self, real: UnixMs) {
         self.say_at(
             Aim::Near(0.32, 0.5),
-            "Arrows or a drag look around. Hold Space to catch whatever's in the ring. Tab, or a click on the list, turns you to the next find. Point at anything to see what it is. C draws, L opens the logbook, M turns the music off or on, and W winds down. The button top left opens the menu.",
+            "Arrows or a drag look around. Hold Space to catch whatever's in the ring. Tab, or a click on the list, turns you to the next find. Point at anything to see what it is. C draws, L opens the logbook, M turns the music off or on, K keeps you company in the background, and W winds down. The button top left opens the menu.",
             real,
             15_000,
         );
@@ -924,7 +935,11 @@ impl Game {
     /// Where the wisp's nook sits: on the horizon, bottom left.
     pub(crate) fn nook(&self) -> (f64, f64, f64, f64) {
         let (w, h) = (NOOK.0 * SIZE, NOOK.1 * SIZE);
-        (10.0, self.camera.height - h - 34.0, w, h)
+        // Keeping company it drifts to the middle, where it reads in a
+        // window of any size.
+        let mix = self.keep.mix * self.keep.mix * (3.0 - 2.0 * self.keep.mix);
+        let x = 10.0 + (((self.camera.width - w) / 2.0).max(10.0) - 10.0) * mix;
+        (x, self.camera.height - h - 34.0 + 20.0 * mix, w, h)
     }
 
     /// Where the wisp's body is when it sits on its moss.
@@ -1281,10 +1296,11 @@ impl Game {
             }
             // It rises a little as it appears, and sinks as it goes.
             let lift = (1.0 - a) * 8.0;
-            let width = 300.0;
             let w = self.camera.width;
+            // Narrower in a narrow window.
+            let width = (w - 70.0).clamp(150.0, 300.0);
             let (x, bottom, tail) = if settled {
-                (nx + 26.0, ny + 14.0, true)
+                ((nx + 26.0).min(w - width - 38.0).max(10.0), ny + 14.0, true)
             } else {
                 let right = fx + 36.0 + width + 28.0 < w - 10.0;
                 let x = if right {

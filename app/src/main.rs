@@ -13,6 +13,7 @@ mod guide;
 mod hover;
 mod hud;
 mod idle;
+mod keep;
 mod music;
 mod settings;
 mod sprite;
@@ -381,11 +382,33 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
         glib::random_int() as u64,
         game.borrow().quiet(),
     )));
-    let last_frame = std::cell::Cell::new(0i64);
-    let last_music = std::cell::Cell::new(real);
+    let last_frame = Rc::new(std::cell::Cell::new(0i64));
+    let last_music = Rc::new(std::cell::Cell::new(real));
     let last_list = std::cell::Cell::new(0i64);
     let spent = std::cell::Cell::new((0.0f64, 0u32, real));
     let profile = args.profile;
+    // Keeping company while the window is out of sight, frames stop: a slow
+    // timer keeps the music going and lets the wisp look in. Otherwise it
+    // does nothing.
+    {
+        let (game, music) = (game.clone(), music.clone());
+        let (last_frame, last_music) = (last_frame.clone(), last_music.clone());
+        glib::timeout_add_local(std::time::Duration::from_secs(1), move || {
+            let real = wall_clock();
+            if real - last_frame.get() > 1_500
+                && let Ok(mut g) = game.try_borrow_mut()
+                && g.keeping()
+            {
+                g.company_tick(real, false);
+                let level = g.music_level(real) * g.volume();
+                drop(g);
+                let dt = (real - last_music.get()).clamp(0, 2_000) as f64 / 1000.0;
+                last_music.set(real);
+                music.borrow_mut().tick(level, dt);
+            }
+            glib::ControlFlow::Continue
+        });
+    }
     {
         let game = game.clone();
         let window = window.clone();
@@ -396,7 +419,11 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
             let pace = game.borrow().frame_ms(real);
             let on_sky = !sheet.reveals_child();
             let interval = if !window.is_active() {
-                200
+                if game.borrow().keeping() {
+                    pace.max(200)
+                } else {
+                    200
+                }
             } else if !on_sky {
                 // Still turning behind the panel, gently.
                 100

@@ -59,6 +59,25 @@ same wisp that lives in the [Glimmerwood](https://github.com/peterwalker78/glimm
 browser, out for the night. On your first visit it shows you around. After
 that it keeps quiet unless you seem stuck or ask, with `?` or a click on it. It
 brightens when you catch something, and falls asleep when the lights go out.
+It listens while you write, glows when you name someone, and keeps you soft
+company while you set a worry down. Its breath slows with the evening, and its
+light swells with each breath. In between it does small things on its moss,
+like looking up at what's really in the sky or yawning when it's late. The moss
+follows the real season.
+
+It keeps time the way the sky does. It notices when the sky has come all the
+way round to where it was on your first evening, and when the Sun passes an
+equinox or solstice. After a while away it tells you what has come up in the
+sky since, never how long you were gone.
+
+**Or just keep it running.** Press `K`, or choose Keep me company in the menu,
+and the evening pauses. The sky settles back, the music plays on, and the
+window can be as small as you like: tiled into a corner, or behind everything
+else. Every half hour or so the wisp looks in with a word about looking after
+yourself: a sip of water, a stretch, your shoulders. If the window is out of
+sight, the music softens for a moment, and the word waits for you. It never
+runs for ever. After two hours, or once it's well past midnight, it winds the
+evening down.
 
 ## It wants you to leave
 
@@ -69,7 +88,11 @@ so here so there's no trick in it.
   Once they're found, the sky is done until it has turned. Tomorrow really is
   different: the Moon moves about thirteen degrees a night.
 - **It slows as you play.** The twinkle, the drift and the pace ease down over
-  a visit, towards the speed of slow breathing. Nothing announces it.
+  a visit, towards the speed of slow breathing. Nothing announces it. The
+  wisp's own breath slows to about five and a half a minute, which is easy
+  to fall in with without noticing.
+- **Late nights are short.** In the small hours there are fewer things to
+  find, and the wisp says the way to wind down.
 - **It dims before the end.** Bright light keeps a mind awake, and eyes take
   about twenty minutes to open fully to the dark, so winding down dims the
   screen a little at a time.
@@ -120,6 +143,7 @@ journal, not therapy or a crisis service.
 | `?`, or click the wisp | What the keys do; a click also hurries the wisp on when it has more to say |
 | Point at anything | What it is; click it to hear more |
 | `M` | Music off or on |
+| `K` | Keep me company: the sky rests and the music plays on in the background; `K` again brings the sky back |
 | `W`, or Wind down at the top left | Wind down: the screen dims, and you choose outside or bed |
 | `Ctrl` `,` | Settings |
 | `F11` | Full screen |
