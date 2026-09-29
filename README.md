@@ -244,12 +244,19 @@ under CC BY-SA.
 
 ## The music
 
-Six slow lo-fi tracks, all dedicated to the public domain under CC0: "Ease
-into Night", "Moon Unit", "Into The Mist" and "Calm Currents" by HoliznaCC0,
-and "Chill lofi inspired" and "Lofi Hip Hop Loop" by omfgdude. Sources are in
-[`app/data/music/lofi/CREDITS.md`](app/data/music/lofi/CREDITS.md). The music
-arrives with the sky, eases down as it dims and goes with the lights; `M` moves
-on to the next style, and after the last turns it off.
+Four styles of slow, quiet music, every track dedicated to the public domain
+under CC0, checked on its own source page:
+
+- **Lofi chill:** HoliznaCC0 and omfgdude.
+- **Electro chill:** Art Flower, HoliznaCC0 and The Cynic Project.
+- **Acoustic chill:** piano and guitar by Kistol, Pro Sensory (Alex
+  McCulloch), Patrick Davies, Mr Smith and Ondrosik.
+- **Ambient:** The Cynic Project, HoliznaCC0 and Joth.
+
+Titles, sources and the licence wording on each page are in the `CREDITS.md`
+beside each style in [`app/data/music`](app/data/music). The music arrives
+with the sky, eases down as it dims and goes with the lights; `M` moves on to
+the next style, and after the last turns it off. The menu can choose one too.
 
 ## Licence
 

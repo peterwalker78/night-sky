@@ -437,6 +437,7 @@ fn build(app: &gtk::Application, args: &Rc<Args>) {
                 last_frame.set(real);
                 let mut g = game.borrow_mut();
                 g.focused = window.is_active();
+                g.panel_open = !on_sky;
                 // The panels over the sky fit the window, down to a small tile.
                 let size = (view.width(), view.height());
                 if size != last_size.get() && size.0 > 0 {

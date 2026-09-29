@@ -1219,9 +1219,11 @@ impl Game {
         let at_home_goal = (goal.0 - home.0).abs() < 1.0 && (goal.1 - home.1).abs() < 1.0;
         // Pointed at from beside, with a soft ring, never by flying round it.
         let circle = false;
-        self.guide
-            .flight
-            .step(real, dt, goal, pointing, circle, !at_home_goal);
+        if !self.panel_open {
+            self.guide
+                .flight
+                .step(real, dt, goal, pointing, circle, !at_home_goal);
+        }
         let settled = at_home_goal
             && ((self.guide.flight.x - home.0).powi(2) + (self.guide.flight.y - home.1).powi(2))
                 .sqrt()
@@ -1310,7 +1312,14 @@ impl Game {
             self.guide.flight.body()
         };
         self.guide.wisp.set_body(bw, bh);
-        if let Some(texture) = render_flying(&mut self.guide.wisp, real as f64, self.guide.scale) {
+        // Behind a page opened over the sky the frames come slowly, so the
+        // wisp rests still rather than breathing and bobbing in jerks.
+        if let Some(texture) = render_flying(
+            &mut self.guide.wisp,
+            real as f64,
+            self.guide.scale,
+            !self.panel_open,
+        ) {
             let (sw, sh) = (FLYING.0 * SIZE, FLYING.1 * SIZE);
             sprites.push(Sprite {
                 texture,

@@ -234,6 +234,8 @@ pub struct Game {
     pub(crate) day: Option<crate::day::Day>,
     /// Whether the window has the keyboard.
     pub focused: bool,
+    /// Whether a page (the logbook, the menu) is open over the sky.
+    pub panel_open: bool,
     /// The last full frame, for drawing the wisp over while little else
     /// is changing.
     cached: Option<Cached>,
@@ -522,6 +524,7 @@ impl Game {
             day,
             ground,
             focused: true,
+            panel_open: false,
             cached: None,
             sprite_brightness: 1.0,
             playing: None,

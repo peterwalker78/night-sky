@@ -152,9 +152,10 @@ fn paint(
 /// out flying. One way of drawing it means no jump between the two.
 pub const FLYING: (f64, f64) = (100.0, 100.0);
 
-pub fn render_flying(wisp: &mut Wisp, now: f64, scale: f64) -> Option<gdk::Texture> {
+/// `moving` false draws it at rest, without breathing or bobbing.
+pub fn render_flying(wisp: &mut Wisp, now: f64, scale: f64, moving: bool) -> Option<gdk::Texture> {
     paint(FLYING, scale, |c| {
-        wisp.draw(now, true, true, c);
+        wisp.draw(now, moving, true, c);
     })
 }
 
